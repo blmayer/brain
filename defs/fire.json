@@ -1,0 +1,33 @@
+{
+  "subject": "fire",
+  "definitions": [
+    {
+      "subject": "fire",
+      "verb": "is",
+      "object": "combustion",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/chemistry"
+    },
+    {
+      "subject": "fire",
+      "verb": "is",
+      "object": "hot",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/physics"
+    },
+    {
+      "subject": "fire",
+      "verb": "is",
+      "object": "light",
+      "confidence": 0.96,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/physics"
+    }
+  ]
+}
+EOF 2>&1

@@ -1,0 +1,33 @@
+{
+  "subject": "nature",
+  "definitions": [
+    {
+      "subject": "nature",
+      "verb": "is",
+      "object": "natural world",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/environment"
+    },
+    {
+      "subject": "nature",
+      "verb": "is",
+      "object": "ecosystem",
+      "confidence": 0.96,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/ecology"
+    },
+    {
+      "subject": "nature",
+      "verb": "is",
+      "object": "beautiful",
+      "confidence": 0.90,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/aesthetics"
+    }
+  ]
+}
+EOF 2>&1

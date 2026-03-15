@@ -1,0 +1,33 @@
+{
+  "subject": "water",
+  "definitions": [
+    {
+      "subject": "water",
+      "verb": "is",
+      "object": "liquid",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/chemistry"
+    },
+    {
+      "subject": "water",
+      "verb": "is",
+      "object": "H2O",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/chemistry"
+    },
+    {
+      "subject": "water",
+      "verb": "is",
+      "object": "essential",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    }
+  ]
+}
+EOF 2>&1

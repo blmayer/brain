@@ -1,0 +1,41 @@
+{
+  "subject": "banana",
+  "definitions": [
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "fruit",
+      "confidence": 0.95,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/botany"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "edible",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/botany"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "yellow",
+      "confidence": 0.90,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/botany"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "programming language",
+      "confidence": 0.75,
+      "source": "community knowledge",
+      "date": "2024-01-15",
+      "context": "computer-science/programming-languages/banana-lang"
+    }
+  ]
+}

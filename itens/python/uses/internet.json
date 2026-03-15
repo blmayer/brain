@@ -1,0 +1,10 @@
+{
+  "subject": "python",
+  "verb": "uses",
+  "object": "internet",
+  "confidence": 0.92,
+  "source": "programming knowledge",
+  "date": "2024-01-01",
+  "context": "computer-science/networking"
+}
+EOF 2>&1

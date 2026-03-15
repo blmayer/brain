@@ -1,0 +1,33 @@
+{
+  "subject": "human",
+  "definitions": [
+    {
+      "subject": "human",
+      "verb": "is",
+      "object": "mammal",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    },
+    {
+      "subject": "human",
+      "verb": "is",
+      "object": "primate",
+      "confidence": 0.97,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    },
+    {
+      "subject": "human",
+      "verb": "is",
+      "object": "bipedal",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    }
+  ]
+}
+EOF 2>&1

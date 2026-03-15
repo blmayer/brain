@@ -1,0 +1,25 @@
+{
+  "subject": "[",
+  "definitions": [
+    {
+      "subject": "[",
+      "verb": "is",
+      "object": "array literal",
+      "confidence": 0.98,
+      "source": "lua documentation",
+      "date": "2024-01-01",
+      "context": "computer-science/programming-languages/lua"
+    },
+    {
+      "subject": "[",
+      "verb": "is",
+      "object": "slice literal",
+      "confidence": 0.95,
+      "source": "golang spec",
+      "date": "2024-01-01",
+      "context": "computer-science/programming-languages/go"
+    }
+  ]
+}
+
+

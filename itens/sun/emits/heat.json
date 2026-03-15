@@ -1,0 +1,10 @@
+{
+  "subject": "sun",
+  "verb": "emits",
+  "object": "heat",
+  "confidence": 0.99,
+  "source": "general knowledge",
+  "date": "2024-01-01",
+  "context": "general/astronomy"
+}
+EOF 2>&1

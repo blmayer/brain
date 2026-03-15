@@ -1,0 +1,14 @@
+
+{
+  "input": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "api_key": ""
+  },
+  "output": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "api_key": ""
+  }
+}
+

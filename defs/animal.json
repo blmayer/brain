@@ -1,0 +1,33 @@
+{
+  "subject": "animal",
+  "definitions": [
+    {
+      "subject": "animal",
+      "verb": "is",
+      "object": "multicellular organism",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    },
+    {
+      "subject": "animal",
+      "verb": "is",
+      "object": "living",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    },
+    {
+      "subject": "animal",
+      "verb": "is",
+      "object": "mobile",
+      "confidence": 0.90,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "general/biology"
+    }
+  ]
+}
+EOF 2>&1
