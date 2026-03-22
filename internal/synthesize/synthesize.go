@@ -1,4 +1,3 @@
-
 package synthesize
 
 import (
@@ -24,8 +23,10 @@ Instructions:
 2. Prioritize higher confidence information
 3. If confidence is below 0.5, note uncertainty
 4. Cite sources when available
-5. If no triplets found, say "I don't have information about that."`, formatTriplets(triplets))
+5. If the triplets indicate a greeting (user said hi, hello, etc.), respond with a friendly greeting
+6. If no triplets found, say "Hello! How can I help you today?" or a similar friendly greeting`, formatTriplets(triplets))
 }
+
 func formatTriplets(triplets []search.Triplet) string {
 	if len(triplets) == 0 {
 		return "(No triplets found)"
@@ -38,13 +39,13 @@ func formatTriplets(triplets []search.Triplet) string {
 		if t.Context != "" {
 			ctx = fmt.Sprintf(" (context: %s)", t.Context)
 		}
-		
+
 		// Include temporal context if available
 		temporal := ""
 		if t.Date != "" {
 			temporal = fmt.Sprintf(" [%s]", t.Date)
 		}
-		
+
 		s += fmt.Sprintf("- %s %s %s (confidence: %.2f, source: %s, context: %s%s)%s\n",
 			t.Subject, t.Verb, t.Object, t.Confidence, t.Source, t.Context, temporal, ctx)
 	}
@@ -61,3 +62,4 @@ func NeedsUpdate(triplets []search.Triplet) bool {
 	// If no triplets found, we need to update
 	return len(triplets) == 0
 }
+

@@ -1,0 +1,10 @@
+{
+  "subject": "user",
+  "verb": "say",
+  "object": "hi",
+  "confidence": 0.95,
+  "source": "user_input",
+  "date": "2025-12-31",
+  "path": "itens/user/say/hi.json",
+  "context": "casual greeting"
+}

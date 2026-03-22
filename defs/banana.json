@@ -8,6 +8,7 @@
       "confidence": 0.95,
       "source": "general knowledge",
       "date": "2024-01-01",
+      "path": "",
       "context": "general/botany"
     },
     {
@@ -17,15 +18,17 @@
       "confidence": 0.98,
       "source": "general knowledge",
       "date": "2024-01-01",
+      "path": "",
       "context": "general/botany"
     },
     {
       "subject": "banana",
       "verb": "is",
       "object": "yellow",
-      "confidence": 0.90,
+      "confidence": 0.9,
       "source": "general knowledge",
       "date": "2024-01-01",
+      "path": "",
       "context": "general/botany"
     },
     {
@@ -35,7 +38,28 @@
       "confidence": 0.75,
       "source": "community knowledge",
       "date": "2024-01-15",
+      "path": "",
       "context": "computer-science/programming-languages/banana-lang"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "a fruit from the genus Musa",
+      "confidence": 0.98,
+      "source": "botanical classification",
+      "date": "2025-01-27",
+      "path": "",
+      "context": "definition of banana as a botanical classification"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "a fruit from genus Musa",
+      "confidence": 0.98,
+      "source": "botanical classification",
+      "date": "2024-01-20",
+      "path": "",
+      "context": "botanical classification"
     }
   ]
 }

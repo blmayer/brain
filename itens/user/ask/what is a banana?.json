@@ -1,0 +1,10 @@
+{
+  "subject": "user",
+  "verb": "ask",
+  "object": "what is a banana?",
+  "confidence": 0.99,
+  "source": "user_query",
+  "date": "2025-01-15",
+  "path": "itens/user/ask/what is a banana?.json",
+  "context": "user inquiry about banana definition"
+}

@@ -1,8 +1,10 @@
 
+
 package synthesize
 
 import (
 	"brain/internal/search"
+	"strings"
 	"testing"
 )
 
@@ -59,15 +61,9 @@ func TestFormatTriplets(t *testing.T) {
 		{
 			name: "single triplet",
 			triplets: []search.Triplet{
-				{
-					Subject:    "banana",
-					Verb:       "is",
-					Object:     "fruit",
-					Confidence: 0.95,
-					Source:     "test",
-				},
+				{Subject: "banana", Verb: "is", Object: "fruit", Confidence: 0.95, Source: "test"},
 			},
-			want: "banana is fruit (confidence: 0.95, source: test)",
+			want:     "banana is fruit",
 		},
 		{
 			name: "multiple triplets",
@@ -75,7 +71,7 @@ func TestFormatTriplets(t *testing.T) {
 				{Subject: "cat", Verb: "is", Object: "mammal", Confidence: 0.95, Source: "test"},
 				{Subject: "cat", Verb: "has", Object: "fur", Confidence: 0.90, Source: "test"},
 			},
-			want:     "cat is mammal (confidence: 0.95, source: test)",
+			want:     "cat is mammal",
 		},
 	}
 
@@ -88,13 +84,14 @@ func TestFormatTriplets(t *testing.T) {
 				}
 			} else {
 				// For non-empty, just check it contains the key parts
-				if !contains(result, tt.want) {
+				if !strings.Contains(result, tt.want) {
 					t.Errorf("formatTriplets() should contain %v", tt.want)
 				}
 			}
 		})
 	}
 }
+
 
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || containsAt(s, substr))

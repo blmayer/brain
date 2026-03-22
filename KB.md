@@ -133,16 +133,13 @@ Converts retrieved triplets into natural language responses:
 
 ## Parsing Logic
 
-### System Prompt
-Converts natural language questions into S-V-O triplets.
-
 ### Examples
-- "What is a banana?" → {"subject": "banana", "verb": "is", "object": ""}
-- "What does a cat eat?" → {"subject": "cat", "verb": "eats", "object": ""}
-- "Is Python a programming language?" → {"subject": "python", "verb": "is", "object": "programming language"}
-- "What was the capital of France?" → {"subject": "france", "verb": "had", "object": "capital", "temporal_context": "past"}
+- "What is a banana?" → {"subject": "banana", "verb": "is?", "object": ""}
+- "What does a cat eat?" → {"subject": "cat", "verb": "eats?", "object": ""}
+- "Is Python a programming language?" → {"subject": "python", "verb": "is?", "object": "programming language"}
+- "What was the capital of France?" → {"subject": "france", "verb": "had?", "object": "capital", "temporal_context": "past"}
 
-## Dynamic Knowledge Addition
+**Important:** For questions, append '?' to the verb to distinguish from statements.
 
 When a query returns no results:
 1. Ask LLM to generate new knowledge triplet

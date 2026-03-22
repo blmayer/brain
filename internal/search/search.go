@@ -40,6 +40,9 @@ type Query struct {
 func Search(root string, q Query) ([]Triplet, error) {
 	var results []Triplet
 
+	// Normalize verb: strip trailing '?' for matching
+	normalizedVerb := strings.TrimSuffix(q.Verb, "?")
+
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -64,7 +67,7 @@ func Search(root string, q Query) ([]Triplet, error) {
 				defList.Path = path
 				for _, t := range defList.Definitions {
 					t.Path = path
-					if matches(q, t) {
+					if matchesWithNormalizedVerb(q, t, normalizedVerb) {
 						results = append(results, t)
 					}
 				}
@@ -78,10 +81,10 @@ func Search(root string, q Query) ([]Triplet, error) {
 			return nil // Skip invalid JSON
 		}
 
-		t.Path = path
+	t.Path = path
 
 		// Match against query (empty fields match anything)
-		if matches(q, t) {
+		if matchesWithNormalizedVerb(q, t, normalizedVerb) {
 			results = append(results, t)
 		}
 
@@ -89,6 +92,36 @@ func Search(root string, q Query) ([]Triplet, error) {
 	})
 
 	return results, err
+}
+
+// matchesWithNormalizedVerb matches using the normalized verb (without '?')
+func matchesWithNormalizedVerb(q Query, t Triplet, normalizedVerb string) bool {
+	// Check temporal context first
+	if q.TemporalCtx != "" {
+		if !matchesTemporal(t.Date, q.TemporalCtx) {
+			return false
+		}
+	}
+
+	// Check context filter
+	if q.Context != "" {
+		if !strings.Contains(strings.ToLower(t.Context), strings.ToLower(q.Context)) {
+			return false
+		}
+	}
+
+	// Check subject, verb, object
+	if q.Subject != "" && !strings.Contains(strings.ToLower(t.Subject), strings.ToLower(q.Subject)) {
+		return false
+	}
+	// Use normalized verb for matching (strip '?' from query)
+	if normalizedVerb != "" && !strings.Contains(strings.ToLower(t.Verb), strings.ToLower(normalizedVerb)) {
+		return false
+	}
+	if q.Object != "" && !strings.Contains(strings.ToLower(t.Object), strings.ToLower(q.Object)) {
+		return false
+	}
+	return true
 }
 
 func matches(q Query, t Triplet) bool {
