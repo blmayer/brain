@@ -96,7 +96,14 @@ Edit `config.json` to customize providers:
 }
 ```
 
-Supported providers: `openai`, `mistral`, `anthropic`
+Supported providers: `openai`, `mistral`, `anthropic`, `minimax`
+
+### Config File Location
+
+The config file is searched in the following order:
+1. Path provided as command-line argument
+2. `$XDG_CONFIG_HOME/brain/config.json` (or `~/.config/brain/config.json` if `XDG_CONFIG_HOME` is not set)
+3. `./config.json` in the current directory (fallback)
 
 
 ## Adding Knowledge

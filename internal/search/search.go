@@ -3,9 +3,11 @@ package search
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Triplet represents a subject-verb-object triple
@@ -19,8 +21,6 @@ type Triplet struct {
 	Path       string   `json:"path"`
 	Context    string   `json:"context,omitempty"`
 }
-
-// DefinitionList represents a defs file containing multiple definitions for a subject
 type DefinitionList struct {
 	Subject     string     `json:"subject"`
 	Definitions []Triplet  `json:"definitions"`
@@ -200,6 +200,51 @@ func AddTriplet(triplet Triplet, defsDir, itensDir string) error {
 	return nil
 }
 
+
+// getLogFilePath returns the path to the log file in the XDG cache directory
+func getLogFilePath() (string, error) {
+	// Get XDG_CACHE_HOME, default to ~/.cache
+	cacheHome := os.Getenv("XDG_CACHE_HOME")
+	if cacheHome == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		cacheHome = filepath.Join(home, ".cache")
+	}
+
+	// Create brain cache directory if it doesn't exist
+	cacheDir := filepath.Join(cacheHome, "brain")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		return "", err
+	}
+
+	return filepath.Join(cacheDir, "knowledge.log"), nil
+}
+
+// logToFile writes a log message to the log file
+func logToFile(format string, args ...interface{}) {
+	logPath, err := getLogFilePath()
+	if err != nil {
+		log.Printf("Failed to get log file path: %v", err)
+		return
+	}
+
+	msg := fmt.Sprintf(format, args...)
+	logEntry := fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC3339), msg)
+
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Printf("Failed to open log file: %v", err)
+		return
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(logEntry); err != nil {
+		log.Printf("Failed to write to log file: %v", err)
+	}
+}
+
 // writeJSON writes data to a JSON file
 func writeJSON(path string, data interface{}) error {
 	file, err := os.Create(path)
@@ -217,6 +262,10 @@ func writeJSON(path string, data interface{}) error {
 func KnowledgeBase(defsDir, itensDir string, q Query) ([]Triplet, error) {
 	var allResults []Triplet
 
+	// Log the query request to local knowledge
+	logToFile("QUERY REQUEST | Subject: %s | Verb: %s | Object: %s | Context: %s | TemporalCtx: %s",
+		q.Subject, q.Verb, q.Object, q.Context, q.TemporalCtx)
+
 	// Search defs directory
 	defsResults, err := Search(defsDir, q)
 	if err != nil {
@@ -230,6 +279,10 @@ func KnowledgeBase(defsDir, itensDir string, q Query) ([]Triplet, error) {
 		return nil, err
 	}
 	allResults = append(allResults, itensResults...)
+
+	// Log the query response from local knowledge
+	tripletsJSON, _ := json.MarshalIndent(allResults, "", "  ")
+	logToFile("QUERY RESPONSE | Found %d triplet(s): %s", len(allResults), string(tripletsJSON))
 
 	return allResults, nil
 }

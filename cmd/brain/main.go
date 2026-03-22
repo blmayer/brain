@@ -16,20 +16,16 @@ import (
 )
 
 func main() {
-	// Default paths
-	configPath := "config.json"
+	// Default root directory
 	rootDir := "."
 
-	// Allow command line overrides
+	// Allow command line override for root directory
 	if len(os.Args) > 1 {
 		rootDir = os.Args[1]
 	}
-	if len(os.Args) > 2 {
-		configPath = os.Args[2]
-	}
 
-	// Load config
-	cfg, err := config.Load(configPath)
+	// Load config (XDG-compliant, searches in standard locations)
+	cfg, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		os.Exit(1)
@@ -101,40 +97,38 @@ func main() {
 
 		fmt.Printf("Found %d triplet(s)\n", len(triplets))
 
-		// Step 3a: Check if we need to add new knowledge
-		if synthesize.NeedsUpdate(triplets) {
-			fmt.Println("No knowledge found. Generating new knowledge...")
+		// Step 3a: Generate and add new knowledge from user input
+		fmt.Println("Generating knowledge from user input...")
 
-			// Ask LLM to generate new knowledge
-			newTriplet, err := generateNewKnowledge(inputClient, queryResult, input)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating knowledge: %v\n", err)
-				continue
-			}
-
-			// Add the new knowledge to the KB
-			if err := search.AddTriplet(*newTriplet, defsDir, itensDir); err != nil {
-				fmt.Fprintf(os.Stderr, "Error adding knowledge: %v\n", err)
-				continue
-			}
-
-			fmt.Println("New knowledge added!")
-
-			// Now search again with the updated KB
-			triplets, err = search.KnowledgeBase(defsDir, itensDir, search.Query{
-				Subject:     queryResult.Subject,
-				Verb:        queryResult.Verb,
-				Object:      queryResult.Object,
-				Context:     queryResult.Context,
-				TemporalCtx: queryResult.TemporalCtx,
-			})
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error searching: %v\n", err)
-				continue
-			}
+		// Ask LLM to generate new knowledge from user's question
+		newTriplet, err := generateNewKnowledge(inputClient, queryResult, input)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error generating knowledge: %v\n", err)
+			continue
 		}
 
-		// Step 3b: Synthesize the response
+		// Add the new knowledge to the KB
+		if err := search.AddTriplet(*newTriplet, defsDir, itensDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error adding knowledge: %v\n", err)
+			continue
+		}
+
+		fmt.Println("User knowledge added!")
+
+		// Now search again with the updated KB
+		triplets, err = search.KnowledgeBase(defsDir, itensDir, search.Query{
+			Subject:     queryResult.Subject,
+			Verb:        queryResult.Verb,
+			Object:      queryResult.Object,
+			Context:     queryResult.Context,
+			TemporalCtx: queryResult.TemporalCtx,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error searching: %v\n", err)
+			continue
+		}
+
+
 		// Step 3b: Synthesize the response
 		fmt.Println("Synthesizing response...")
 		response, err := synthesizeResponse(outputClient, triplets)
@@ -146,30 +140,24 @@ func main() {
 		fmt.Println("\nAnswer:")
 		fmt.Println(response)
 
-		fmt.Print("\nWould you like to add more information? (yes/no): ")
-		addMore, _ := reader.ReadString('\n')
-		addMore = strings.TrimSpace(strings.ToLower(addMore))
-		if addMore == "yes" {
-			fmt.Print("What would you like to add? ")
-			additionalInfo, _ := reader.ReadString('\n')
-			additionalInfo = strings.TrimSpace(additionalInfo)
-
-			newTriplet, err := incorporateAdditionalKnowledge(inputClient, queryResult, additionalInfo)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error incorporating knowledge: %v\n", err)
-				continue
-			}
-
-			if err := search.AddTriplet(*newTriplet, defsDir, itensDir); err != nil {
-				fmt.Fprintf(os.Stderr, "Error adding knowledge: %v\n", err)
-				continue
-			}
-			fmt.Println("Additional knowledge added!")
+		// Step 3c: Add the provider response to the KB
+		fmt.Println("Adding provider response to knowledge base...")
+		responseTriplet, err := generateResponseKnowledge(inputClient, queryResult, response)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating response knowledge: %v\n", err)
+			continue
 		}
+
+		if err := search.AddTriplet(*responseTriplet, defsDir, itensDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error adding response knowledge: %v\n", err)
+			continue
+		}
+		fmt.Println("Provider response added to knowledge base!")
 		fmt.Println("\n---")
 	}
-}
 
+
+}
 func parseQuery(client *llm.Client, prompt string) (*parse.QueryResult, error) {
 	messages := []llm.Message{
 		{Role: "system", Content: parse.SystemPrompt()},
@@ -194,6 +182,18 @@ func synthesizeResponse(client *llm.Client, triplets []search.Triplet) (string, 
 }
 
 func generateNewKnowledge(client *llm.Client, queryResult *parse.QueryResult, originalPrompt string) (*search.Triplet, error) {
+	// Use defaults if parsed query is empty (e.g., for greetings)
+	subject := queryResult.Subject
+	verb := queryResult.Verb
+	object := queryResult.Object
+
+	if subject == "" || verb == "" || object == "" {
+		// Default to user saying the original prompt
+		subject = "user"
+		verb = "say"
+		object = originalPrompt
+	}
+
 	prompt := fmt.Sprintf(`Based on the question "%s", generate a new knowledge triplet.
 
 Question: %s
@@ -201,10 +201,10 @@ Parsed query: subject=%q, verb=%q, object=%q
 
 Provide a JSON triplet with: subject, verb, object, confidence (0.0-1.0), source, date (YYYY-MM-DD), and context.
 
-Return ONLY the JSON triplet.`, originalPrompt, originalPrompt, queryResult.Subject, queryResult.Verb, queryResult.Object)
+Return ONLY the JSON triplet without any markdown formatting.`, originalPrompt, originalPrompt, subject, verb, object)
 
 	messages := []llm.Message{
-		{Role: "system", Content: `You are a knowledge base generator. Create accurate, factual triplets based on user questions.`},
+		{Role: "system", Content: `You are a knowledge base generator. Create accurate, factual triplets based on user questions. Always return ONLY valid JSON without markdown code blocks.`},
 		{Role: "user", Content: prompt},
 	}
 
@@ -213,8 +213,30 @@ Return ONLY the JSON triplet.`, originalPrompt, originalPrompt, queryResult.Subj
 		return nil, err
 	}
 
+	// Strip markdown code blocks if present
+	jsonStr := strings.TrimSpace(response)
+	// Remove opening ```json or ```
+	for {
+		if strings.HasPrefix(jsonStr, "```json") {
+			jsonStr = strings.TrimPrefix(jsonStr, "```json")
+		} else if strings.HasPrefix(jsonStr, "```") {
+			jsonStr = strings.TrimPrefix(jsonStr, "```")
+		} else {
+			break
+		}
+	}
+	// Remove trailing ```
+	for {
+		if strings.HasSuffix(jsonStr, "```") {
+			jsonStr = strings.TrimSuffix(jsonStr, "```")
+		} else {
+			break
+		}
+	}
+	jsonStr = strings.TrimSpace(jsonStr)
+
 	var triplet search.Triplet
-	err = json.Unmarshal([]byte(response), &triplet)
+	err = json.Unmarshal([]byte(jsonStr), &triplet)
 	if err != nil {
 		return nil, err
 	}
@@ -226,35 +248,67 @@ Return ONLY the JSON triplet.`, originalPrompt, originalPrompt, queryResult.Subj
 		triplet.Date = "2024-01-01"
 	}
 	if triplet.Source == "" {
-		triplet.Source = "generated from user query"
+		triplet.Source = "user"
 	}
 	triplet.Path = ""
 
 	return &triplet, nil
 }
 
-func incorporateAdditionalKnowledge(client *llm.Client, queryResult *parse.QueryResult, additionalInfo string) (*search.Triplet, error) {
-	prompt := fmt.Sprintf(`The user wants to add more information: "%s".
+func generateResponseKnowledge(client *llm.Client, queryResult *parse.QueryResult, response string) (*search.Triplet, error) {
+	// Use the original query context
+	subject := queryResult.Subject
+	verb := queryResult.Verb
+	object := queryResult.Object
 
-Original question: %s
-Parsed query: subject=%q, verb=%q, object=%q
+	// Default if query is empty
+	if subject == "" || verb == "" || object == "" {
+		subject = "assistant"
+		verb = "respond"
+		object = response
+	}
+
+	prompt := fmt.Sprintf(`Based on the response "%s", generate a knowledge triplet.
+
+Response: %s
+Original query: subject=%q, verb=%q, object=%q
 
 Provide a JSON triplet with: subject, verb, object, confidence (0.0-1.0), source, date (YYYY-MM-DD), and context.
 
-Return ONLY the JSON triplet.`, additionalInfo, queryResult.Subject, queryResult.Verb, queryResult.Object)
+Return ONLY the JSON triplet without any markdown formatting.`, response, response, subject, verb, object)
 
 	messages := []llm.Message{
-		{Role: "system", Content: `You are a knowledge base updater. Create accurate triplets based on user-provided information.`},
+		{Role: "system", Content: `You are a knowledge base generator. Create accurate, factual triplets based on responses. Always return ONLY valid JSON without markdown code blocks.`},
 		{Role: "user", Content: prompt},
 	}
 
-	response, err := client.Chat(messages)
+	responseContent, err := client.Chat(messages)
 	if err != nil {
 		return nil, err
 	}
 
+	// Strip markdown code blocks if present
+	jsonStr := strings.TrimSpace(responseContent)
+	for {
+		if strings.HasPrefix(jsonStr, "```json") {
+			jsonStr = strings.TrimPrefix(jsonStr, "```json")
+		} else if strings.HasPrefix(jsonStr, "```") {
+			jsonStr = strings.TrimPrefix(jsonStr, "```")
+		} else {
+			break
+		}
+	}
+	for {
+		if strings.HasSuffix(jsonStr, "```") {
+			jsonStr = strings.TrimSuffix(jsonStr, "```")
+		} else {
+			break
+		}
+	}
+	jsonStr = strings.TrimSpace(jsonStr)
+
 	var triplet search.Triplet
-	err = json.Unmarshal([]byte(response), &triplet)
+	err = json.Unmarshal([]byte(jsonStr), &triplet)
 	if err != nil {
 		return nil, err
 	}
@@ -266,14 +320,10 @@ Return ONLY the JSON triplet.`, additionalInfo, queryResult.Subject, queryResult
 		triplet.Date = "2024-01-01"
 	}
 	if triplet.Source == "" {
-		triplet.Source = "user-provided"
+		triplet.Source = "provider response"
 	}
 	triplet.Path = ""
 
 	return &triplet, nil
 }
 
-func printJSON(v interface{}) {
-	data, _ := json.MarshalIndent(v, "", "  ")
-	fmt.Println(string(data))
-}

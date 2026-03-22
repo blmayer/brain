@@ -28,12 +28,14 @@ Your task is to convert natural language questions into structured triplet queri
 Convert the user's question into a subject-verb-object pattern.
 
 Examples:
+- "hi" or "hello" -> {"subject": "user", "verb": "say", "object": "hi", "temporal_context": "present"}
 - "What is a banana?" -> {"subject": "banana", "verb": "is", "object": "", "temporal_context": "present"}
 - "What does a cat eat?" -> {"subject": "cat", "verb": "eats", "object": "", "temporal_context": "present"}
 - "Is Python a programming language?" -> {"subject": "python", "verb": "is", "object": "programming language", "temporal_context": "present"}
 - "Tell me about the sun" -> {"subject": "sun", "verb": "", "object": "", "temporal_context": "present"}
 - "What was the capital of France?" -> {"subject": "france", "verb": "had", "object": "capital", "temporal_context": "past"}
 - "In 1990, what was Mike's status?" -> {"subject": "mike", "verb": "was", "object": "single", "temporal_context": "1990"}
+- User statements like "I like pizza" -> {"subject": "user", "verb": "like", "object": "pizza", "temporal_context": "present"}
 
 Return ONLY valid JSON with keys: subject, verb, object, ambiguous, context, temporal_context.
 Set ambiguous to true if the query could have multiple meanings.
