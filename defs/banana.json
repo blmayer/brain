@@ -60,6 +60,26 @@
       "date": "2024-01-20",
       "path": "",
       "context": "botanical classification"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "an edible fruit",
+      "confidence": 0.95,
+      "source": "botanical classification",
+      "date": "2024-01-26",
+      "path": "",
+      "context": "fruit classification"
+    },
+    {
+      "subject": "banana",
+      "verb": "is",
+      "object": "edible fruit belonging to genus Musa",
+      "confidence": 0.98,
+      "source": "botanical classification",
+      "date": "2025-01-15",
+      "path": "",
+      "context": "botanical classification confirmed with very high confidence"
     }
   ]
 }

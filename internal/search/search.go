@@ -171,17 +171,20 @@ func matchesTemporal(date string, temporalCtx string) bool {
 
 // AddTriplet adds a new triplet to the knowledge base
 func AddTriplet(triplet Triplet, defsDir, itensDir string) error {
+	// Normalize verb: strip trailing '?' for consistent storage
+	normalizedVerb := strings.TrimSuffix(triplet.Verb, "?")
+
 	// Determine where to store based on verb
 	var targetDir string
 	var filename string
 
 	// Check if it's a definition (verb is "is" or empty)
-	if triplet.Verb == "is" || triplet.Verb == "" {
+	if normalizedVerb == "is" || normalizedVerb == "" {
 		targetDir = defsDir
 		filename = fmt.Sprintf("%s.json", triplet.Subject)
 	} else {
 		// Store in nested hierarchy for relations
-		targetDir = filepath.Join(itensDir, triplet.Subject, triplet.Verb)
+		targetDir = filepath.Join(itensDir, triplet.Subject, normalizedVerb)
 		filename = fmt.Sprintf("%s.json", triplet.Object)
 
 		// Create directory if it doesn't exist
@@ -189,6 +192,9 @@ func AddTriplet(triplet Triplet, defsDir, itensDir string) error {
 			return err
 		}
 	}
+
+	// Update triplet with normalized verb for storage
+	triplet.Verb = normalizedVerb
 
 	path := filepath.Join(targetDir, filename)
 

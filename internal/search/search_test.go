@@ -2,6 +2,7 @@
 package search
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -178,3 +179,54 @@ func TestTripletPath(t *testing.T) {
 	}
 }
 
+
+func TestAddTripletWithQuestionMark(t *testing.T) {
+	// Create temp dirs
+	tmpDir := t.TempDir()
+	defsDir := filepath.Join(tmpDir, "defs")
+	itensDir := filepath.Join(tmpDir, "itens")
+
+	os.MkdirAll(defsDir, 0755)
+	os.MkdirAll(itensDir, 0755)
+
+	// Add a triplet with verb "is?" (question style from parser)
+	triplet := Triplet{
+		Subject:    "banana",
+		Verb:       "is?",
+		Object:     "yellow fruit",
+		Confidence: 0.95,
+		Source:     "test",
+		Date:       "2024-01-01",
+	}
+
+	if err := AddTriplet(triplet, defsDir, itensDir); err != nil {
+		t.Fatalf("AddTriplet() error = %v", err)
+	}
+
+	// Verify it was stored in defs/ (not itens/)
+	expectedPath := filepath.Join(defsDir, "banana.json")
+	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
+		t.Errorf("Expected file at %s, but it doesn't exist", expectedPath)
+	}
+
+	// Verify the stored verb is normalized (without '?')
+	data, _ := os.ReadFile(expectedPath)
+	var storedTriplet Triplet
+	if err := json.Unmarshal(data, &storedTriplet); err != nil {
+		t.Fatalf("Failed to parse stored JSON: %v", err)
+	}
+
+	if storedTriplet.Verb != "is" {
+		t.Errorf("Stored verb = %q, want %q", storedTriplet.Verb, "is")
+	}
+
+	// Now search for it - should find it with verb "is?" query
+	results, err := Search(defsDir, Query{Subject: "banana", Verb: "is?"})
+	if err != nil {
+		t.Fatalf("Search() error = %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Search() got %d results, want 1", len(results))
+	}
+
+}
