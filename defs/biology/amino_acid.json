@@ -1,0 +1,15 @@
+{
+  "subject": "amino acid",
+  "definitions": [
+    {
+      "subject": "amino acid",
+      "verb": "is",
+      "object": "building block of proteins",
+      "confidence": 0.99,
+      "source": "biology",
+      "date": "2024-01-01",
+      "context": "biology/biochemistry"
+    }
+  ]
+}
+

@@ -1,0 +1,15 @@
+{
+  "subject": "light",
+  "definitions": [
+    {
+      "subject": "light",
+      "verb": "is",
+      "object": "electromagnetic radiation",
+      "confidence": 0.98,
+      "source": "physics",
+      "date": "2024-01-01",
+      "context": "physics/optics"
+    }
+  ]
+}
+

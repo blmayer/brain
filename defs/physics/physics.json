@@ -1,0 +1,15 @@
+{
+  "subject": "physics",
+  "definitions": [
+    {
+      "subject": "physics",
+      "verb": "is",
+      "object": "study of matter and energy",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-01-01",
+      "context": "science/physics"
+    }
+  ]
+}
+

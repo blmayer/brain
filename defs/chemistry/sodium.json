@@ -1,0 +1,15 @@
+{
+  "subject": "sodium",
+  "definitions": [
+    {
+      "subject": "sodium",
+      "verb": "is",
+      "object": "a highly reactive metal",
+      "confidence": 0.99,
+      "source": "chemistry",
+      "date": "2024-01-01",
+      "context": "chemistry/periodic-table"
+    }
+  ]
+}
+

@@ -230,3 +230,170 @@ func TestAddTripletWithQuestionMark(t *testing.T) {
 	}
 
 }
+
+func TestMemoryKB(t *testing.T) {
+	// Create temp dirs
+	tmpDir := t.TempDir()
+	defsDir := filepath.Join(tmpDir, "defs")
+	itensDir := filepath.Join(tmpDir, "itens")
+
+	os.MkdirAll(defsDir, 0755)
+	os.MkdirAll(itensDir, 0755)
+
+	// Create some test files in defs
+	os.WriteFile(filepath.Join(defsDir, "banana.json"),
+		[]byte(`{"subject": "banana", "verb": "is", "object": "fruit", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
+
+	// Create some test files in itens
+	os.MkdirAll(filepath.Join(itensDir, "cat", "has"), 0755)
+	os.WriteFile(filepath.Join(itensDir, "cat", "has", "fur.json"),
+		[]byte(`{"subject": "cat", "verb": "has", "object": "fur", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
+
+	// Create a MemoryKB and load it
+	kb := NewMemoryKB()
+	if err := kb.Load(defsDir, itensDir); err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Check count
+	if count := kb.Count(); count != 2 {
+		t.Errorf("Count() = %d, want 2", count)
+	}
+
+	// Test search by subject
+	results := kb.Search(Query{Subject: "banana"})
+	if len(results) != 1 {
+		t.Errorf("Search(banana) got %d results, want 1", len(results))
+	}
+
+	// Test search by verb
+	results = kb.Search(Query{Verb: "has"})
+	if len(results) != 1 {
+		t.Errorf("Search(has) got %d results, want 1", len(results))
+	}
+
+	// Test search empty (all)
+	results = kb.Search(Query{})
+	if len(results) != 2 {
+		t.Errorf("Search(all) got %d results, want 2", len(results))
+	}
+}
+
+func TestGlobalMemoryKB(t *testing.T) {
+	// Create temp dirs
+	tmpDir := t.TempDir()
+	defsDir := filepath.Join(tmpDir, "defs")
+	itensDir := filepath.Join(tmpDir, "itens")
+
+	os.MkdirAll(defsDir, 0755)
+	os.MkdirAll(itensDir, 0755)
+
+	// Create a test file
+	os.WriteFile(filepath.Join(defsDir, "apple.json"),
+		[]byte(`{"subject": "apple", "verb": "is", "object": "fruit", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
+
+	// Initialize global KB
+	if err := InitMemoryKB(defsDir, itensDir); err != nil {
+		t.Fatalf("InitMemoryKB() error = %v", err)
+	}
+
+	// Check global KB is not nil
+	if GetMemoryKB() == nil {
+		t.Error("GetMemoryKB() returned nil")
+	}
+
+	// Check count
+	if count := GetMemoryKB().Count(); count != 1 {
+		t.Errorf("Count() = %d, want 1", count)
+	}
+
+	// Test KnowledgeBaseFromMemory
+	results := KnowledgeBaseFromMemory(Query{Subject: "apple"})
+	if len(results) != 1 {
+		t.Errorf("KnowledgeBaseFromMemory() got %d results, want 1", len(results))
+	}
+
+	// Test AddTripletToMemory
+	AddTripletToMemory(Triplet{
+		Subject:    "orange",
+		Verb:       "is",
+		Object:     "citrus",
+		Confidence: 0.9,
+		Source:     "test",
+		Date:       "2024-01-01",
+	})
+
+	// Check count increased
+	if count := GetMemoryKB().Count(); count != 2 {
+		t.Errorf("After AddTripletToMemory, Count() = %d, want 2", count)
+	}
+}
+
+func TestMemoryKBAddToMemory(t *testing.T) {
+	// Create temp dirs
+	tmpDir := t.TempDir()
+	defsDir := filepath.Join(tmpDir, "defs")
+	itensDir := filepath.Join(tmpDir, "itens")
+
+	os.MkdirAll(defsDir, 0755)
+	os.MkdirAll(itensDir, 0755)
+
+	// Create a MemoryKB with no initial data
+	kb := NewMemoryKB()
+
+	// Check initial count is 0
+	if count := kb.Count(); count != 0 {
+		t.Errorf("Initial Count() = %d, want 0", count)
+	}
+
+	// Add a triplet to memory
+	kb.AddToMemory(Triplet{
+		Subject:    "grape",
+		Verb:       "is",
+		Object:     "small",
+		Confidence: 0.8,
+		Source:     "test",
+		Date:       "2024-01-01",
+	})
+
+	// Check count is now 1
+	if count := kb.Count(); count != 1 {
+		t.Errorf("After AddToMemory, Count() = %d, want 1", count)
+	}
+
+	// Check we can find it
+	results := kb.Search(Query{Subject: "grape"})
+	if len(results) != 1 {
+		t.Errorf("Search(grape) got %d results, want 1", len(results))
+	}
+}
+
+func TestMemoryKBSearchQuestionVerb(t *testing.T) {
+	// Create temp dirs
+	tmpDir := t.TempDir()
+	defsDir := filepath.Join(tmpDir, "defs")
+	itensDir := filepath.Join(tmpDir, "itens")
+
+	os.MkdirAll(defsDir, 0755)
+	os.MkdirAll(itensDir, 0755)
+
+	// Create a test file
+	os.WriteFile(filepath.Join(defsDir, "water.json"),
+		[]byte(`{"subject": "water", "verb": "is", "object": "wet", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
+
+	// Create a MemoryKB and load it
+	kb := NewMemoryKB()
+	if err := kb.Load(defsDir, itensDir); err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Test searching with verb "is?" (question style) should find the stored "is"
+	results := kb.Search(Query{Subject: "water", Verb: "is?"})
+	if len(results) != 1 {
+		t.Errorf("Search(water, is?) got %d results, want 1", len(results))
+	}
+	if len(results) > 0 && results[0].Verb != "is" {
+		t.Errorf("Result verb = %q, want %q", results[0].Verb, "is")
+	}
+}
+

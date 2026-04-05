@@ -1,0 +1,15 @@
+{
+  "subject": "bacteria",
+  "definitions": [
+    {
+      "subject": "bacteria",
+      "verb": "is",
+      "object": "single-celled microorganism",
+      "confidence": 0.98,
+      "source": "biology",
+      "date": "2024-01-01",
+      "context": "biology/microbiology"
+    }
+  ]
+}
+

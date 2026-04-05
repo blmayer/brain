@@ -47,9 +47,18 @@ func main() {
 		}
 	}
 
+	// Load knowledge base into memory at startup
+	fmt.Println("Loading knowledge base into memory...")
+	if err := search.InitMemoryKB(defsDir, itensDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading knowledge base: %v\n", err)
+		os.Exit(1)
+	}
+	count := search.GetMemoryKB().Count()
+	fmt.Printf("Knowledge base loaded: %d triplet(s) in memory\n", count)
+
 	// Interactive mode
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Brain - Knowledge Base System")
+	fmt.Println("\nBrain - Knowledge Base System")
 	fmt.Println("-------------------------------")
 	fmt.Println("Ask me anything (type 'quit' to exit):")
 
@@ -65,11 +74,22 @@ func main() {
 			break
 		}
 
+		if input == "reload" {
+			// Reload the knowledge base from disk
+			fmt.Println("Reloading knowledge base...")
+			if err := search.GetMemoryKB().Reload(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error reloading knowledge base: %v\n", err)
+				continue
+			}
+			fmt.Printf("Knowledge base reloaded: %d triplet(s) in memory\n", search.GetMemoryKB().Count())
+		continue
+		}
+
 		if input == "" {
 			continue
 		}
 
-		// Step 1: Parse the query using LLM
+		// Step 1: Parse the query
 		fmt.Println("Parsing query...")
 		queryResult, err := parseQuery(inputClient, input)
 		if err != nil {
@@ -77,14 +97,9 @@ func main() {
 			continue
 		}
 
-		// Debug: show parsed query
-		fmt.Printf("Parsed: %d triplet(s)\n", len(queryResult.Triplets))
-		for i, t := range queryResult.Triplets {
-			fmt.Printf("  [%d] subject=%q, verb=%q, object=%q\n", i, t.Subject, t.Verb, t.Object)
-		}
+		var allTriplets []search.Triplet
 
 		// Step 2: Add user knowledge to KB first, then search for related knowledge
-		var allTriplets []search.Triplet
 		for _, triplet := range queryResult.Triplets {
 			// Always add the user's triplet to KB first
 			fmt.Printf("Adding to KB: %s %s %s\n", triplet.Subject, triplet.Verb, triplet.Object)
@@ -105,41 +120,33 @@ func main() {
 			// For questions, search for answers
 			// For statements/greetings, search for related context (e.g., how to respond to greetings)
 			if triplet.IsQuestion() {
-				// User is asking - search the knowledge base
-				fmt.Printf("Searching KB for: %s %s...\n", triplet.Subject, triplet.Verb)
-				results, err := search.KnowledgeBase(defsDir, itensDir, search.Query{
+				// User is asking - search the in-memory knowledge base
+				fmt.Printf("Searching in-memory KB for: %s %s...\n", triplet.Subject, triplet.Verb)
+				results := search.KnowledgeBaseFromMemory(search.Query{
 					Subject:     triplet.Subject,
 					Verb:        triplet.NormalizedVerb(),
 					Object:      triplet.Object,
 					Context:     triplet.Context,
 					TemporalCtx: triplet.TemporalCtx,
 				})
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error searching: %v\n", err)
-					continue
-				}
 				fmt.Printf("Found %d triplet(s)\n", len(results))
 				allTriplets = append(allTriplets, results...)
 			} else {
 				// User is telling/saying something - search for related context
 				// e.g., for greetings, find how to respond
-				fmt.Printf("Searching KB for related context: %s %s...\n", triplet.Subject, triplet.Verb)
-				results, err := search.KnowledgeBase(defsDir, itensDir, search.Query{
+				fmt.Printf("Searching in-memory KB for related context: %s %s...\n", triplet.Subject, triplet.Verb)
+				results := search.KnowledgeBaseFromMemory(search.Query{
 					Subject: triplet.Subject,
 					Verb:   triplet.Verb,
 					Object: triplet.Object,
 				})
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error searching: %v\n", err)
-					continue
-				}
 				fmt.Printf("Found %d related triplet(s)\n", len(results))
 				// Also search for related responses (e.g., how to respond to greetings)
-				responseResults, err := search.KnowledgeBase(defsDir, itensDir, search.Query{
+				responseResults := search.KnowledgeBaseFromMemory(search.Query{
 					Subject: "assistant",
 					Verb:   "respond",
 				})
-				if err == nil && len(responseResults) > 0 {
+				if len(responseResults) > 0 {
 					fmt.Printf("Found %d response triplet(s)\n", len(responseResults))
 					allTriplets = append(allTriplets, responseResults...)
 				}
@@ -147,8 +154,6 @@ func main() {
 				allTriplets = append(allTriplets, results...)
 			}
 		}
-
-		// Step 3: Synthesize the response
 
 		// Step 3: Synthesize the response
 		fmt.Println("Synthesizing response...")
@@ -180,7 +185,6 @@ func main() {
 		fmt.Println("\n---")
 	}
 }
-
 
 func parseQuery(client *llm.Client, prompt string) (*parse.QueryResult, error) {
 	messages := []llm.Message{

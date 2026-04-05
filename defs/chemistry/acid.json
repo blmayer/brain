@@ -1,0 +1,15 @@
+{
+  "subject": "acid",
+  "definitions": [
+    {
+      "subject": "acid",
+      "verb": "is",
+      "object": "substance that increases hydrogen ion concentration",
+      "confidence": 0.98,
+      "source": "chemistry",
+      "date": "2024-01-01",
+      "context": "chemistry/acid-base"
+    }
+  ]
+}
+

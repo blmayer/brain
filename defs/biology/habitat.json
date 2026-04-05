@@ -1,0 +1,15 @@
+{
+  "subject": "habitat",
+  "definitions": [
+    {
+      "subject": "habitat",
+      "verb": "is",
+      "object": "natural environment of an organism",
+      "confidence": 0.98,
+      "source": "ecology",
+      "date": "2024-01-01",
+      "context": "biology/ecology"
+    }
+  ]
+}
+

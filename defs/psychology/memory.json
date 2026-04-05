@@ -1,0 +1,15 @@
+{
+  "subject": "memory",
+  "definitions": [
+    {
+      "subject": "memory",
+      "verb": "is",
+      "object": "faculty of the mind",
+      "confidence": 0.97,
+      "source": "psychology",
+      "date": "2024-01-01",
+      "context": "psychology/cognitive-science"
+    }
+  ]
+}
+

@@ -1,0 +1,15 @@
+{
+  "subject": "enzyme",
+  "definitions": [
+    {
+      "subject": "enzyme",
+      "verb": "is",
+      "object": "biological catalyst",
+      "confidence": 0.98,
+      "source": "biology",
+      "date": "2024-01-01",
+      "context": "biology/biochemistry"
+    }
+  ]
+}
+
