@@ -19,9 +19,10 @@ type Message struct {
 }
 
 type Request struct {
-	Model    string          `json:"model"`
-	Messages []Message       `json:"messages"`
+	Model    string    `json:"model"`
+	Messages []Message `json:"messages"`
 }
+
 type Response struct {
 	Choices []Choice `json:"choices"`
 }
@@ -34,7 +35,6 @@ type Choice struct {
 type Client struct {
 	provider config.Provider
 	model    string
-	groupId  string
 	apiKey   string
 	baseURL  string
 	options  map[string]any
@@ -60,7 +60,6 @@ func NewClient(model config.Model) *Client {
 
 // getLogFilePath returns the path to the log file in the XDG cache directory
 func getLogFilePath() (string, error) {
-	// Get XDG_CACHE_HOME, default to ~/.cache
 	cacheHome := os.Getenv("XDG_CACHE_HOME")
 	if cacheHome == "" {
 		home, err := os.UserHomeDir()
@@ -70,7 +69,6 @@ func getLogFilePath() (string, error) {
 		cacheHome = filepath.Join(home, ".cache")
 	}
 
-	// Create brain cache directory if it doesn't exist
 	cacheDir := filepath.Join(cacheHome, "brain")
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		return "", err
@@ -108,7 +106,6 @@ func (c *Client) Chat(messages []Message) (string, error) {
 		opts = make(map[string]any)
 	}
 
-	// Merge options into request for JSON marshaling
 	reqMap := map[string]any{
 		"model":    c.model,
 		"messages": messages,
@@ -130,7 +127,6 @@ func (c *Client) Chat(messages []Message) (string, error) {
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
 
-	// Log the request to the provider
 	logToFile("REQUEST | Provider: %s | Model: %s | Messages: %s",
 		c.provider, c.model, messagesToString(messages))
 
@@ -146,7 +142,6 @@ func (c *Client) Chat(messages []Message) (string, error) {
 		return "", err
 	}
 
-	// Log the response from the provider
 	var prettyJSON bytes.Buffer
 	if err := json.Indent(&prettyJSON, data, "", "  "); err == nil {
 		logToFile("RESPONSE | Provider: %s | Status: %d | Body:\n%s",
@@ -169,7 +164,6 @@ func (c *Client) Chat(messages []Message) (string, error) {
 		return "", fmt.Errorf("no response from LLM")
 	}
 
-	// Log the parsed response content for easier reading
 	content := result.Choices[0].Message.Content
 	logToFile("RESPONSE CONTENT | Provider: %s | Content: %s",
 		c.provider, content)
@@ -177,7 +171,6 @@ func (c *Client) Chat(messages []Message) (string, error) {
 	return content, nil
 }
 
-// messagesToString converts messages to a string representation for logging
 func messagesToString(messages []Message) string {
 	var result string
 	for i, msg := range messages {
@@ -188,4 +181,3 @@ func messagesToString(messages []Message) string {
 	}
 	return result
 }
-

@@ -1,0 +1,10 @@
+{
+  "subject": "type",
+  "verb": "is",
+  "object": "a keyword used to define new types or for type declarations",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

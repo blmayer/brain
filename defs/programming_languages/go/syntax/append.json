@@ -1,0 +1,10 @@
+{
+  "subject": "append",
+  "verb": "is",
+  "object": "a built-in function used to add elements to a slice",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

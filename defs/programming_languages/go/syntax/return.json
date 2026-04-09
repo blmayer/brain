@@ -1,0 +1,10 @@
+{
+  "subject": "return",
+  "verb": "is",
+  "object": "a keyword used to exit a function and return a value",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

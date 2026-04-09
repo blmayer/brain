@@ -1,0 +1,10 @@
+{
+  "subject": "const",
+  "verb": "is",
+  "object": "a keyword used to declare constants",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

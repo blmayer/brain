@@ -1,0 +1,10 @@
+{
+  "subject": "garbage collection",
+  "verb": "is",
+  "object": "automatic memory management that frees unused memory",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/memory_management"
+}
+

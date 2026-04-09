@@ -1,0 +1,10 @@
+{
+  "subject": "import statement",
+  "verb": "is",
+  "object": "used to include external packages",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

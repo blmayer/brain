@@ -1,4 +1,3 @@
-
 package parse
 
 import (
@@ -6,16 +5,42 @@ import (
 )
 
 func TestSystemPrompt(t *testing.T) {
-	prompt := SystemPrompt()
-	if prompt == "" {
-		t.Error("SystemPrompt() returned empty string")
+	// Test default mode
+	promptDefault := SystemPrompt("default")
+	if promptDefault == "" {
+		t.Error("SystemPrompt() with default mode returned empty string")
+	}
+	
+	// Test intent_decomposition mode
+	promptIntent := SystemPrompt("intent_decomposition")
+	if promptIntent == "" {
+		t.Error("SystemPrompt() with intent_decomposition mode returned empty string")
+	}
+	
+	expectedIntent := []string{"Intent Decomposition Engine", "triplets", "chaining"}
+	for _, exp := range expectedIntent {
+		if !contains(promptIntent, exp) {
+			t.Errorf("SystemPrompt(intent_decomposition) should contain %q", exp)
+		}
 	}
 
-	// Should contain key instructions
-	expected := []string{"query parser", "subject-verb-object", "JSON"}
-	for _, exp := range expected {
-		if !contains(prompt, exp) {
-			t.Errorf("SystemPrompt() should contain %q", exp)
+	// Test knowledge query mode
+	promptQuery := SystemPrompt("query")
+	if promptQuery == "" {
+		t.Error("SystemPrompt() with query mode returned empty string")
+	}
+	expectedQuery := []string{"query parser", "triplets", "ambiguous"}
+	for _, exp := range expectedQuery {
+		if !contains(promptQuery, exp) {
+			t.Errorf("SystemPrompt(query) should contain %q", exp)
+		}
+	}
+
+	// Specific test for the user's requirement: verifying the prompt contains instructions for the target example
+	expectedExample := "write a go program that takes 2 numbers as input and prints their sum"
+	if !contains(promptIntent, expectedExample) {
+		if !contains(promptIntent, "Example:") {
+			t.Errorf("SystemPrompt(intent_decomposition) should contain an Example section")
 		}
 	}
 }
@@ -112,6 +137,79 @@ func TestTripletIsQuestion(t *testing.T) {
 		verb     string
 		expected bool
 	}{
+		{"question with ?", "is?", true},
+		{"statement without ?", "like", false},
+		{"empty verb", "", false},
+		{"question was?", "was?", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			triplet := Triplet{Verb: tt.verb}
+			if got := triplet.IsQuestion(); got != tt.expected {
+				t.Errorf("IsQuestion() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestTripletNormalizedVerb(t *testing.T) {
+	tests := []struct {
+		name     string
+		verb     string
+		expected string
+	}{
+		{"question with ?", "is?", "is"},
+		{"statement without ?", "like", "like"},
+		{"empty verb", "", ""},
+		{"question was?", "was?", "was"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			triplet := Triplet{Verb: tt.verb}
+			if got := triplet.NormalizedVerb(); got != tt.expected {
+				t.Errorf("NormalizedVerb() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func contains(s, substr string) bool {
+	if len(substr) == 0 {
+		return true
+	}
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
+	}
+	return false
+}
 		{"question with ?", "is?", true},
 		{"statement without ?", "like", false},
 		{"empty verb", "", false},

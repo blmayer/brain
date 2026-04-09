@@ -1,0 +1,10 @@
+{
+  "subject": "defer",
+  "verb": "is",
+  "object": "a keyword used to schedule a function call to run immediately before the calling function returns",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

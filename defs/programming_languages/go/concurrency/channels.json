@@ -1,0 +1,10 @@
+{
+  "subject": "channels",
+  "verb": "are",
+  "object": "communication pipes used to send/receive data between goroutines",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/concurrency"
+}
+

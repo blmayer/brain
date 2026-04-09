@@ -1,0 +1,10 @@
+{
+  "subject": "fmt.Println",
+  "verb": "is",
+  "object": "a function in the fmt package that prints text followed by a newline",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/packages/fmt"
+}
+

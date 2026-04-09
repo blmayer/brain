@@ -1,0 +1,10 @@
+{
+  "subject": "len",
+  "verb": "is",
+  "object": "a built-in function that returns the length of a slice, map, or string",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

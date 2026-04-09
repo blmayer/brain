@@ -1,0 +1,10 @@
+{
+  "subject": "package declaration",
+  "verb": "is",
+  "object": "required at the start of a Go file",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

@@ -1,0 +1,10 @@
+{
+  "subject": "if",
+  "verb": "is",
+  "object": "a keyword used for conditional statements",
+  "confidence": 1.0,
+  "source": "Go documentation",
+  "date": "2024-05-22",
+  "context": "go/syntax"
+}
+

@@ -1,0 +1,122 @@
+{
+  "subject": "go",
+  "definitions": [
+    {
+      "subject": "go",
+      "verb": "is",
+      "object": "a statically typed, compiled programming language",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/programming_languages"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "goroutines",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/concurrency"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "channels",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/concurrency"
+    },
+    {
+      "subject": "go",
+      "verb": "is",
+      "object": "developed by Google",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/history"
+    },
+    {
+      "subject": "go",
+      "verb": "has",
+      "object": "built-in garbage collection",
+      "confidence": 0.97,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/memory-management"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "interfaces",
+      "confidence": 0.96,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/programming-paradigms"
+    },
+    {
+      "subject": "go",
+      "verb": "has",
+      "object": "a fast compilation speed",
+      "confidence": 0.95,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/development-workflow"
+    },
+    {
+      "subject": "go",
+      "verb": "requires",
+      "object": "package declaration",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/syntax"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "import statement",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/syntax"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "func keyword for definitions",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/syntax"
+    },
+    {
+      "subject": "go",
+      "verb": "has",
+      "object": "main function as entry point",
+      "confidence": 0.99,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/execution-model"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "structs for data grouping",
+      "confidence": 0.98,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/data-structures"
+    },
+    {
+      "subject": "go",
+      "verb": "uses",
+      "object": "pointers for memory addresses",
+      "confidence": 0.97,
+      "source": "general knowledge",
+      "date": "2024-05-22",
+      "context": "computer-science/memory-management"
+    }
+  ]
+}
