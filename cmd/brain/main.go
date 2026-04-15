@@ -62,6 +62,9 @@ func main() {
 	fmt.Println("-------------------------------")
 	fmt.Println("Ask me anything (type 'quit' to exit):")
 
+	// Maintain conversation history
+	var history []llm.Message
+
 	for {
 		fmt.Print("\n> ")
 		input, err := reader.ReadString('\n')
@@ -82,7 +85,13 @@ func main() {
 				continue
 			}
 			fmt.Printf("Knowledge base reloaded: %d triplet(s) in memory\n", search.GetMemoryKB().Count())
-		continue
+			continue
+		}
+
+		if input == "clear" {
+			history = nil
+			fmt.Println("History cleared.")
+			continue
 		}
 
 		if input == "" {
@@ -113,7 +122,7 @@ func main() {
 			}
 			fmt.Println("User knowledge added!")
 
-			// Include user's generated knowledge in the response (for greetings, statements, etc.)
+			// Include user's generated knowledge in response (for greetings, statements, etc.)
 			allTriplets = append(allTriplets, *newTriplet)
 
 			// After adding, search for related knowledge
@@ -155,13 +164,16 @@ func main() {
 			}
 		}
 
-		// Step 3: Synthesize the response
+	// Step 3: Synthesize the response
 		fmt.Println("Synthesizing response...")
-		response, err := synthesizeResponse(outputClient, allTriplets)
+		response, err := synthesizeResponse(outputClient, allTriplets, history, input)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error synthesizing: %v\n", err)
 			continue
 		}
+		// Update history with the user's input and the assistant's response
+		history = append(history, llm.Message{Role: "user", Content: input})
+		history = append(history, llm.Message{Role: "assistant", Content: response})
 
 		fmt.Println("\nAnswer:")
 		fmt.Println(response)
@@ -185,7 +197,6 @@ func main() {
 		fmt.Println("\n---")
 	}
 }
-
 func parseQuery(client *llm.Client, prompt string) (*parse.QueryResult, error) {
 	messages := []llm.Message{
 		{Role: "system", Content: parse.SystemPrompt()},
@@ -200,11 +211,13 @@ func parseQuery(client *llm.Client, prompt string) (*parse.QueryResult, error) {
 	return parse.ParseResult(response)
 }
 
-func synthesizeResponse(client *llm.Client, triplets []search.Triplet) (string, error) {
+func synthesizeResponse(client *llm.Client, triplets []search.Triplet, history []llm.Message, input string) (string, error) {
 	messages := []llm.Message{
 		{Role: "system", Content: synthesize.SystemPrompt(triplets)},
-		{Role: "user", Content: "Please provide a natural language answer based on these triplets."},
 	}
+
+	messages = append(messages, history...)
+	messages = append(messages, llm.Message{Role: "user", Content: input})
 
 	return client.Chat(messages)
 }
@@ -382,4 +395,3 @@ Return ONLY the JSON triplet without any markdown formatting.`, response, respon
 
 	return &triplet, nil
 }
-

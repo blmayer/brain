@@ -13,6 +13,7 @@ const (
 	ProviderMistral   Provider = "mistral"
 	ProviderAnthropic Provider = "anthropic"
 	ProviderMinimax   Provider = "minimax"
+	ProviderOllama    Provider = "ollama"
 )
 
 type Model struct {
@@ -21,6 +22,7 @@ type Model struct {
 	APIKey   string                   `json:"api_key,omitempty"`
 	Options  map[string]interface{}   `json:"options,omitempty"`
 }
+
 type Config struct {
 	Input  Model `json:"input"`
 	Output Model `json:"output"`

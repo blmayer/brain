@@ -9,7 +9,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
+"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -42,11 +43,13 @@ type Client struct {
 
 func NewClient(model config.Model) *Client {
 	baseURL := "https://api.openai.com/v1"
-	if model.Provider == config.ProviderMistral {
+	switch model.Provider {
+	case config.ProviderMistral:
 		baseURL = "https://api.mistral.ai/v1"
-	}
-	if model.Provider == config.ProviderMinimax {
+	case config.ProviderMinimax:
 		baseURL = "https://api.minimax.io/v1"
+	case config.ProviderOllama:
+		baseURL = "http://localhost:11434/v1"
 	}
 
 	return &Client{

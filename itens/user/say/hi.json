@@ -2,9 +2,9 @@
   "subject": "user",
   "verb": "say",
   "object": "hi",
-  "confidence": 0.95,
-  "source": "user_input",
-  "date": "2025-12-31",
+  "confidence": 1,
+  "source": "user",
+  "date": "2024-01-01",
   "path": "itens/user/say/hi.json",
-  "context": "casual greeting"
+  "context": "Greeting"
 }

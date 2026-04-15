@@ -2,6 +2,9 @@ package parse
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
+)
 )
 
 // QueryRequest represents the input to the query parser
@@ -55,13 +58,24 @@ Examples:
 
 Return ONLY valid JSON with keys: triplets (array of {subject, verb, object, context, temporal_context}), ambiguous, needs_update.
 Set ambiguous to true if the query could have multiple meanings.
-Set needs_update to true if the question is about new knowledge not in the KB.`
+Don't include code fences or other formatting like backticks, your output must start with '{'.`
 }
 
 // ParseResult parses the LLM response into a QueryResult
+// ParseResult parses the LLM response into a QueryResult
 func ParseResult(response string) (*QueryResult, error) {
+	cleaned := strings.TrimSpace(response)
+	if strings.HasPrefix(cleaned, "```json") {
+		cleaned = strings.TrimPrefix(cleaned, "```json")
+		cleaned = strings.TrimSuffix(cleaned, "```")
+	} else if strings.HasPrefix(cleaned, "```") {
+		cleaned = strings.TrimPrefix(cleaned, "```")
+		cleaned = strings.TrimSuffix(cleaned, "```")
+	}
+	cleaned = strings.TrimSpace(cleaned)
+
 	var result QueryResult
-	err := json.Unmarshal([]byte(response), &result)
+	err := json.Unmarshal([]byte(cleaned), &result)
 	return &result, err
 }
 

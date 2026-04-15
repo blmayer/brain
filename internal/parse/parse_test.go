@@ -76,6 +76,31 @@ func TestParseResult(t *testing.T) {
 			},
 		},
 		{
+			name:    "valid full triplet with code fences",
+			input:   "```json\n{\"triplets\": [{\"subject\": \"cat\", \"verb\": \"eats\", \"object\": \"meat\"}], \"ambiguous\": false}\n```",
+			wantErr: false,
+			check: func(r *QueryResult) {
+				if len(r.Triplets) != 1 {
+					t.Errorf("Triplets length = %v, want 1", len(r.Triplets))
+					return
+				}
+				if r.Triplets[0].Subject != "cat" {
+					t.Errorf("Subject = %v, want cat", r.Triplets[0].Subject)
+				}
+			},
+		},
+		{
+			name:    "valid JSON without code fences",
+			input:   `{"triplets": [{"subject": "cat", "verb": "eats", "object": "meat"}], "ambiguous": false}`,
+			wantErr: false,
+			check: func(r *QueryResult) {
+				if len(r.Triplets) != 1 {
+					t.Errorf("Triplets length = %v, want 1", len(r.Triplets))
+					return
+				}
+			},
+		},
+		{
 			name:    "partial triplet",
 			input:   `{"triplets": [{"subject": "banana", "verb": "is", "object": ""}], "ambiguous": false}`,
 			wantErr: false,
@@ -116,7 +141,14 @@ func TestParseResult(t *testing.T) {
 			wantErr: false,
 		},
 	}
+}
 
+func (t *testing.T) runTests(tests []struct {
+	name    string
+	input   string
+	wantErr bool
+	check   func(*QueryResult)
+}) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := ParseResult(tt.input)
@@ -130,7 +162,6 @@ func TestParseResult(t *testing.T) {
 		})
 	}
 }
-
 func TestTripletIsQuestion(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -176,24 +207,7 @@ func TestTripletNormalizedVerb(t *testing.T) {
 }
 
 func contains(s, substr string) bool {
-	if len(substr) == 0 {
-		return true
-	}
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
-	}
-	return false
-}
-	}
-	return false
-}
-	}
-	return false
+	return strings.Contains(s, substr)
 }
 	}
 	return false

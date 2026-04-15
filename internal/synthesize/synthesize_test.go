@@ -19,7 +19,7 @@ func TestSystemPrompt(t *testing.T) {
 		},
 	}
 
-	prompt := SystemPrompt(triplets)
+	prompt := SystemPrompt(triplets, nil)
 
 	if prompt == "" {
 		t.Error("SystemPrompt() returned empty string")
@@ -40,7 +40,7 @@ func TestSystemPrompt(t *testing.T) {
 }
 
 func TestSystemPromptEmptyTriplets(t *testing.T) {
-	prompt := SystemPrompt([]search.Triplet{})
+	prompt := SystemPrompt([]search.Triplet{}, nil)
 
 	if !contains(prompt, "No triplets found") {
 		t.Error("SystemPrompt() should indicate no triplets found")
