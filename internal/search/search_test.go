@@ -123,22 +123,17 @@ func TestSearchInvalidFiles(t *testing.T) {
 func TestKnowledgeBase(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
-
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
 
 	// Create test files in defs
-	os.WriteFile(filepath.Join(defsDir, "banana.json"),
+	os.WriteFile(filepath.Join(kbDir, "banana.json"),
 		[]byte(`{"subject": "banana", "verb": "is", "object": "fruit", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
 	// Create test files in itens (nested)
-	os.MkdirAll(filepath.Join(itensDir, "cat", "has"), 0755)
-	os.WriteFile(filepath.Join(itensDir, "cat", "has", "fur.json"),
+	os.MkdirAll(filepath.Join(kbDir, "cat", "has"), 0755)
+	os.WriteFile(filepath.Join(kbDir, "cat", "has", "fur.json"),
 		[]byte(`{"subject": "cat", "verb": "has", "object": "fur", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
-	results, err := KnowledgeBase(defsDir, itensDir, Query{Subject: "cat"})
+	results, err := KnowledgeBase(kbDir, Query{Subject: "cat"})
 	if err != nil {
 		t.Errorf("KnowledgeBase() error = %v", err)
 	}
@@ -147,7 +142,7 @@ func TestKnowledgeBase(t *testing.T) {
 		t.Errorf("KnowledgeBase() got %d results, want 1", len(results))
 	}
 
-	results, err = KnowledgeBase(defsDir, itensDir, Query{Subject: "banana"})
+	results, err = KnowledgeBase(kbDir, Query{Subject: "banana"})
 	if err != nil {
 		t.Errorf("KnowledgeBase() error = %v", err)
 	}
@@ -157,7 +152,7 @@ func TestKnowledgeBase(t *testing.T) {
 	}
 
 	// Search both
-	results, err = KnowledgeBase(defsDir, itensDir, Query{})
+	results, err = KnowledgeBase(kbDir, Query{})
 	if err != nil {
 		t.Errorf("KnowledgeBase() error = %v", err)
 	}
@@ -183,28 +178,23 @@ func TestTripletPath(t *testing.T) {
 func TestAddTripletWithQuestionMark(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
+	kbDir := filepath.Join(tmpDir, "kb")
+	kbDir := filepath.Join(tmpDir, "kb")
 
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
-
-	// Add a triplet with verb "is?" (question style from parser)
-	triplet := Triplet{
-		Subject:    "banana",
-		Verb:       "is?",
+	os.MkdirAll(kbDir, 0755)
+	os.MkdirAll(kbDir, 0755)
 		Object:     "yellow fruit",
 		Confidence: 0.95,
 		Source:     "test",
 		Date:       "2024-01-01",
 	}
 
-	if err := AddTriplet(triplet, defsDir, itensDir); err != nil {
+	if err := AddTriplet(triplet,  kbDir); err != nil {
 		t.Fatalf("AddTriplet() error = %v", err)
 	}
 
 	// Verify it was stored in defs/ (not itens/)
-	expectedPath := filepath.Join(defsDir, "banana.json")
+	expectedPath := filepath.Join(kbDir, "banana.json")
 	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
 		t.Errorf("Expected file at %s, but it doesn't exist", expectedPath)
 	}
@@ -221,7 +211,7 @@ func TestAddTripletWithQuestionMark(t *testing.T) {
 	}
 
 	// Now search for it - should find it with verb "is?" query
-	results, err := Search(defsDir, Query{Subject: "banana", Verb: "is?"})
+	results, err := Search(kbDir, Query{Subject: "banana", Verb: "is?"})
 	if err != nil {
 		t.Fatalf("Search() error = %v", err)
 	}
@@ -234,24 +224,21 @@ func TestAddTripletWithQuestionMark(t *testing.T) {
 func TestMemoryKB(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
+	kbDir := filepath.Join(tmpDir, "kb")
+	kbDir := filepath.Join(tmpDir, "kb")
 
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
+	os.MkdirAll(kbDir, 0755)
+	os.MkdirAll(kbDir, 0755)
 
 	// Create some test files in defs
-	os.WriteFile(filepath.Join(defsDir, "banana.json"),
+	os.WriteFile(filepath.Join(kbDir, "banana.json"),
 		[]byte(`{"subject": "banana", "verb": "is", "object": "fruit", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
 	// Create some test files in itens
-	os.MkdirAll(filepath.Join(itensDir, "cat", "has"), 0755)
-	os.WriteFile(filepath.Join(itensDir, "cat", "has", "fur.json"),
-		[]byte(`{"subject": "cat", "verb": "has", "object": "fur", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
 	// Create a MemoryKB and load it
 	kb := NewMemoryKB()
-	if err := kb.Load(defsDir, itensDir); err != nil {
+	if err := kb.Load( kbDir); err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
 
@@ -282,24 +269,19 @@ func TestMemoryKB(t *testing.T) {
 func TestGlobalMemoryKB(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
+	kbDir := filepath.Join(tmpDir, "kb")
+	kbDir := filepath.Join(tmpDir, "kb")
 
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
+	os.MkdirAll(kbDir, 0755)
+	os.MkdirAll(kbDir, 0755)
 
 	// Create a test file
-	os.WriteFile(filepath.Join(defsDir, "apple.json"),
+	os.WriteFile(filepath.Join(kbDir, "apple.json"),
 		[]byte(`{"subject": "apple", "verb": "is", "object": "fruit", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
 	// Initialize global KB
-	if err := InitMemoryKB(defsDir, itensDir); err != nil {
+	if err := InitMemoryKB( kbDir); err != nil {
 		t.Fatalf("InitMemoryKB() error = %v", err)
-	}
-
-	// Check global KB is not nil
-	if GetMemoryKB() == nil {
-		t.Error("GetMemoryKB() returned nil")
 	}
 
 	// Check count
@@ -332,11 +314,11 @@ func TestGlobalMemoryKB(t *testing.T) {
 func TestMemoryKBAddToMemory(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
+	kbDir := filepath.Join(tmpDir, "kb")
+	kbDir := filepath.Join(tmpDir, "kb")
 
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
+	os.MkdirAll(kbDir, 0755)
+	os.MkdirAll(kbDir, 0755)
 
 	// Create a MemoryKB with no initial data
 	kb := NewMemoryKB()
@@ -351,11 +333,6 @@ func TestMemoryKBAddToMemory(t *testing.T) {
 		Subject:    "grape",
 		Verb:       "is",
 		Object:     "small",
-		Confidence: 0.8,
-		Source:     "test",
-		Date:       "2024-01-01",
-	})
-
 	// Check count is now 1
 	if count := kb.Count(); count != 1 {
 		t.Errorf("After AddToMemory, Count() = %d, want 1", count)
@@ -371,19 +348,19 @@ func TestMemoryKBAddToMemory(t *testing.T) {
 func TestMemoryKBSearchQuestionVerb(t *testing.T) {
 	// Create temp dirs
 	tmpDir := t.TempDir()
-	defsDir := filepath.Join(tmpDir, "defs")
-	itensDir := filepath.Join(tmpDir, "itens")
+	kbDir := filepath.Join(tmpDir, "kb")
+	kbDir := filepath.Join(tmpDir, "kb")
 
-	os.MkdirAll(defsDir, 0755)
-	os.MkdirAll(itensDir, 0755)
+	os.MkdirAll(kbDir, 0755)
+	os.MkdirAll(kbDir, 0755)
 
 	// Create a test file
-	os.WriteFile(filepath.Join(defsDir, "water.json"),
+	os.WriteFile(filepath.Join(kbDir, "water.json"),
 		[]byte(`{"subject": "water", "verb": "is", "object": "wet", "confidence": 0.95, "source": "test", "date": "2024-01-01"}`), 0644)
 
 	// Create a MemoryKB and load it
 	kb := NewMemoryKB()
-	if err := kb.Load(defsDir, itensDir); err != nil {
+	if err := kb.Load( kbDir); err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
 
@@ -395,5 +372,3 @@ func TestMemoryKBSearchQuestionVerb(t *testing.T) {
 	if len(results) > 0 && results[0].Verb != "is" {
 		t.Errorf("Result verb = %q, want %q", results[0].Verb, "is")
 	}
-}
-

@@ -28,13 +28,13 @@ type Config struct {
 	Output Model `json:"output"`
 }
 
-// Load returns a Config, searching in XDG-compliant locations.
+// Load returns a Config, searching in XDG-compliant locations if no path is provided.
 // If path is non-empty, it will be used directly.
-// Otherwise, it checks: $XDG_CONFIG_HOME/brain/config.json, then ~/.config/brain/config.json,
-// then falls back to ./config.json in the current directory.
-func Load() (*Config, error) {
+func Load(path string) (*Config, error) {
 	// Try XDG_CONFIG_HOME (default: ~/.config)
-	configHome := os.Getenv("XDG_CONFIG_HOME")
+    if path != "" {
+        return loadFromPath(path)
+    }
 	if configHome == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {

@@ -1,7 +1,6 @@
 package llm
 
 import (
-	"brain/internal/config"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,10 +8,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-"path/filepath"
-	"strings"
+	"path/filepath"
+	"brain/internal/config"
 	"time"
 )
+
+
 
 type Message struct {
 	Role    string `json:"role"`

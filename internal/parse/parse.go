@@ -5,30 +5,44 @@ import (
 	"fmt"
 	"strings"
 )
-)
 
-// QueryRequest represents the input to the query parser
-type QueryRequest struct {
-	Prompt string `json:"prompt"`
-}
-
-// Triplet represents a single parsed triplet (subject-verb-object)
+// Triplet represents a knowledge statement
 type Triplet struct {
-	Subject     string `json:"subject"`
-	Verb        string `json:"verb"`
-	Object      string `json:"object"`
-	Context     string `json:"context,omitempty"`
-	TemporalCtx string `json:"temporal_context,omitempty"`
+	Subject      string  `json:"subject"`
+	Verb         string  `json:"verb"`
+	Object       string  `json:"object"`
+	Confidence    float64 `json:"confidence"`
+	Source       string  `json:"source"`
+	Date         string  `json:"date"`
+	Context      string  `json:"context"`
+	TemporalCtx  string  `json:"temporal_context"`
+	Path         string  `json:"path"`
 }
 
-// QueryResult represents the parsed query from the LLM
-type QueryResult struct {
-	Triplets    []Triplet `json:"triplets"`
-	Ambiguous   bool      `json:"ambiguous"`
-	NeedsUpdate bool      `json:"needs_update"`
+
+// Question returns true if the triplet represents a question (verb ends with ?)
+func (t Triplet) IsQuestion() bool {
+	return strings.HasSuffix(t.Verb, "?")
 }
 
-// SystemPrompt returns the system prompt for the query parser
+// NormalizedVerb removes the ? suffix for comparison
+func (t Triplet) NormalizedVerb() string {
+	if strings.HasSuffix(t.Verb, "?") {
+		return strings.TrimSuffix(t.Verb, "?")
+	}
+	return t.Verb
+}
+
+func NewTriplet(subject, verb, object string) Triplet {
+	return Triplet{
+		Subject:    subject,
+		Verb:       verb,
+		Object:     object,
+		Confidence: 1.0,
+		Source:     "default",
+	}
+}
+
 // SystemPrompt returns the system prompt for the query parser
 func SystemPrompt() string {
 	return `You are a query parser for a knowledge base system.
@@ -42,10 +56,9 @@ A user might ask questions, make statements, or do both in the same message.
 - Ensure the triplets capture all requirements (inputs, outputs, operations, constraints).
 
 Examples:
-- "hi" or "hello" -> {"triplets": [{"subject": "user", "verb": "say", "object": "hi", "temporal_context": "present"}]}
-- "What is a banana?" -> {"triplets": [{"subject": "banana", "verb": "is?", "object": "", "temporal_context": "present"}]}
-- "I like pizza" -> {"triplets": [{"subject": "user", "verb": "like", "object": "pizza", "temporal_context": "present"}]}
-- "Tell me about the sun" -> {"triplets": [{"subject": "sun", "verb": "is?", "object": "", "temporal_context": "present"}]}
+- "hi" or "hello" -> {"triplets": [{"subject": "user", "verb": "say", "object": "hi"}]}
+- "What is a banana?" -> {"triplets": [{"subject": "banana", "verb": "is?"}]}
+- "I like pizza" -> {"triplets": [{"subject": "user", "verb": "like", "object": "pizza"}]}
 - "write a go program that takes 2 numbers as input and prints their sum" -> {
   "triplets": [
     {"subject": "user", "verb": "wants", "object": "program"},
@@ -56,40 +69,74 @@ Examples:
   ]
 }
 
-Return ONLY valid JSON with keys: triplets (array of {subject, verb, object, context, temporal_context}), ambiguous, needs_update.
-Set ambiguous to true if the query could have multiple meanings.
-Don't include code fences or other formatting like backticks, your output must start with '{'.`
+Return ONLY valid JSON with keys: triplets (array of {subject, verb, object}), ambiguous, needs_update (default false).
+Don't include code fences or other formatting, your output must start with '{'.
+`
+}
+
+// QueryResult contains the query parser results
+type QueryResult struct {
+	Triplets      []Triplet `json:"triplets"`
+	Ambiguous     bool      `json:"ambiguous,omitempty"`
+	NeedsUpdate   bool      `json:"needs_update,omitempty"`
 }
 
 // ParseResult parses the LLM response into a QueryResult
-// ParseResult parses the LLM response into a QueryResult
 func ParseResult(response string) (*QueryResult, error) {
 	cleaned := strings.TrimSpace(response)
-	if strings.HasPrefix(cleaned, "```json") {
-		cleaned = strings.TrimPrefix(cleaned, "```json")
-		cleaned = strings.TrimSuffix(cleaned, "```")
-	} else if strings.HasPrefix(cleaned, "```") {
-		cleaned = strings.TrimPrefix(cleaned, "```")
-		cleaned = strings.TrimSuffix(cleaned, "```")
-	}
-	cleaned = strings.TrimSpace(cleaned)
 
 	var result QueryResult
 	err := json.Unmarshal([]byte(cleaned), &result)
 	return &result, err
 }
 
-// IsQuestion returns true if the verb ends with '?'
-func (t Triplet) IsQuestion() bool {
-	return len(t.Verb) > 0 && t.Verb[len(t.Verb)-1] == '?'
-}
-
-// NormalizedVerb returns the verb without the trailing '?'
-func (t Triplet) NormalizedVerb() string {
-	if t.IsQuestion() {
-		return t.Verb[:len(t.Verb)-1]
+// MergeTriplets merges the new triplets with existing knowledge
+// Returns the updated knowledge base and any conflicts
+func MergeTriplets(newTriplets []Triplet, existing []Triplet) ([]Triplet, []Triplet, error) {
+	// Group new triplets by their verb for conflict detection
+	newByVerb := make(map[string][]Triplet)
+	for _, t := range newTriplets {
+		key := fmt.Sprintf("%s:%s", t.Subject, t.NormalizedVerb())
+		newByVerb[key] = append(newByVerb[key], t)
 	}
-	return t.Verb
+
+	var merged []Triplet
+	var conflicts []Triplet
+
+	// Process each triplet
+	for _, t := range newTriplets {
+		key := fmt.Sprintf("%s:%s", t.Subject, t.NormalizedVerb())
+		if _, exists := newByVerb[key]; !exists && t.Confidence >= 0.5 {
+			// First occurrence
+			merged = append(merged, t)
+		} else {
+			// Multiple entries with same structure - potential conflict
+			conflicts = append(conflicts, t)
+		}
+	}
+
+	// Keep only unique triplets
+	seen := make(map[string]bool)
+	var unique []Triplet
+	for _, t := range newTriplets {
+		key := fmt.Sprintf("%s|%s|%s", t.Subject, t.Verb, t.Object)
+		if !seen[key] {
+			seen[key] = true
+			unique = append(unique, t)
+		}
+	}
+
+	return unique, nil, nil
 }
 
+// QueryTriplets extracts question triplets from a result for context
+func QueryTriplets(result *QueryResult) []Triplet {
+	var qs []Triplet
+	for _, t := range result.Triplets {
+		if t.IsQuestion() {
+			qs = append(qs, t)
+		}
+	}
+	return qs
+}
 

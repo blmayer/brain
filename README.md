@@ -43,12 +43,11 @@ files, so searching for them is easy.
 brain/
 ├── cmd/brain/main.go      # Main entry point (interactive CLI)
 ├── config.json            # LLM providers and model settings
-├── defs/                  # Term definitions (flat directory)
+├── kb/                    # Knowledge base (definitions and relationships)
 │   ├── banana.json        # Array of definitions with contexts
 │   ├── cat.json
 │   ├── python.json
 │   └── sun.json
-├── itens/                 # Subject/verb/object relations (nested hierarchy)
 │   └── cat/
 │       ├── has/
 │       │   ├── fur.json
@@ -107,8 +106,9 @@ The config file is searched in the following order:
 
 
 ## Adding Knowledge
-**defs/** - Flat directory for term definitions (list of triplets per subject):
-Each subject has a `defs/{subject}.json` file containing an array of definitions:
+**Adding Knowledge**
+**kb/** - Directory for all knowledge (definitions and relationships):
+Each subject has a `kb/{subject}.json` file containing an array of definitions:
 
 ```json
 {
@@ -136,9 +136,8 @@ Each subject has a `defs/{subject}.json` file containing an array of definitions
 
 ## Knowledge Base Structure
 
-### defs/ - Definitions with Context
-
-Each subject file contains multiple definitions, each with a `context` field for disambiguation:
+**kb/** - Directory for all knowledge (definitions and relationships):
+Each subject has a `kb/{subject}.json` file containing an array of definitions:
 
 ```json
 {
@@ -166,12 +165,12 @@ Each subject file contains multiple definitions, each with a `context` field for
 
 **Context hierarchy:** `domain/subdomain/specific` allows precise categorization.
 
-### itens/ - Relations with Context
+### kb/ - Relations with Context
 
 Nested by subject and verb for efficient searching:
 
 ```
-itens/
+kb/
 ├── cat/
 │   ├── has/
 │   │   ├── fur.json
@@ -189,10 +188,11 @@ Each relation file includes a `context` field for similar disambiguation.
 **Goal:** Allow the system to add new knowledge from queries it can't answer
 
 **Changes:**
-1. **Modify `internal/search/search.go`**
-   - Add `AddTriplet()` function to write new triplets to JSON files
-   - Decide storage location: `defs/` for definitions, `itens/` for relations
+**Goal:** Allow the system to add new knowledge from queries it can't answer
 
+**Changes:**
+1. **Modify `internal/search/search.go`**
+   - Add `AddTriplet()` function to write new triplets to JSON files in `kb/`
 2. **Modify `internal/synthesize/synthesize.go`**
    - Add `canAnswer()` method: returns true if confidence is sufficient and triplets exist
    - Return flag to main.go indicating if knowledge was found
@@ -201,29 +201,6 @@ Each relation file includes a `context` field for similar disambiguation.
    - When no triplets found, ask LLM to generate new knowledge
    - Prompt LLM: "Based on this question, what knowledge should be added?"
    - Validate and store new triplet with metadata (confidence, source, timestamp)
-
-### Phase 2: Temporal Awareness
-
-**Goal:** Handle facts that change over time
-
-**Changes:**
-1. **Extend `Triplet` struct in `internal/search/search.go`**
-   - Add `ValidFrom` and `ValidTo` timestamps (or just keep `Date` and use for recency)
-   - Add `version` field for multiple versions of same fact
-
-2. **Modify `Query` struct**
-   - Add `ValidAt` field: the time context for the query
-   - Modify `matches()` to filter by temporal validity
-
-3. **Modify `internal/parse/parse.go`**
-   - LLM should detect temporal context in questions ("was", "is currently", "in 1990")
-   - Extract temporal constraints from query
-
-4. **Modify `cmd/brain/main.go`**
-   - Pass temporal context to search query
-   - Only return triplets valid at that time
-
-### Phase 3: Conversation Context
 
 **Goal:** Enable multi-turn conversations
 
@@ -240,32 +217,26 @@ Each relation file includes a `context` field for similar disambiguation.
 ### Phase 4: Confidence & Versioning
 
 **Goal:** Handle conflicting facts and uncertainty
-
-**Changes:**
-1. **Modify `Triplet` struct**
-   - Add `version` for multiple versions of same fact
-   - Add `lastUpdated` timestamp
-
-2. **Modify search logic**
-   - When multiple versions exist, return most recent or highest confidence
-   - Synthesizer should present conflicting information transparently
-
----
-
 ## Proposed Architecture
 
 ```
 brain/
 ├── cmd/brain/main.go          # Enhanced with knowledge addition, temporal context, conversation
 ├── config.json
+├── kb/                       # All knowledge stored here (definitions and relations)
+├── internal/
+│   ├── config/
+│   ├── llm/
+│   ├── parse/                # Enhanced to extract temporal context
+│   ├── search/               # Add AddTriplet(), temporal filtering
+│   └── synthesize/           # Add canAnswer(), conflict detection
+└── knowledge/                # NEW: store conversation logs (optional)
+```
+
 ├── defs/                      # Definition triplets
 ├── itens/                     # Relation triplets (nested by subject)
 ├── internal/
 │   ├── config/
-│   ├── llm/
-│   ├── parse/                 # Enhanced to extract temporal context
-│   ├── search/                # Add AddTriplet(), temporal filtering
-│   ├── synthesize/            # Add canAnswer(), conflict detection
 │   └── context/               # NEW: conversation history management
 └── knowledge/                 # NEW: store conversation logs (optional)
 ```

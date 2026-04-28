@@ -1,0 +1,10 @@
+{
+  "subject": "golang",
+  "verb": "is",
+  "object": "a compiled, concurrent language",
+  "confidence": 0.95,
+  "source": "KnowledgeBase",
+  "date": "2024-05-15",
+  "path": "defs/golang.json",
+  "context": "ProgrammingLanguage"
+}

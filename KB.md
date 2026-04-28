@@ -23,23 +23,23 @@ Brain is a knowledge base system built in Go that uses LLMs to:
 │   ├── search/search_test.go   # Tests for search
 │   ├── synthesize/synthesize.go # Response synthesis
 │   └── synthesize/synthesize_test.go # Tests for synthesis
-├── defs/                       # Subject definitions (multiple triplets per subject)
+├── kb/                         # Knowledge base (definitions and relationships)
 │   ├── banana.json            # banana is fruit, edible, yellow, programming language
 │   ├── bracket.json           # [ is array literal (lua), slice literal (go)
 │   ├── cat.json               # cat is mammal
 │   ├── python.json            # python is programming language
 │   └── sun.json               # sun is star
-├── itens/                      # Relationship items (subject/verb/object hierarchy)
-│   └── cat/
-│       ├── has/
+│   └── cat/                   # Relationships for cat
+│       ├── has/               # cat has fur/teeth
 │       │   ├── fur.json       # cat has fur
-│       │   └── teeth.json      # cat has teeth
-│       └── eats/
-│           └── meat.json       # cat eats meat
+│       │   └── teeth.json     # cat has teeth
+│       └── eats/              # cat eats meat
+│           └── meat.json      # cat eats meat
 ├── config.json                 # Current LLM configuration
 └── main                        # Compiled binary
 ```
 
+## Data Model
 ## Data Model
 
 ### Triplet Structure
@@ -56,7 +56,7 @@ Brain is a knowledge base system built in Go that uses LLMs to:
 }
 ```
 
-### DefinitionList Structure (for defs/)
+### DefinitionList Structure (for kb/)
 ```json
 {
   "subject": "string",
@@ -74,8 +74,6 @@ Brain is a knowledge base system built in Go that uses LLMs to:
   "path": "string"
 }
 ```
-
-### Query Structure
 ```go
 type Query struct {
     Subject     string
@@ -118,13 +116,8 @@ type Query struct {
 4. Check verb (case-insensitive substring)
 5. Check object (case-insensitive substring)
 
-### Directory Organization
-- **defs/**: Flat JSON files, multiple triplets per subject
-- **itens/**: Nested hierarchy `subject/verb/object.json`
+- **kb/**: Single directory for all knowledge (definitions and relationships)
 
-## Synthesis Logic
-
-### System Prompt
 Converts retrieved triplets into natural language responses:
 - Prioritizes higher confidence information
 - Notes uncertainty if confidence < 0.5
@@ -143,44 +136,41 @@ Converts retrieved triplets into natural language responses:
 
 When a query returns no results:
 1. Ask LLM to generate new knowledge triplet
-2. Add to appropriate directory (defs/ or itens/)
+When a query returns no results:
+1. Ask LLM to generate new knowledge triplet
+2. Add to the `kb/` directory
 3. Re-search with updated KB
 4. Synthesize response
-
-### AddTriplet Logic
-- **defs/**: For "is" verbs or empty verbs (subject definitions)
-- **itens/**: For relationship verbs (has, eats, uses, etc.)
-  - Creates nested directory: `itens/subject/verb/object.json`
-
-## Current Knowledge Base Content
-
-### Banana (defs/banana.json)
-- banana is fruit (confidence: 0.95, general/botany)
-- banana is edible (confidence: 0.98, general/botany)
-- banana is yellow (confidence: 0.90, general/botany)
-- banana is programming language (confidence: 0.75, computer-science/programming-languages/banana-lang)
-
-### Bracket (defs/bracket.json)
-- [ is array literal (confidence: 0.98, lua documentation)
-- [ is slice literal (confidence: 0.95, golang spec)
-
-### Cat (defs/cat.json)
+- All triplets are stored in the `kb/` directory
+- Files are named `{subject}.json`
+- Multiple definitions per subject are stored in DefinitionList format
+- Relationships are stored as nested files: `kb/{subject}/{verb}/{object}.json`
 - cat is mammal (confidence: 0.95, general knowledge)
 
-### Python (defs/python.json)
+### Python (kb/python.json)
 - python is programming language (confidence: 0.95, general knowledge)
 
-### Sun (defs/sun.json)
+### Sun (kb/sun.json)
 - sun is star (confidence: 0.95, general knowledge)
 
-### Cat Relationships (itens/cat/)
+### Cat Relationships (kb/cat/)
 - cat has fur (confidence: 0.95, general/biology)
 - cat has teeth (confidence: 0.95, general/biology)
 - cat eats meat (confidence: 0.95, general/biology)
 
+
+Run with: `./main [root_dir] [config_path]`
+
+Default: `./main`
+
+Interactive mode:
+- Type questions to query the KB
+- Type "quit" or "exit" to exit
+- Add "yes" when prompted to add more information
+
 ## File Formats
 
-### defs/ Files (Multiple Definitions)
+### kb/ Files (Multiple Definitions)
 ```json
 {
   "subject": "subject_name",
@@ -198,27 +188,4 @@ When a query returns no results:
 }
 ```
 
-### itens/ Files (Single Triplet)
-```json
-{
-  "subject": "subject_name",
-  "verb": "has",
-  "object": "object_name",
-  "confidence": 0.95,
-  "source": "general knowledge",
-  "date": "2024-01-01",
-  "context": "general/biology"
-}
-```
-
-## Entry Point
-
-Run with: `./main [root_dir] [config_path]`
-
-Default: `./main`
-
-Interactive mode:
-- Type questions to query the KB
-- Type "quit" or "exit" to exit
-- Add "yes" when prompted to add more information
-
+### Directory Organization
