@@ -192,3 +192,16 @@ func matchesTemporal(date string, temporalCtx string) bool {
 
 // Global in-memory knowledge base instance
 var globalKB *MemoryKB
+
+// InitMemoryKB initializes the globalKB if it is nil and loads the knowledge base from the specified directory.
+// If globalKB is already initialized, it reloads the knowledge base.
+func InitMemoryKB(kbDir string) error {
+    if globalKB == nil {
+        globalKB = NewMemoryKB()
+    }
+    
+    if err := globalKB.Load(kbDir); err != nil {
+        return fmt.Errorf("failed to load knowledge base: %w", err)
+    }
+    return nil
+}

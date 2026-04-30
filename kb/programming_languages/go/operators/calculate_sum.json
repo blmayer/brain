@@ -1,0 +1,45 @@
+{
+  "ID": "calculate_sum",
+  "Depends": [
+    {
+      "Name": "var_a",
+      "Type": "int"
+    },
+    {
+      "Name": "var_b",
+      "Type": "int"
+    }
+  ],
+  "Produces": [
+    {
+      "Name": "result",
+      "Type": "int"
+    }
+  ],
+  "Emits": [
+    {
+      "Type": "RefNode",
+      "Value": "result"
+    },
+    {
+      "Type": "TextNode",
+      "Value": " := "
+    },
+    {
+      "Type": "RefNode",
+      "Value": "var_a"
+    },
+    {
+      "Type": "TextNode",
+      "Value": " + "
+    },
+    {
+      "Type": "RefNode",
+      "Value": "var_b"
+    }
+  ],
+  "Context": "golang",
+  "Confidence": 0.95,
+  "Source": "brain_v2",
+  "Date": "2026-04-28"
+}

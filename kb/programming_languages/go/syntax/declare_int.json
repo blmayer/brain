@@ -1,0 +1,28 @@
+{
+  "ID": "declare_int",
+  "Depends": [],
+  "Produces": [
+    {
+      "Name": "var",
+      "Type": "int"
+    }
+  ],
+  "Emits": [
+    {
+      "Type": "TextNode",
+      "Value": "var "
+    },
+    {
+      "Type": "RefNode",
+      "Value": "var"
+    },
+    {
+      "Type": "TextNode",
+      "Value": " int"
+    }
+  ],
+  "Context": "golang",
+  "Confidence": 0.95,
+  "Source": "brain_v2",
+  "Date": "2026-04-28"
+}

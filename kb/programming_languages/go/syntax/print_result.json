@@ -1,0 +1,28 @@
+{
+  "ID": "print_result",
+  "Depends": [
+    {
+      "Name": "result",
+      "Type": "int"
+    }
+  ],
+  "Produces": [],
+  "Emits": [
+    {
+      "Type": "TextNode",
+      "Value": "fmt.Println("
+    },
+    {
+      "Type": "RefNode",
+      "Value": "result"
+    },
+    {
+      "Type": "TextNode",
+      "Value": ")"
+    }
+  ],
+  "Context": "golang",
+  "Confidence": 0.95,
+  "Source": "brain_v2",
+  "Date": "2026-04-28"
+}

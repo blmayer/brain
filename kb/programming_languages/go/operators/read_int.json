@@ -1,0 +1,28 @@
+{
+  "ID": "read_int",
+  "Depends": [
+    {
+      "Name": "var",
+      "Type": "int"
+    }
+  ],
+  "Produces": [],
+  "Emits": [
+    {
+      "Type": "TextNode",
+      "Value": "fmt.Scanf(\"%d", &"
+    },
+    {
+      "Type": "RefNode",
+      "Value": "var"
+    },
+    {
+      "Type": "TextNode",
+      "Value": ")"
+    }
+  ],
+  "Context": "golang",
+  "Confidence": 0.95,
+  "Source": "brain_v2",
+  "Date": "2026-04-28"
+}
