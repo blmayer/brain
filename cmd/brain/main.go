@@ -11,11 +11,6 @@ import (
 
 type NodeID string
 
-type Requirement struct {
-	Name string
-	Type string
-}
-
 type EmitNode interface {
 	isEmitNode()
 }
@@ -37,8 +32,14 @@ func (TextNode) isEmitNode() {}
 
 type Node struct {
 	ID         NodeID
-	Depends    []Requirement
-	Produces   []Requirement
+	Depends    []struct {
+		Name string `json:"Name"`
+		Type string `json:"Type"`
+	}
+	Produces   []struct {
+		Name string `json:"Name"`
+		Type string `json:"Type"`
+	}
 	Emits      []EmitNode
 	Context    string
 	Confidence float64
@@ -108,14 +109,12 @@ type ExecNode struct {
 }
 
 // --- Plan tree (input structure) ---
-
 type PlanNode struct {
 	ID       NodeID
 	Children []*PlanNode
 }
 
 // --- Solver ---
-
 func SolvePlan(plan *PlanNode, ctx *Context) *ExecNode {
 	node := nodeDB[plan.ID]
 
@@ -134,28 +133,16 @@ func SolvePlan(plan *PlanNode, ctx *Context) *ExecNode {
 	for _, req := range node.Depends {
 		sym, exists := ctx.Bindings[req.Name]
 		if !exists {
-			// create variable
+			// create variable binding
 			sym = ctx.Bind(req.Name, req.Type)
-
-			// declare + read
-			decl := &ExecNode{
-				Node: nodeDB["declare_int"],
-				Bindings: map[string]Symbol{
-					"var": sym,
-				},
-			}
-
-			read := &ExecNode{
-				Node: nodeDB["read_int"],
-				Bindings: map[string]Symbol{
-					"var": sym,
-				},
-			}
-
-			exec.Deps = append(exec.Deps, decl, read)
 		}
-
 		exec.Bindings[req.Name] = sym
+		
+		// Solve the dependency node itself
+		if _, exists := nodeDB[NodeID(req.Name)]; exists {
+			depExec := SolvePlan(&PlanNode{ID: NodeID(req.Name)}, ctx)
+			exec.Deps = append(exec.Deps, depExec)
+		}
 	}
 
 	// Produce outputs
@@ -168,7 +155,6 @@ func SolvePlan(plan *PlanNode, ctx *Context) *ExecNode {
 }
 
 // --- Render ---
-
 func Render(node Node, bindings map[string]Symbol) string {
 	var out strings.Builder
 	for _, e := range node.Emits {
@@ -183,7 +169,6 @@ func Render(node Node, bindings map[string]Symbol) string {
 }
 
 // --- Emit (DFS) ---
-
 func Emit(exec *ExecNode, visited map[string]bool, out *[]string) {
 	key := makeKey(exec)
 	if visited[key] {
@@ -245,10 +230,10 @@ func main() {
 
 	// Correct structured input
 	plan := &PlanNode{
-		ID: "print_result",
+		ID: "print",
 		Children: []*PlanNode{
 			{
-				ID: "calculate_sum",
+				ID: "sum",
 			},
 		},
 	}

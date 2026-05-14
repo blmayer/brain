@@ -1,20 +1,20 @@
 {
-  "ID": "print_result",
+  "ID": "read",
   "Depends": [
     {
-      "Name": "result",
-      "Type": "int"
+      "Name": "var",
+      "Type": "any"
     }
   ],
   "Produces": [],
   "Emits": [
     {
       "Type": "TextNode",
-      "Value": "fmt.Println("
+      "Value": "fmt.Scanf(\"%d", &"
     },
     {
       "Type": "RefNode",
-      "Value": "result"
+      "Value": "var"
     },
     {
       "Type": "TextNode",

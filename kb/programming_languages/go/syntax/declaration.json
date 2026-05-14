@@ -1,16 +1,21 @@
 {
-  "ID": "read_int",
+  "ID": "declaration",
   "Depends": [
     {
-      "Name": "var",
-      "Type": "int"
+      "Name": "type",
+      "Type": "type"
     }
   ],
-  "Produces": [],
+  "Produces": [
+    {
+      "Name": "var",
+      "Type": "any"
+    }
+  ],
   "Emits": [
     {
       "Type": "TextNode",
-      "Value": "fmt.Scanf(\"%d", &"
+      "Value": "var "
     },
     {
       "Type": "RefNode",
@@ -18,7 +23,11 @@
     },
     {
       "Type": "TextNode",
-      "Value": ")"
+      "Value": " "
+    },
+    {
+      "Type": "RefNode",
+      "Value": "type"
     }
   ],
   "Context": "golang",

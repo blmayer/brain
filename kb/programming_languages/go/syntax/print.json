@@ -1,24 +1,24 @@
 {
-  "ID": "declare_int",
-  "Depends": [],
-  "Produces": [
+  "ID": "print",
+  "Depends": [
     {
       "Name": "var",
-      "Type": "int"
+      "Type": "any"
     }
   ],
+  "Produces": [],
   "Emits": [
     {
       "Type": "TextNode",
-      "Value": "var "
+      "Value": "fmt.Println("
     },
     {
       "Type": "RefNode",
-      "Value": "var"
+      "Value": "result"
     },
     {
       "Type": "TextNode",
-      "Value": " int"
+      "Value": ")"
     }
   ],
   "Context": "golang",

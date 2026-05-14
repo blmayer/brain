@@ -1,5 +1,5 @@
 {
-  "ID": "calculate_sum",
+  "ID": "sum",
   "Depends": [
     {
       "Name": "var_a",
