@@ -106,3 +106,64 @@ func containsAt(s, substr string) bool {
 	return false
 }
 
+// TestGeneratePlanForSumProgram verifies that the generated PlanNode
+// matches the expected structure for the sum program.
+func TestGeneratePlanForSumProgram(t *testing.T) {
+	plan := GeneratePlanForSumProgram()
+
+	// Check the root node
+	if plan.Name != "print" {
+		t.Errorf("Expected root node to be 'print', got '%s'", plan.Name)
+	}
+
+	// Check that 'print' has one dependency: 'sum'
+	if len(plan.Depends) != 1 {
+		t.Errorf("Expected 'print' to have 1 dependency, got %d", len(plan.Depends))
+	}
+
+	sumNode := plan.Depends[0]
+	if sumNode.Name != "sum" {
+		t.Errorf("Expected 'sum' node as dependency of 'print', got '%s'", sumNode.Name)
+	}
+
+	// Check that 'sum' has two dependencies: 'a' and 'b'
+	if len(sumNode.Depends) != 2 {
+		t.Errorf("Expected 'sum' to have 2 dependencies, got %d", len(sumNode.Depends))
+	}
+
+	aNode := sumNode.Depends[0]
+	bNode := sumNode.Depends[1]
+
+	// Check 'a' node
+	if aNode.Name != "a" {
+		t.Errorf("Expected first dependency of 'sum' to be 'a', got '%s'", aNode.Name)
+	}
+
+	// Check 'a' dependencies
+	if len(aNode.Depends) != 2 {
+		t.Errorf("Expected 'a' to have 2 dependencies, got %d", len(aNode.Depends))
+	}
+
+	for _, dep := range aNode.Depends {
+		if dep.Name != "declaration" && dep.Name != "read" {
+			t.Errorf("Expected 'a' dependencies to be 'declaration' or 'read', got '%s'", dep.Name)
+		}
+	}
+
+	// Check 'b' node
+	if bNode.Name != "b" {
+		t.Errorf("Expected second dependency of 'sum' to be 'b', got '%s'", bNode.Name)
+	}
+
+	// Check 'b' dependencies
+	if len(bNode.Depends) != 2 {
+		t.Errorf("Expected 'b' to have 2 dependencies, got %d", len(bNode.Depends))
+	}
+
+	for _, dep := range bNode.Depends {
+		if dep.Name != "declaration" && dep.Name != "read" {
+			t.Errorf("Expected 'b' dependencies to be 'declaration' or 'read', got '%s'", dep.Name)
+		}
+	}
+}
+

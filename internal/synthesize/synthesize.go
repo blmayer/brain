@@ -5,6 +5,15 @@ import (
 	"fmt"
 )
 
+// PlanNode represents a node in a plan graph.
+// It contains a name and a list of dependencies.
+// This structure is used to represent the steps and their dependencies
+// in a program generation plan.
+type PlanNode struct {
+	Name    string
+	Depends []PlanNode
+}
+
 // SystemPrompt returns the system prompt for the synthesizer
 func SystemPrompt(triplets []search.Triplet) string {
 	return fmt.Sprintf(`You are a knowledge synthesizer. Your task is to convert triplet data into a coherent natural language response.
@@ -62,4 +71,53 @@ func CanAnswer(triplets []search.Triplet) bool {
 func NeedsUpdate(triplets []search.Triplet) bool {
 	// If no triplets found, we need to update
 	return len(triplets) == 0
+}
+
+// GeneratePlanForSumProgram generates a PlanNode structure for a program
+// that reads two integers and prints their sum.
+// This is a hardcoded implementation for testing purposes.
+func GeneratePlanForSumProgram() PlanNode {
+	// Create the 'a' node with its dependencies
+	aNode := PlanNode{
+		Name: "a",
+		Depends: []PlanNode{
+			{
+				Name: "declaration",
+				Depends: []PlanNode{{Name: "a"}},
+			},
+			{
+				Name: "read",
+				Depends: []PlanNode{{Name: "a"}},
+			},
+		},
+	}
+
+	// Create the 'b' node with its dependencies
+	bNode := PlanNode{
+		Name: "b",
+		Depends: []PlanNode{
+			{
+				Name: "declaration",
+				Depends: []PlanNode{{Name: "b"}},
+			},
+			{
+				Name: "read",
+				Depends: []PlanNode{{Name: "b"}},
+			},
+		},
+	}
+
+	// Create the 'sum' node with its dependencies
+	sumNode := PlanNode{
+		Name: "sum",
+		Depends: []PlanNode{aNode, bNode},
+	}
+
+	// Create the 'print' node with its dependency
+	printNode := PlanNode{
+		Name: "print",
+		Depends: []PlanNode{sumNode},
+	}
+
+	return printNode
 }

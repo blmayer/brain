@@ -228,12 +228,42 @@ func main() {
 		Bindings: make(map[string]Symbol),
 	}
 
-	// Correct structured input
+// Correct structured input
 	plan := &PlanNode{
 		ID: "print",
 		Children: []*PlanNode{
 			{
 				ID: "sum",
+				Children: []*PlanNode{
+					{
+						ID: "declaration",
+						Produces: {
+							{Name: "var_a", Type: "var"},
+						},
+						Children: []*PlanNode{
+							{
+								ID: "read",
+								Depends: {
+									{Name: "var_a", Type: "var"},
+								},
+							},
+						},
+					},
+					{
+						ID: "declaration",
+						Produces: {
+							{Name: "var_b", Type: "var"},
+						},
+						Children: []*PlanNode{
+							{
+								ID: "read",
+								Depends: {
+									{Name: "var_b", Type: "var"},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
