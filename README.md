@@ -123,5 +123,3 @@ Contributions that expand `kb.py` with new reusable templates (loops, conditiona
 ## License
 
 This project is licensed under the BSD 3-Clause License — see the [LICENSE](LICENSE) file for details.
-
-The Go implementation has been removed. The active codebase is the Python path (`main.py`, `augment.py`, `kb.py`).
