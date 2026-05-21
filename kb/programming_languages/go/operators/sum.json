@@ -1,45 +1,22 @@
 {
-  "ID": "sum",
-  "Depends": [
-    {
-      "Name": "var_a",
-      "Type": "int"
-    },
-    {
-      "Name": "var_b",
-      "Type": "int"
-    }
+  "id": "sum",
+  "type": "instance",
+  "needs": [
+    { "name": "var_a", "type": "int" },
+    { "name": "var_b", "type": "int" }
   ],
-  "Produces": [
-    {
-      "Name": "result",
-      "Type": "int"
-    }
+  "produces": [
+    { "name": "result", "type": "int" }
   ],
-  "Emits": [
-    {
-      "Type": "RefNode",
-      "Value": "result"
-    },
-    {
-      "Type": "TextNode",
-      "Value": " := "
-    },
-    {
-      "Type": "RefNode",
-      "Value": "var_a"
-    },
-    {
-      "Type": "TextNode",
-      "Value": " + "
-    },
-    {
-      "Type": "RefNode",
-      "Value": "var_b"
-    }
+  "emits": [
+    { "ref": "result" },
+    { "text": " := " },
+    { "ref": "var_a" },
+    { "text": " + " },
+    { "ref": "var_b" }
   ],
-  "Context": "golang",
-  "Confidence": 0.95,
-  "Source": "brain_v2",
-  "Date": "2026-04-28"
+  "context": "golang",
+  "confidence": 0.95,
+  "source": "brain_v2",
+  "date": "2026-04-28"
 }

@@ -1,28 +1,17 @@
 {
-  "ID": "print",
-  "Depends": [
-    {
-      "Name": "var",
-      "Type": "any"
-    }
+  "id": "print",
+  "type": "instance",
+  "needs": [
+    { "name": "var", "type": "any" }
   ],
-  "Produces": [],
-  "Emits": [
-    {
-      "Type": "TextNode",
-      "Value": "fmt.Println("
-    },
-    {
-      "Type": "RefNode",
-      "Value": "result"
-    },
-    {
-      "Type": "TextNode",
-      "Value": ")"
-    }
+  "produces": [],
+  "emits": [
+    { "text": "fmt.Println(" },
+    { "ref": "result" },
+    { "text": ")" }
   ],
-  "Context": "golang",
-  "Confidence": 0.95,
-  "Source": "brain_v2",
-  "Date": "2026-04-28"
+  "context": "golang",
+  "confidence": 0.95,
+  "source": "brain_v2",
+  "date": "2026-04-28"
 }

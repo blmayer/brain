@@ -1,28 +1,17 @@
 {
-  "ID": "read",
-  "Depends": [
-    {
-      "Name": "var",
-      "Type": "any"
-    }
+  "id": "read",
+  "type": "instance",
+  "needs": [
+    { "name": "var", "type": "any" }
   ],
-  "Produces": [],
-  "Emits": [
-    {
-      "Type": "TextNode",
-      "Value": "fmt.Scanf(\"%d", &"
-    },
-    {
-      "Type": "RefNode",
-      "Value": "var"
-    },
-    {
-      "Type": "TextNode",
-      "Value": ")"
-    }
+  "produces": [],
+  "emits": [
+    { "text": "fmt.Scanf(\"%d\", &" },
+    { "ref": "var" },
+    { "text": ")" }
   ],
-  "Context": "golang",
-  "Confidence": 0.95,
-  "Source": "brain_v2",
-  "Date": "2026-04-28"
+  "context": "golang",
+  "confidence": 0.95,
+  "source": "brain_v2",
+  "date": "2026-04-28"
 }

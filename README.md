@@ -4,10 +4,7 @@
 
 `brain` stores knowledge as structured, queryable facts (originally triplets, now also rich plan templates) and uses that knowledge to assemble correct outputs instead of relying on LLM hallucination.
 
-The project has two parallel implementations:
-
-- **Active Python path** (new version): NLTK-based natural language parsing + generic plan construction driven by a Python KB (`kb.py`) + knowledge-driven code emission.
-- **Legacy Go path**: The original triplet-based KB stored in `kb/*.json` files with LLM-assisted parsing and search.
+The active implementation is in Python.
 
 ---
 
@@ -30,10 +27,10 @@ tree_to_solved_plan()    # Generic feature extraction (KB-driven) → Plan tree
 solve_plan() + KB        # Augment with needs/produces/emits from knowledge base
       │
       ▼
-emit()                   # Depth-first rendering of the final output (e.g. Go source)
+emit()                   # Depth-first rendering of the final output (e.g. source code)
 ```
 
-Current demo: "write a Golang program that reads 2 integers and prints their sum" → correct Go program using `var`/`fmt.Scanf`/`+`/`fmt.Println` emitted from the knowledge base.
+Current demo: "write a Golang program that reads 2 integers and prints their sum" → correct program using `var`/`fmt.Scanf`/`+`/`fmt.Println` emitted from the knowledge base.
 
 ### Getting Started (Python)
 
@@ -88,33 +85,6 @@ Current demo: "write a Golang program that reads 2 integers and prints their sum
 
 ---
 
-## Legacy Go Implementation
-
-The original system (still present in `cmd/brain/` and `internal/`).
-
-### Running (Go)
-
-```bash
-export OPENAI_API_KEY=your_key
-go run cmd/brain/main.go
-```
-
-### Project Structure (Go)
-
-```
-cmd/brain/main.go
-internal/
-├── parse/      # NL → triplets (LLM-assisted)
-├── search/     # Filesystem KB search
-├── synthesize/ # Triplets → natural language
-└── llm/        # OpenAI / Mistral / etc. clients
-kb/             # Original JSON knowledge base (triplets + plan templates)
-```
-
-Many of the ideas from the Go version (especially the plan expansion + KB-driven emission in `kb/programming_languages/go/...`) have been ported and generalized into the Python `kb.py` + `augment.py` implementation.
-
----
-
 ## Knowledge Base
 
 Knowledge lives in two forms:
@@ -152,4 +122,6 @@ Contributions that expand `kb.py` with new reusable templates (loops, conditiona
 
 ## License
 
-No license specified yet. All code is currently experimental.
+This project is licensed under the BSD 3-Clause License — see the [LICENSE](LICENSE) file for details.
+
+The Go implementation has been removed. The active codebase is the Python path (`main.py`, `augment.py`, `kb.py`).

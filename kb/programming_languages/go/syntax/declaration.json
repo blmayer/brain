@@ -1,37 +1,20 @@
 {
-  "ID": "declaration",
-  "Depends": [
-    {
-      "Name": "type",
-      "Type": "type"
-    }
+  "id": "declaration",
+  "type": "instance",
+  "needs": [
+    { "name": "type", "type": "type" }
   ],
-  "Produces": [
-    {
-      "Name": "var",
-      "Type": "any"
-    }
+  "produces": [
+    { "name": "var", "type": "any" }
   ],
-  "Emits": [
-    {
-      "Type": "TextNode",
-      "Value": "var "
-    },
-    {
-      "Type": "RefNode",
-      "Value": "var"
-    },
-    {
-      "Type": "TextNode",
-      "Value": " "
-    },
-    {
-      "Type": "RefNode",
-      "Value": "type"
-    }
+  "emits": [
+    { "text": "var " },
+    { "ref": "var" },
+    { "text": " " },
+    { "ref": "type" }
   ],
-  "Context": "golang",
-  "Confidence": 0.95,
-  "Source": "brain_v2",
-  "Date": "2026-04-28"
+  "context": "golang",
+  "confidence": 0.95,
+  "source": "brain_v2",
+  "date": "2026-04-28"
 }
