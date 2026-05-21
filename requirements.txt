@@ -1,0 +1,10 @@
+# requirements.txt
+# Python dependencies for the active (new) development path.
+
+# Core NLP processing (used by main.py, coreference_resolver.py, and the
+# tree_to_solved_plan() pipeline in augment.py)
+nltk>=3.8
+
+# Numerical computing (planned / future use for feature vectors, similarity,
+# and potential ML-based intent classification on top of the KB)
+numpy>=1.24

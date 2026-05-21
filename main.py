@@ -1,5 +1,6 @@
 import nltk
 from coreference_resolver import resolve_pronouns
+from augment import tree_to_solved_plan, emit
 
 
 def process_input(task):
@@ -17,7 +18,7 @@ def process_input(task):
 if __name__ == "__main__":
     while True:
         # Accept user input
-        task = input("Enter a sentence to resolve pronouns (or 'exit' to quit): ")
+        task = input("Enter a sentence (or 'exit' to quit): ")
         
         if task == "exit":
             break
@@ -43,3 +44,17 @@ if __name__ == "__main__":
         
         if not found_resolutions:
             print("No pronouns found to resolve.")
+
+        # --- New pipeline: from parsed trees → generic plan → KB augmentation → emission ---
+        print("\n=== KB-Augmented Plan Emission ===")
+        try:
+            solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+            lines = emit(solved)
+
+            if lines:
+                for line in lines:
+                    print(line)
+            else:
+                print("(No output lines generated from the current knowledge base)")
+        except Exception as e:
+            print(f"[Pipeline error] {e}")

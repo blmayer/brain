@@ -1,258 +1,155 @@
 # brain
 
-This project is a knowledge base connected with LLMs, it delivers knowledge
-in a human readable way. This is going to be the supreme AI.
+**Knowledge-driven program synthesis and semantic reasoning.**
 
-Current LLMs are inherently unpredictable, they are, in essence, a probability
-distribution. This project changes how knowledge is stored. It uses a graph
-database that exposes knowledge in its basic form, the triplet:
+`brain` stores knowledge as structured, queryable facts (originally triplets, now also rich plan templates) and uses that knowledge to assemble correct outputs instead of relying on LLM hallucination.
 
-subject verb object
+The project has two parallel implementations:
 
-This way ANYTHING can be written! This also works in a different way, instead of
-having layers in RAM this model will simply search the filesystem.
-
-
-## How it works
-
-A LLM will convert the user prompt into a query, brain runs the query that
-returns the knowledge it has, then a LLM will translate that into natural
-language.
-
-For example, user asks "what's a banana?", then the LLM should output a query
-like this: "banana is?", so brain will search "banana" in the KB. The output
-would be like this:
-
-banana is fruit
-banana is edible
-banana is tree
-...
-
-and so on. Then the LLM will convert that into a human readable response:
-
-Banana is a fruit that can be eaten, it is native to equatorial climate...
-It also refers to the banana tree, a plant of the Palmares species...
-
-The knowledge graph is implemented in the filesystem, as a bunch of JSON
-files, so searching for them is easy.
-
-
-## Project Structure
-
-```
-brain/
-├── cmd/brain/main.go      # Main entry point (interactive CLI)
-├── config.json            # LLM providers and model settings
-├── kb/                    # Knowledge base (definitions and relationships)
-│   ├── banana.json        # Array of definitions with contexts
-│   ├── cat.json
-│   ├── python.json
-│   └── sun.json
-│   └── cat/
-│       ├── has/
-│       │   ├── fur.json
-│       │   └── teeth.json
-│       └── eats/
-│           └── meat.json
-└── internal/
-    ├── config/            # Configuration loading
-    ├── llm/               # LLM client (OpenAI, Mistral)
-    ├── parse/             # Query parser (NL → triplet)
-    ├── search/            # Filesystem search engine
-    └── synthesize/        # Response synthesizer (triplet → NL)
-```
-
-
-## Running
-
-```bash
-# Set your API key
-export OPENAI_API_KEY=your_key_here
-
-# Run the interactive CLI
-go run cmd/brain/main.go
-```
-
-The program will prompt for questions. Type 'quit' to exit.
-
-
-## Configuration
-
-Edit `config.json` to customize providers:
-
-```json
-{
-  "input": {
-    "provider": "openai",
-    "model": "gpt-4",
-    "api_key": ""
-  },
-  "output": {
-    "provider": "openai",
-    "model": "gpt-4",
-    "api_key": ""
-  }
-}
-```
-
-Supported providers: `openai`, `mistral`, `anthropic`, `minimax`
-
-### Config File Location
-
-The config file is searched in the following order:
-1. Path provided as command-line argument
-2. `$XDG_CONFIG_HOME/brain/config.json` (or `~/.config/brain/config.json` if `XDG_CONFIG_HOME` is not set)
-3. `./config.json` in the current directory (fallback)
-
-
-## Adding Knowledge
-**Adding Knowledge**
-**kb/** - Directory for all knowledge (definitions and relationships):
-Each subject has a `kb/{subject}.json` file containing an array of definitions:
-
-```json
-{
-  "subject": "banana",
-  "definitions": [
-    {
-      "verb": "is",
-      "object": "fruit",
-      "confidence": 0.95,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "general/botany"
-    },
-    {
-      "verb": "is",
-      "object": "programming language",
-      "confidence": 0.80,
-      "source": "community knowledge",
-      "date": "2024-01-15",
-      "context": "computer-science/programming-languages/banana-lang"
-    }
-  ]
-}
-```
-
-## Knowledge Base Structure
-
-**kb/** - Directory for all knowledge (definitions and relationships):
-Each subject has a `kb/{subject}.json` file containing an array of definitions:
-
-```json
-{
-  "subject": "[",
-  "definitions": [
-    {
-      "verb": "is",
-      "object": "array literal",
-      "confidence": 0.98,
-      "source": "lua documentation",
-      "date": "2024-01-01",
-      "context": "computer-science/programming-languages/lua"
-    },
-    {
-      "verb": "is",
-      "object": "slice literal",
-      "confidence": 0.95,
-      "source": "golang spec",
-      "date": "2024-01-01",
-      "context": "computer-science/programming-languages/go"
-    }
-  ]
-}
-```
-
-**Context hierarchy:** `domain/subdomain/specific` allows precise categorization.
-
-### kb/ - Relations with Context
-
-Nested by subject and verb for efficient searching:
-
-```
-kb/
-├── cat/
-│   ├── has/
-│   │   ├── fur.json
-│   │   └── teeth.json
-│   └── eats/
-│       └── meat.json
-└── banana/
-    └── is/
-        ├── fruit.json
-        └── edible.json
-```
-
-Each relation file includes a `context` field for similar disambiguation.
-
-**Goal:** Allow the system to add new knowledge from queries it can't answer
-
-**Changes:**
-**Goal:** Allow the system to add new knowledge from queries it can't answer
-
-**Changes:**
-1. **Modify `internal/search/search.go`**
-   - Add `AddTriplet()` function to write new triplets to JSON files in `kb/`
-2. **Modify `internal/synthesize/synthesize.go`**
-   - Add `canAnswer()` method: returns true if confidence is sufficient and triplets exist
-   - Return flag to main.go indicating if knowledge was found
-
-3. **Modify `cmd/brain/main.go`**
-   - When no triplets found, ask LLM to generate new knowledge
-   - Prompt LLM: "Based on this question, what knowledge should be added?"
-   - Validate and store new triplet with metadata (confidence, source, timestamp)
-
-**Goal:** Enable multi-turn conversations
-
-**Changes:**
-1. **Add `internal/context/` package**
-   - Store conversation history
-   - Build implicit knowledge from previous answers
-
-2. **Modify `cmd/brain/main.go`**
-   - Maintain conversation state
-   - Pass context to parse and synthesize steps
-   - LLM can reference previous turns
-
-### Phase 4: Confidence & Versioning
-
-**Goal:** Handle conflicting facts and uncertainty
-## Proposed Architecture
-
-```
-brain/
-├── cmd/brain/main.go          # Enhanced with knowledge addition, temporal context, conversation
-├── config.json
-├── kb/                       # All knowledge stored here (definitions and relations)
-├── internal/
-│   ├── config/
-│   ├── llm/
-│   ├── parse/                # Enhanced to extract temporal context
-│   ├── search/               # Add AddTriplet(), temporal filtering
-│   └── synthesize/           # Add canAnswer(), conflict detection
-└── knowledge/                # NEW: store conversation logs (optional)
-```
-
-├── defs/                      # Definition triplets
-├── itens/                     # Relation triplets (nested by subject)
-├── internal/
-│   ├── config/
-│   └── context/               # NEW: conversation history management
-└── knowledge/                 # NEW: store conversation logs (optional)
-```
+- **Active Python path** (new version): NLTK-based natural language parsing + generic plan construction driven by a Python KB (`kb.py`) + knowledge-driven code emission.
+- **Legacy Go path**: The original triplet-based KB stored in `kb/*.json` files with LLM-assisted parsing and search.
 
 ---
 
-## Implementation Priority
+## Python Path (Current Development Focus)
 
-1. **High Priority:** Dynamic knowledge addition (most immediate value)
-2. **High Priority:** Temporal awareness (addresses your specific concern)
-3. **Medium Priority:** Conversation context (nice-to-have for user experience)
-4. **Low Priority:** Advanced conflict resolution (can be added later)
+This is the actively evolving implementation.
 
+### Pipeline
 
+```
+Natural Language
+      │
+      ▼
+process_input()          # NLTK tokenization + POS tagging + NE chunking + coreference resolution
+      │
+      ▼
+tree_to_solved_plan()    # Generic feature extraction (KB-driven) → Plan tree
+      │
+      ▼
+solve_plan() + KB        # Augment with needs/produces/emits from knowledge base
+      │
+      ▼
+emit()                   # Depth-first rendering of the final output (e.g. Go source)
+```
 
-## Limitations
+Current demo: "write a Golang program that reads 2 integers and prints their sum" → correct Go program using `var`/`fmt.Scanf`/`+`/`fmt.Println` emitted from the knowledge base.
 
-How do we encode information that changed? e.g Mike is single; Mike is married.
-How do we disambiguate things: '[' means different things in lua and in golang.
+### Getting Started (Python)
+
+1. Install dependencies:
+
+   ```bash
+   pip install nltk
+   ```
+
+2. **Download the required NLTK data** (run once):
+
+   ```python
+   import nltk
+   nltk.download('punkt')
+   nltk.download('punkt_tab')          # newer NLTK versions
+   nltk.download('averaged_perceptron_tagger')
+   nltk.download('maxent_ne_chunker')
+   nltk.download('words')
+   ```
+
+   Or from the command line:
+
+   ```bash
+   python -c "import nltk; nltk.download(['punkt','punkt_tab','averaged_perceptron_tagger','maxent_ne_chunker','words'])"
+   ```
+
+3. Run the demo:
+
+   ```bash
+   python main.py
+   ```
+
+   Type sentences like:
+   - `write a Golang program that reads 2 integers and prints their sum`
+   - `write a python program that ...`
+
+4. Run the tests:
+
+   ```bash
+   python -m unittest test_augment test_coreference_resolver -v
+   ```
+
+### Key Python Files
+
+| File                        | Purpose |
+|----------------------------|---------|
+| `main.py`                  | Interactive entry point + `process_input()` (NLTK pipeline) |
+| `coreference_resolver.py`  | Pronoun resolution on the parsed tree |
+| `augment.py`               | `tree_to_solved_plan()`, generic plan builder, `solve_plan()`, `emit()` |
+| `kb.py`                    | Python-native Knowledge Base (Node with `needs`, `produces`, `emits`) |
+| `test_augment.py`          | Tests for the plan solver and end-to-end NLTK → emission flow |
+
+---
+
+## Legacy Go Implementation
+
+The original system (still present in `cmd/brain/` and `internal/`).
+
+### Running (Go)
+
+```bash
+export OPENAI_API_KEY=your_key
+go run cmd/brain/main.go
+```
+
+### Project Structure (Go)
+
+```
+cmd/brain/main.go
+internal/
+├── parse/      # NL → triplets (LLM-assisted)
+├── search/     # Filesystem KB search
+├── synthesize/ # Triplets → natural language
+└── llm/        # OpenAI / Mistral / etc. clients
+kb/             # Original JSON knowledge base (triplets + plan templates)
+```
+
+Many of the ideas from the Go version (especially the plan expansion + KB-driven emission in `kb/programming_languages/go/...`) have been ported and generalized into the Python `kb.py` + `augment.py` implementation.
+
+---
+
+## Knowledge Base
+
+Knowledge lives in two forms:
+
+1. **Rich plan templates** (`kb.py` + the JSONs under `kb/programming_languages/go/...`)
+   - Used by the Python solver (`sum`, `print`, `read`, `declaration`, etc.).
+   - Each node declares `needs`, `produces`, and `emits` (text + references).
+
+2. **Triplet KB** (the original `kb/*.json` files)
+   - Classic `subject verb object` facts with confidence, context, date, etc.
+
+Adding new capabilities is usually just adding a new node to `kb.py` (or a JSON file). The Python feature extractor automatically recognizes any new node IDs that appear in user sentences.
+
+---
+
+## Design Goals
+
+- Move from "ask the LLM to write code" to **"parse intent + assemble from verified knowledge atoms"**.
+- Make the system **extensible by data**, not by code changes.
+- Support traceability: every emitted line can be traced back to a specific KB entry.
+
+See `DESIGN_DOC.md` for the original four-phase architecture.
+
+---
+
+## Limitations & Future Work
+
+- The current Python KB is still small (focused on the "sum two numbers" example).
+- NLTK parsing is a cheap local approximation — a real LLM parser (as described in the design doc) would be more robust for complex sentences.
+- No persistent storage or multi-turn conversation context yet in the Python path.
+
+Contributions that expand `kb.py` with new reusable templates (loops, conditionals, different languages, etc.) are very welcome.
+
+---
+
+## License
+
+No license specified yet. All code is currently experimental.
