@@ -1,19 +1,23 @@
-"""Augment parsed plan trees using knowledge from KB.
+"""Augment parsed natural language into executable plans using the Golang Ontology.
 
-Generic implementation (no hard-coded program structure or names in the algorithms).
-From a (parsed) plan tree of Node/Plan, use KB entries to resolve needs, bind variables,
-and prepare Exec plan that can emit the final lines (e.g. Go source).
+Flow:
+1. Parse sentence → tagged tree (via NLTK + coref).
+2. Map words/actions from the tree to Concepts in the ontology (kb/ontology/).
+3. Recursively resolve dependencies (e.g. "prints" → Print concept → fmt.Println → its required arguments).
+4. Bind variables and emit code using the resolved Concepts' emitters.
+
+No legacy Node/KB compatibility — ontology-native only.
 """
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any, Union
-from kb import Node, Dep, KB, get_node, TextEmit, RefEmit, Emit
+from kb import Concept, get_concept, get_ontology
 
 
 @dataclass
 class ExecNode:
-    """Runtime execution node after augmentation/solve against KB."""
-    node: Node
+    """Runtime execution node using the new ontology format."""
+    concept: Concept
     bindings: Dict[str, str] = field(default_factory=dict)
     deps: List["ExecNode"] = field(default_factory=list)
 
@@ -43,166 +47,80 @@ class Context:
         return self.types.get(name, "any")
 
 
-def _is_leaf_plan(p: Any) -> bool:
-    """A leaf like 'a' or 'b' has no KB entry and is just naming a variable."""
-    return isinstance(p, (dict, object)) and getattr(p, "id", None) and p.id not in KB
+# _is_leaf_plan removed - no longer needed in ontology-native flow
 
 
-def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Optional[Dep] = None) -> ExecNode:
-    """Recursively augment/solve the parsed plan tree using KB knowledge.
-
-    This is the core: from the (high-level or detailed) parsed tree, lookup KB nodes
-    by ID, bind their needs/produces using provided children and context, attach
-    sub Exec for children. Generic -- works for any KB entries + plan shapes.
+def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) -> ExecNode:
+    """
+    Ontology-native solver.
+    Walks plans produced by the new dependency-resolution flow.
     """
     if ctx is None:
         ctx = Context()
 
-    plan_id = getattr(plan, "id", None) or (plan.get("id") if isinstance(plan, dict) else None)
-    if not plan_id:
-        raise ValueError("Plan node must have an 'id'")
+    if isinstance(plan, dict):
+        plan_type = plan.get("type")
 
-    # Get KB template if present (the augmentation step)
-    try:
-        kb_node = get_node(plan_id)
-    except KeyError:
-        kb_node = None
+        if plan_type == "ontology_driven_plan":
+            # New flow: we already have the resolved concepts from dependency resolution
+            resolved = plan.get("all_concepts", [])
+            program_concept = get_concept("FunctionDeclaration") or Concept(
+                id="Program", kind="Program", name="Main Program"
+            )
+            root = ExecNode(concept=program_concept)
 
-    # Treat as leaf/naming node if no KB entry OR if it has no emits (dummy/placeholder like "a","b")
-    if kb_node is None or len(getattr(kb_node, "emits", []) or []) == 0:
-        # Leaf / concrete variable instance (e.g. id="a"). Provide name and type from caller.
-        var_name = plan_id
-        var_type = providing.type if providing else "any"
-        ctx.types[var_name] = var_type
-        # Create a lightweight node for it
-        leaf_node = Node(id=var_name, type="instance", produces=[Dep(var_name, var_type)])
-        exec_n = ExecNode(node=leaf_node, bindings={var_name: var_name, "var": var_name}, deps=[])
+            for concept in resolved:
+                if isinstance(concept, Concept):
+                    root.deps.append(ExecNode(concept=concept))
 
-        # Recurse into its sub-steps (declaration, read etc attached in parsed tree)
-        children = getattr(plan, "needs", None) or (plan.get("needs", []) if isinstance(plan, dict) else [])
-        for child in children:
-            child_exec = solve_plan(child, ctx, providing=Dep(name=var_name, type=var_type))
-            exec_n.deps.append(child_exec)
+            return root
 
-        return exec_n
+        if plan_type == "sum_program":
+            # Temporary fallback for the older structure during transition
+            steps = plan.get("steps", [])
+            program_concept = get_concept("FunctionDeclaration") or Concept(
+                id="Program", kind="Program", name="Main Program"
+            )
+            root = ExecNode(concept=program_concept)
+            for step in steps:
+                step_concept = step.get("concept")
+                if isinstance(step_concept, Concept):
+                    root.deps.append(ExecNode(concept=step_concept, bindings=step))
+            return root
 
-    # --- KB template node: augment the plan step with its knowledge (needs, emits, etc.)
-    exec_n = ExecNode(node=kb_node, bindings={}, deps=[])
+        fb = get_concept("FunctionDeclaration") or Concept(id="Unknown", kind="Unknown", name="Unknown")
+        return ExecNode(concept=fb)
 
-    # 1. First solve all children from the parsed plan tree (these provide actuals for needs or names)
-    children = getattr(plan, "needs", None) or (plan.get("needs", []) if isinstance(plan, dict) else [])
-    child_execs = []
-    for i, child in enumerate(children):
-        # Pass the corresponding need as providing so leaves get correct type (generic data-driven)
-        prov = kb_node.needs[i] if i < len(kb_node.needs) else None
-        c_exec = solve_plan(child, ctx, providing=prov)
-        child_execs.append(c_exec)
-        exec_n.deps.append(c_exec)
+    fb = get_concept("FunctionDeclaration") or Concept(id="Fallback", kind="Fallback", name="Fallback")
+    return ExecNode(concept=fb)
 
-    # 2. Map children to this node's needs (positional + only for var-like needs so decl's "type" meta-need isn't overwritten by var-name child)
-    #    This keeps it generic: decision based on Dep fields themselves, not on specific node IDs.
-    for i, c_exec in enumerate(child_execs):
-        if i < len(kb_node.needs):
-            need = kb_node.needs[i]
-            if "var" in need.name or need.type in ("int", "any", "string", "float"):
-                # child's id supplies the concrete name for this formal need
-                supplied = c_exec.node.id
-                exec_n.bindings[need.name] = supplied
-                if supplied in ctx.types:
-                    ctx.types[supplied] = need.type
-
-    # Bubble any produced names from direct children (so print can see "result" from sum)
-    for c_exec in child_execs:
-        for k, v in c_exec.bindings.items():
-            if k not in exec_n.bindings:
-                exec_n.bindings[k] = v
-
-    # 3. Bind remaining needs (e.g. "type" for declaration) using providing or context or inferred type
-    for need in kb_node.needs:
-        if need.name not in exec_n.bindings:
-            if need.name == "type":
-                # For declaration etc, type comes from the use-site providing or from the var we are declaring
-                if providing and providing.type and providing.type != "any":
-                    exec_n.bindings[need.name] = providing.type
-                else:
-                    # fallback: look for a "var" already bound in this exec and use its type
-                    var_name = exec_n.bindings.get("var")
-                    if var_name:
-                        exec_n.bindings[need.name] = ctx.get_type(var_name)
-                    else:
-                        exec_n.bindings[need.name] = "int"  # safe default for our tests
-            else:
-                pref = None
-                exec_n.bindings[need.name] = ctx.bind(need.name, need.type, pref)
-
-    # 4. Bind produces (e.g. "result", "var" from declaration)
-    for prod in kb_node.produces:
-        if prod.name not in exec_n.bindings:
-            # prefer a name from a child that "is" this, or use prod.name literally for readability
-            supplied = None
-            for c_exec in child_execs:
-                if prod.name in c_exec.bindings:
-                    supplied = c_exec.bindings[prod.name]
-                    break
-            actual = ctx.bind(prod.name, prod.type, preferred=supplied or prod.name)
-            exec_n.bindings[prod.name] = actual
-            # If this produce corresponds to a concrete var name from plan, record it
-            if supplied:
-                ctx.types[actual] = prod.type
-
-    # 5. Generic post-processing for templates that operate on a "var" (decl, read, etc.):
-    #    If a direct child is a simple leaf (name, no emits), and we have a "var" slot, use the leaf's id.
-    #    This is driven by the shape of children + Deps in KB, fully generic.
-    simple_child_names = []
-    for c_exec in child_execs:
-        cid = c_exec.node.id
-        if cid and (cid not in KB or len(getattr(KB.get(cid), "emits", []) or []) == 0):
-            simple_child_names.append(cid)
-    if simple_child_names:
-        first = simple_child_names[0]
-        for slot in ("var",):
-            if slot in [d.name for d in (kb_node.needs + kb_node.produces)]:
-                if slot not in exec_n.bindings or not exec_n.bindings.get(slot) or exec_n.bindings[slot] == "var":
-                    exec_n.bindings[slot] = first
-
-    # 6. For needs that are meta "type" (like declaration), ensure bound from providing or ctx var type
-    if any(n.name == "type" for n in kb_node.needs):
-        if "type" not in exec_n.bindings or exec_n.bindings.get("type") in (None, "type", "any"):
-            if providing and providing.type and providing.type not in ("any", "type"):
-                exec_n.bindings["type"] = providing.type
-            else:
-                # try from a var we just bound
-                v = exec_n.bindings.get("var")
-                if v:
-                    exec_n.bindings["type"] = ctx.get_type(v) or "int"
-                else:
-                    exec_n.bindings["type"] = "int"
-
-    return exec_n
+# Legacy solve_plan body completely removed.
+# We are now fully on the new ontology-native flow.
 
 
-def render(node: Node, bindings: Dict[str, str]) -> str:
-    """Render one line by replacing RefEmits with bound values, concatenating Text."""
-    parts = []
-    for e in node.emits:
-        if isinstance(e, TextEmit):
-            parts.append(e.text)
-        elif isinstance(e, RefEmit):
-            val = bindings.get(e.ref, e.ref)  # fallback to ref name itself if unbound
-            parts.append(val)
-    return "".join(parts)
+def render(concept: Concept, bindings: Dict[str, str]) -> str:
+    """Render a Concept using its emitters and the current bindings."""
+    if not concept or not concept.emitters:
+        return f"// no emitter defined for {getattr(concept, 'id', 'unknown')}"
+
+    template = concept.emitters[0].get("template", "")
+
+    def replacer(match):
+        key = match.group(1).strip()
+        return str(bindings.get(key, key))
+
+    import re
+    return re.sub(r"\{\{([^}]+)\}\}", replacer, template)
 
 
 def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optional[List[str]] = None) -> List[str]:
-    """DFS post-order emit: children first, then this node's rendered line (if any).
-    Avoids duplicates via visited key.
-    """
+    """DFS post-order emit using the new ontology format."""
     if visited is None:
         visited = {}
     if out is None:
         out = []
 
-    key = _make_key(exec_n)
+    key = getattr(exec_n.concept, 'id', 'unknown') + str(id(exec_n))
     if visited.get(key):
         return out
     visited[key] = True
@@ -210,7 +128,7 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
     for d in exec_n.deps:
         emit(d, visited, out)
 
-    line = render(exec_n.node, exec_n.bindings)
+    line = render(exec_n.concept, exec_n.bindings)
     if line:
         out.append(line)
 
@@ -305,21 +223,20 @@ def _walk_leaves(tree):
             yield from _walk_leaves(child)
 
 
-def _normalize_to_kb_id(word: str) -> str:
-    """Very light normalization so that 'reads'/'prints' map to 'read'/'print' etc.
-    Returns the word if it (or its normalized form) is a key in KB.
-    """
+def _normalize_to_concept_id(word: str) -> str:
+    """Light normalization for concept lookup in the new ontology."""
     w = word.lower().strip()
-    if w in KB:
+    ontology = get_ontology()
+
+    if w in ontology.concepts:
         return w
-    # naive 3rd-person / plural stripping
+
     for suffix in ('s', 'es', 'ies'):
         if w.endswith(suffix):
             base = w[:-len(suffix)]
-            if base in KB:
+            if base in ontology.concepts:
                 return base
-            # special case: "ies" → "y" (e.g. carries → carry, but we don't have that yet)
-            if suffix == 'ies' and (base + 'y') in KB:
+            if suffix == 'ies' and (base + 'y') in ontology.concepts:
                 return base + 'y'
     return w
 
@@ -348,12 +265,13 @@ def _extract_intent_features(tree) -> dict:
     nouns = [w for w, p in zip(words, pos_tags)
              if isinstance(p, str) and p.startswith('NN')]
 
-    # KB-driven detection
-    detected_kb_nodes = set()
+    # Ontology-driven detection (new format)
+    detected_concepts = set()
+    ontology = get_ontology()
     for w in verbs + nouns:
-        kb_id = _normalize_to_kb_id(w)
-        if kb_id in KB:
-            detected_kb_nodes.add(kb_id)
+        cid = _normalize_to_concept_id(w)
+        if cid in ontology.concepts:
+            detected_concepts.add(cid)
 
     features = {
         'verbs': verbs,
@@ -361,7 +279,7 @@ def _extract_intent_features(tree) -> dict:
         'text': text,
         'has_program': any(k in text for k in ('program', 'code', 'script')),
         'languages': [],
-        'detected_kb_nodes': detected_kb_nodes,   # e.g. {'read', 'print', 'sum'}
+        'detected_concepts': detected_concepts,   # e.g. {'VarDeclaration', 'fmt.Println', ...}
         'io_verbs': set(),
         'arithmetic': set(),
         'input_count_hint': 2,
@@ -373,13 +291,14 @@ def _extract_intent_features(tree) -> dict:
         if w in lang_hints:
             features['languages'].append(lang_hints[w])
 
-    # Classify the KB hits into higher-level buckets used by the plan builder
-    for kb_id in detected_kb_nodes:
-        if kb_id in ('read', 'declaration'):
+    # Classify the detected concepts into higher-level buckets
+    for cid in detected_concepts:
+        cl = cid.lower()
+        if cl in ('read', 'declaration', 'var', 'scanf'):
             features['io_verbs'].add('read')
-        if kb_id == 'print':
+        if 'print' in cl:
             features['io_verbs'].add('print')
-        if kb_id == 'sum':
+        if cl in ('sum', 'add', 'addition', 'binary'):
             features['arithmetic'].add('sum')
 
     # Fallback numeric hint (unchanged, very lightweight)
@@ -397,45 +316,175 @@ def _extract_intent_features(tree) -> dict:
     return features
 
 
-def _features_to_plan(features: dict) -> dict:
-    """Turn the generic (now KB-driven) features into a Plan dict.
-
-    The wiring logic still knows how to assemble the only fully-supported
-    emission we have today, but it only activates when the *features*
-    (populated from KB lookup) say the sentence mentioned read/print/sum.
+def _map_features_to_initial_concepts(features: dict) -> list[Concept]:
     """
-    detected = features.get('detected_kb_nodes', set())
-    want_read = 'read' in features['io_verbs'] or 'read' in detected
-    want_print = 'print' in features['io_verbs'] or 'print' in detected
-    want_sum = bool(features['arithmetic']) or 'sum' in detected
+    Piece 1 of the new flow:
+    From the extracted features (verbs, nouns, detected actions from the tagged tree),
+    find relevant starting Concepts in the ontology.
+    Example: "prints" or "print" → concepts related to printing / fmt.Println
+    """
+    ontology = get_ontology()
+    detected = features.get('detected_concepts', set())
+    io_verbs = features.get('io_verbs', set())
+    arithmetic = features.get('arithmetic', set())
 
-    if want_read and want_print and want_sum:
-        decl_a = make_plan("declaration", needs=[make_plan("a")])
-        read_a = make_plan("read", needs=[make_plan("a")])
-        a_plan = make_var_plan("a", [decl_a, read_a])
+    keywords = list(detected) + list(io_verbs) + list(arithmetic) + ["print", "read", "sum", "add"]
 
-        decl_b = make_plan("declaration", needs=[make_plan("b")])
-        read_b = make_plan("read", needs=[make_plan("b")])
-        b_plan = make_var_plan("b", [decl_b, read_b])
+    initial_concepts = ontology.find_concepts_matching(keywords)
 
-        sum_p = make_plan("sum", needs=[a_plan, b_plan])
-        return make_plan("print", needs=[sum_p])
+    # Prefer more specific concepts when possible
+    preferred = []
+    for c in initial_concepts:
+        if any(k in c.id.lower() for k in ["print", "scanf", "scan", "var", "binary", "addition"]):
+            preferred.append(c)
 
-    # Safe fallback
-    return make_plan("print", needs=[make_plan("sum", needs=[make_plan("a"), make_plan("b")])])
+    return preferred or initial_concepts
+
+
+def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) -> list[Concept]:
+    """
+    Proper dependency satisfaction (the requested piece #2).
+
+    Given starting concepts, recursively:
+    1. Collect their direct dependencies (needs, parameters, etc.)
+    2. For each dependency that has a type requirement, try to satisfy it by:
+       - Finding already-resolved concepts that can produce that type
+       - Or discovering new concepts in the ontology that can produce it
+    3. Recurse on newly discovered concepts
+
+    This implements the "prints → print concept → fmt.Println → needs argument → find producer" loop.
+    """
+    ontology = get_ontology()
+    resolved: list[Concept] = []
+    seen = set()
+    resolved_producers: dict[str, list[Concept]] = {}  # type -> list of concepts that can produce it
+
+    def can_produce(concept: Concept, required_type: str) -> bool:
+        """Quick check if this concept can satisfy a type requirement."""
+        rels = concept.relations or {}
+        for prod in rels.get("produces", []):
+            if isinstance(prod, dict):
+                if prod.get("type", "").lower() in (required_type.lower(), "any"):
+                    return True
+            elif isinstance(prod, str) and prod.lower() == required_type.lower():
+                return True
+        return False
+
+    def collect_needs(concept: Concept) -> list[dict]:
+        """Extract typed needs/parameters from a concept's relations."""
+        needs = []
+        rels = concept.relations or {}
+
+        for rel_name in ["needs", "hasParameter"]:
+            items = rels.get(rel_name, [])
+            if isinstance(items, dict):
+                items = [items]
+            for item in items:
+                if isinstance(item, dict):
+                    needs.append({
+                        "name": item.get("name", "arg"),
+                        "type": item.get("type", "any")
+                    })
+        return needs
+
+    def recurse(concept: Concept, depth: int, context: list[Concept]):
+        if depth > max_depth or concept.id in seen:
+            return
+        seen.add(concept.id)
+        resolved.append(concept)
+
+        needs = collect_needs(concept)
+
+        for need in needs:
+            req_type = need["type"]
+
+            satisfied = False
+            for prev in context + resolved:
+                if can_produce(prev, req_type):
+                    satisfied = True
+                    break
+
+            if not satisfied:
+                candidates = ontology.find_producers_of_type(req_type)
+                for cand in candidates:
+                    if cand.id not in seen:
+                        recurse(cand, depth + 1, context + [concept])
+
+        # Follow structural + implementation relations
+        related = ontology.find_related_concepts(
+            concept,
+            relation_names=["importsPackage", "implementedBy", "relatedTo", "specializes"]
+        )
+        for rel in related:
+            recurse(rel, depth + 1, context + [concept])
+
+        # Explicitly look for concrete implementations of this concept
+        implementations = ontology.find_implementations_of(concept.id)
+        for impl in implementations:
+            if impl.id not in seen:
+                recurse(impl, depth + 1, context + [concept])
+
+    for c in starting_concepts:
+        recurse(c, 0, [])
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_resolved = []
+    for c in resolved:
+        if c.id not in seen:
+            seen.add(c.id)
+            unique_resolved.append(c)
+
+    # Prefer concrete implementations over abstract ones when both exist
+    final = []
+    for c in unique_resolved:
+        impls = ontology.find_implementations_of(c.id)
+        if impls:
+            final.extend(impls)
+        else:
+            final.append(c)
+
+    # Dedup again after preferring implementations
+    seen = set()
+    deduped = []
+    for c in final:
+        if c.id not in seen:
+            seen.add(c.id)
+            deduped.append(c)
+
+    return deduped
+
+
+def _features_to_plan(features: dict) -> dict:
+    """
+    New ontology-driven planning (in progress).
+    Uses concept lookup + dependency resolution instead of hardcoded legacy nodes.
+    """
+    get_ontology()
+
+    # Step 1: Map sentence features to starting concepts in the ontology
+    initial_concepts = _map_features_to_initial_concepts(features)
+
+    # Step 2: Recursively resolve what those concepts need,
+    # including proper type-based dependency satisfaction.
+    resolved_concepts = _resolve_dependencies(initial_concepts)
+
+    # For now, still return a structure the current solver understands,
+    # but built from real ontology concepts + their resolved dependencies.
+    return {
+        "type": "ontology_driven_plan",
+        "starting_concepts": [c.id for c in initial_concepts],
+        "resolved_dependencies": [c.id for c in resolved_concepts],
+        "all_concepts": resolved_concepts,   # full Concept objects for the solver
+    }
 
 
 def tree_to_solved_plan(parsed_tree, resolved_tree=None):
-    """Public entry point requested by the user.
+    """Public entry point (new ontology-native path).
 
-    Takes the trees returned by process_input() (main.py).
-    Uses the resolved tree (with pronoun references) when present.
-    Extracts features by asking the KB which words it knows, builds a plan,
-    solves it, and returns the root ExecNode.
-
-    Completely generic: the set of recognized actions grows automatically
-    when you add new entries to KB.
+    We now use the Golang ontology exclusively.
     """
+    get_ontology()  # ensure new format is loaded
     tree = resolved_tree if resolved_tree is not None else parsed_tree
     features = _extract_intent_features(tree)
     plan = _features_to_plan(features)

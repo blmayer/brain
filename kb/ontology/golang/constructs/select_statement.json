@@ -1,0 +1,19 @@
+{
+  "id": "SelectStatement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Select Statement",
+  "parents": ["Statement", "ControlFlowStatement"],
+  "description": "Go's concurrency select statement for channel operations.",
+  "relations": {
+    "hasCases": [
+      { "target": "SelectCase", "cardinality": "1..*" }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-select",
+      "target": "go",
+      "template": "select {\n{{cases}}\n}"
+    }
+  ]
+}

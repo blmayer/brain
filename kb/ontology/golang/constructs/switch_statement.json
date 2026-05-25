@@ -1,0 +1,27 @@
+{
+  "id": "SwitchStatement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Switch Statement",
+  "parents": ["Statement", "ControlFlowStatement"],
+  "relations": {
+    "hasInit": [
+      { "target": "Statement", "cardinality": "0..1" }
+    ],
+    "hasExpression": [
+      { "target": "Expression", "cardinality": "0..1" }
+    ],
+    "hasCases": [
+      { "target": "CaseClause", "cardinality": "0..*" }
+    ],
+    "hasDefault": [
+      { "target": "Block", "cardinality": "0..1" }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-switch",
+      "target": "go",
+      "template": "switch {{init}}; {{expression}} {\n{{cases}}\n}"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "RangeStatement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Range Statement",
+  "parents": ["ForStatement"],
+  "relations": {
+    "iteratesOver": [
+      { "target": "Expression", "cardinality": "1" }
+    ],
+    "bindsKey": [
+      { "target": "Binding", "cardinality": "0..1" }
+    ],
+    "bindsValue": [
+      { "target": "Binding", "cardinality": "0..1" }
+    ],
+    "hasBody": [
+      { "target": "Block", "cardinality": "1" }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-range",
+      "target": "go",
+      "template": "for {{key}}, {{value}} := range {{iterable}} {\n{{body}}\n}"
+    }
+  ]
+}

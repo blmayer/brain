@@ -1,0 +1,17 @@
+{
+  "id": "Package",
+  "kind": "PACKAGE",
+  "name": "Package",
+  "description": "A collection of Go source files in the same directory that are compiled together.",
+  "relations": {
+    "contains": [
+      { "target": "Construct", "cardinality": "0..*" }
+    ],
+    "imports": [
+      { "target": "Import", "cardinality": "0..*" }
+    ],
+    "exports": [
+      { "target": "Binding", "cardinality": "0..*" }
+    ]
+  }
+}

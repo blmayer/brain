@@ -1,0 +1,24 @@
+{
+  "id": "MethodDeclaration",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Method Declaration",
+  "description": "A function declaration attached to a type via a receiver.",
+  "parents": ["FunctionDeclaration"],
+  "relations": {
+    "hasReceiver": [
+      { "target": "Receiver", "cardinality": "1" }
+    ]
+  },
+  "constraints": [
+    "Must have exactly one receiver",
+    "Receiver type must be defined in the same package (with some exceptions for interfaces)"
+  ],
+  "emitters": [
+    {
+      "id": "go-method-decl",
+      "target": "go",
+      "style": "standard",
+      "template": "func ({{receiver}}) {{name}}{{signature}} {\n{{body}}\n}"
+    }
+  ]
+}

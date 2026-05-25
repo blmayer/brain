@@ -1,0 +1,25 @@
+{
+  "id": "fmt.Scanf",
+  "kind": "BUILTIN",
+  "name": "fmt.Scanf",
+  "description": "Standard library function to read formatted input from stdin.",
+  "parents": ["CallExpression"],
+  "relations": {
+    "belongsToPackage": ["fmt"],
+    "hasParameter": [
+      { "name": "format", "type": "string" },
+      { "name": "args", "type": "any", "variadic": true }
+    ],
+    "produces": [
+      { "name": "n", "type": "int" },
+      { "name": "err", "type": "error" }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-fmt-scanf",
+      "target": "go",
+      "template": "fmt.Scanf({{format}}, {{args}})"
+    }
+  ]
+}

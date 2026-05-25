@@ -1,0 +1,14 @@
+{
+  "instances": [
+    {
+      "id": "instance.addition",
+      "concept": "BinaryExpression",
+      "operator": "+",
+      "left": "a",
+      "right": "b",
+      "type": "int",
+      "produces": ["result"],
+      "context": "main_function"
+    }
+  ]
+}

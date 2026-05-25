@@ -1,0 +1,19 @@
+{
+  "id": "VarDeclaration",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Variable Declaration",
+  "parents": ["DeclarationStatement"],
+  "relations": {
+    "hasParameter": [
+      { "name": "name", "type": "identifier" },
+      { "name": "type", "type": "type" }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-var-decl",
+      "target": "go",
+      "template": "var {{name}} {{type}}"
+    }
+  ]
+}

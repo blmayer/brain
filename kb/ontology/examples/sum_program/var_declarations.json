@@ -1,0 +1,31 @@
+{
+  "instances": [
+    {
+      "id": "instance.declare_a",
+      "concept": "VarDeclaration",
+      "binds": {
+        "name": "a",
+        "type": "int"
+      },
+      "context": "main_function"
+    },
+    {
+      "id": "instance.declare_b",
+      "concept": "VarDeclaration",
+      "binds": {
+        "name": "b",
+        "type": "int"
+      },
+      "context": "main_function"
+    },
+    {
+      "id": "instance.declare_result",
+      "concept": "ShortVarDeclaration",
+      "binds": {
+        "name": "result",
+        "type": "int"
+      },
+      "context": "main_function"
+    }
+  ]
+}
