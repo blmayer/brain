@@ -8,6 +8,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+from logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 @dataclass
 class Concept:
@@ -18,6 +22,7 @@ class Concept:
     parents: List[str] = field(default_factory=list)
     relations: Dict[str, Any] = field(default_factory=dict)
     emitters: List[Dict[str, Any]] = field(default_factory=list)
+    keywords: List[str] = field(default_factory=list)   # indicator / trigger words
     raw: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -36,9 +41,11 @@ class Ontology:
 
     def find_concepts_matching(self, keywords: list[str] | str) -> list[Concept]:
         """
-        Find concepts whose id, name, or relations mention any of the keywords.
-        Used to go from parsed words (e.g. "print", "reads", "sum") to ontology Concepts.
+        Find concepts that match any of the given keywords.
+        Matching is done against: id, name, description, parents, relations, emitters, and the new 'keywords' field.
+        This enables purely data-driven mapping from natural language to ontology concepts.
         """
+        logger.debug("find_concepts_matching called with keywords: %s", keywords)
         if isinstance(keywords, str):
             keywords = [keywords]
 
@@ -46,13 +53,28 @@ class Ontology:
         results = []
 
         for concept in self.concepts.values():
-            text = " ".join([
+            # Build a big searchable string from all relevant fields
+            searchable_parts = [
                 concept.id.lower(),
                 concept.name.lower(),
+                " ".join(concept.parents).lower(),
                 str(concept.relations).lower(),
-                str(concept.raw).lower()
-            ])
-            if any(kw in text for kw in keywords):
+                str(concept.emitters).lower(),
+            ]
+
+            # Include description if present in raw
+            if isinstance(concept.raw, dict):
+                desc = concept.raw.get("description", "")
+                if desc:
+                    searchable_parts.append(desc.lower())
+
+            # Include the new keywords field (most important for NL matching)
+            if concept.keywords:
+                searchable_parts.extend([kw.lower() for kw in concept.keywords])
+
+            searchable = " ".join(searchable_parts)
+
+            if any(kw in searchable for kw in keywords):
                 results.append(concept)
 
         return results
@@ -62,6 +84,7 @@ class Ontology:
         Given a concept, follow its relations to find other concepts it depends on or is related to.
         Example: for a "print" concept, find the actual "fmt.Println" implementation concept.
         """
+        logger.debug("find_related_concepts called on %s", concept.id)
         if relation_names is None:
             relation_names = ["needs", "hasParameter", "importsPackage", "relatedTo", "implementedBy"]
 
@@ -88,6 +111,7 @@ class Ontology:
         Find concepts in the ontology that can produce a value/binding of the given type.
         Used for proper dependency satisfaction.
         """
+        logger.debug("find_producers_of_type called for type: %s", target_type)
         producers = []
         target_type = target_type.lower()
 
@@ -116,6 +140,7 @@ class Ontology:
         Given a concept id (e.g. "PrintOperation"), return all concepts that
         specialize or implement it (e.g. "fmt.Println").
         """
+        logger.debug("find_implementations_of called for: %s", concept_id)
         implementations = []
         target = self.get(concept_id)
         if not target:
@@ -187,16 +212,19 @@ def get_ontology() -> Ontology:
         base = Path(__file__).parent / "kb" / "ontology" / "golang"
         _ONTOLOGY.load_from_directory(base / "constructs")
         _ONTOLOGY.load_from_directory(base / "examples")
-        print(f"[kb] Ontology loaded with {len(_ONTOLOGY)} concepts")
+        logger.info("Ontology loaded with %d concepts", len(_ONTOLOGY))
     return _ONTOLOGY
 
 
 def get_concept(concept_id: str) -> Optional[Concept]:
     """Primary way to retrieve knowledge."""
+    logger.debug("get_concept called for: %s", concept_id)
     return get_ontology().get(concept_id)
 
 
 def load_ontology(force_reload: bool = False) -> Ontology:
+    """Explicitly (re)load the ontology. Useful for development."""
+    logger.debug("load_ontology called (force_reload=%s)", force_reload)
     global _ONTOLOGY
     if force_reload:
         _ONTOLOGY = None

@@ -4,6 +4,7 @@
   "name": "fmt.Scanf",
   "description": "Standard library function to read formatted input from stdin.",
   "parents": ["CallExpression"],
+  "keywords": ["read", "reads", "input", "scanf", "scan", "fmt scan", "fmt.scanf"],
   "relations": {
     "belongsToPackage": ["fmt"],
     "hasParameter": [

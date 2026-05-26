@@ -4,6 +4,7 @@
   "name": "Addition (+)",
   "description": "Binary addition expression.",
   "parents": ["BinaryExpression"],
+  "keywords": ["sum", "add", "plus", "addition", "total", "+"],
   "relations": {
     "hasParameter": [
       { "name": "left", "type": "any" },

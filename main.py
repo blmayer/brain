@@ -1,5 +1,6 @@
 import nltk
 from coreference_resolver import resolve_pronouns
+from logging_config import setup_logging
 from augment import tree_to_solved_plan, emit
 
 
@@ -16,6 +17,11 @@ def process_input(task):
 
 
 if __name__ == "__main__":
+    setup_logging()  # Can be overridden with BRAIN_LOG_LEVEL=DEBUG
+    from logging_config import get_logger
+    logger = get_logger(__name__)
+    logger.info("Starting Brain (ontology-driven mode)")
+
     while True:
         # Accept user input
         task = input("Enter a sentence (or 'exit' to quit): ")

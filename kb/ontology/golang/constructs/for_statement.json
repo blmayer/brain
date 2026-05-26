@@ -3,6 +3,7 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "For Statement",
   "parents": ["Statement", "ControlFlowStatement"],
+  "keywords": ["for", "loop", "repeat"],
   "relations": {
     "hasInit": [
       { "target": "Statement", "cardinality": "0..1" }

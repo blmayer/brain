@@ -4,6 +4,7 @@
   "name": "Function Type",
   "description": "The type of a function (signature without body).",
   "parents": ["Type"],
+  "keywords": ["function type", "func type", "signature"],
   "relations": {
     "hasParameterTypes": [
       { "target": "Type", "cardinality": "0..*" }

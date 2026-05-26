@@ -4,6 +4,7 @@
   "name": "Select Statement",
   "parents": ["Statement", "ControlFlowStatement"],
   "description": "Go's concurrency select statement for channel operations.",
+  "keywords": ["select", "channel", "concurrency"],
   "relations": {
     "hasCases": [
       { "target": "SelectCase", "cardinality": "1..*" }

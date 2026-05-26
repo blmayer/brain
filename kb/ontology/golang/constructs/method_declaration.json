@@ -4,6 +4,7 @@
   "name": "Method Declaration",
   "description": "A function declaration attached to a type via a receiver.",
   "parents": ["FunctionDeclaration"],
+  "keywords": ["method", "receiver"],
   "relations": {
     "hasReceiver": [
       { "target": "Receiver", "cardinality": "1" }

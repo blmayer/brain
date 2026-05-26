@@ -4,6 +4,7 @@
   "name": "fmt.Println",
   "description": "Standard library function that prints values followed by a newline.",
   "parents": ["CallExpression"],
+  "keywords": ["println", "print line", "fmt print", "fmt.println"],
   "relations": {
     "specializes": ["PrintOperation"],
     "belongsToPackage": ["fmt"],

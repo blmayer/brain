@@ -4,6 +4,7 @@
   "name": "Block",
   "description": "A sequence of statements enclosed in braces. Introduces a new lexical scope.",
   "parents": ["Statement"],
+  "keywords": ["block", "body", "scope"],
   "relations": {
     "contains": [
       { "target": "Statement", "cardinality": "0..*" }

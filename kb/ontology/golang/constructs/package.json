@@ -3,6 +3,7 @@
   "kind": "PACKAGE",
   "name": "Package",
   "description": "A collection of Go source files in the same directory that are compiled together.",
+  "keywords": ["package", "module"],
   "relations": {
     "contains": [
       { "target": "Construct", "cardinality": "0..*" }

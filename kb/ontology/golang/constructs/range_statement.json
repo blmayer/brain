@@ -3,6 +3,7 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Range Statement",
   "parents": ["ForStatement"],
+  "keywords": ["range", "iterate", "for each", "loop over"],
   "relations": {
     "iteratesOver": [
       { "target": "Expression", "cardinality": "1" }

@@ -3,6 +3,7 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Import",
   "parents": ["Declaration"],
+  "keywords": ["import", "use package"],
   "relations": {
     "importsPackage": [
       { "target": "Package", "cardinality": "1" }

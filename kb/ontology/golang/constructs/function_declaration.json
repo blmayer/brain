@@ -4,6 +4,7 @@
   "name": "Function Declaration",
   "description": "A named function definition at package or local scope.",
   "parents": ["Callable", "Declaration", "Statement"],
+  "keywords": ["function", "func", "define function", "method"],
   "relations": {
     "hasParameter": [
       { "target": "Parameter", "cardinality": "0..*" }

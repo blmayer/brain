@@ -4,6 +4,7 @@
   "name": "Function Literal",
   "description": "An anonymous function expression (closure).",
   "parents": ["Callable", "Expression"],
+  "keywords": ["anonymous function", "function literal", "lambda", "closure"],
   "relations": {
     "hasParameter": [
       { "target": "Parameter", "cardinality": "0..*" }

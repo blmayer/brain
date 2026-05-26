@@ -3,6 +3,7 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Switch Statement",
   "parents": ["Statement", "ControlFlowStatement"],
+  "keywords": ["switch", "case", "default"],
   "relations": {
     "hasInit": [
       { "target": "Statement", "cardinality": "0..1" }

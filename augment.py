@@ -1,17 +1,20 @@
-"""Augment parsed natural language into executable plans using the Golang Ontology.
+"""Augment parsed natural language into executable plans.
 
 Flow:
 1. Parse sentence → tagged tree (via NLTK + coref).
 2. Map words/actions from the tree to Concepts in the ontology (kb/ontology/).
 3. Recursively resolve dependencies (e.g. "prints" → Print concept → fmt.Println → its required arguments).
 4. Bind variables and emit code using the resolved Concepts' emitters.
-
-No legacy Node/KB compatibility — ontology-native only.
 """
 
+import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any, Union
+
 from kb import Concept, get_concept, get_ontology
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -55,6 +58,7 @@ def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) 
     Ontology-native solver.
     Walks plans produced by the new dependency-resolution flow.
     """
+    logger.debug("Entering solve_plan with plan type: %s", plan.get("type") if isinstance(plan, dict) else type(plan))
     if ctx is None:
         ctx = Context()
 
@@ -100,6 +104,7 @@ def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) 
 
 def render(concept: Concept, bindings: Dict[str, str]) -> str:
     """Render a Concept using its emitters and the current bindings."""
+    logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
     if not concept or not concept.emitters:
         return f"// no emitter defined for {getattr(concept, 'id', 'unknown')}"
 
@@ -115,6 +120,8 @@ def render(concept: Concept, bindings: Dict[str, str]) -> str:
 
 def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optional[List[str]] = None) -> List[str]:
     """DFS post-order emit using the new ontology format."""
+    logger.debug("Entering emit for concept: %s", getattr(exec_n.concept, 'id', 'unknown'))
+
     if visited is None:
         visited = {}
     if out is None:
@@ -130,6 +137,7 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
 
     line = render(exec_n.concept, exec_n.bindings)
     if line:
+        logger.debug("Emitting line: %s", line)
         out.append(line)
 
     return out
@@ -142,47 +150,8 @@ def _make_key(e: ExecNode) -> str:
     return key
 
 
-# --- Helpers to build plan trees for tests (use same shape as Go example) ---
-# We use a simple dict-based Plan for ease in tests (or could use Node with needs=List[Plan])
-
-def make_plan(id_: str, needs: Optional[List[Any]] = None) -> Dict[str, Any]:
-    """Convenience to build the kind of plan trees used in the Go example."""
-    return {"id": id_, "needs": needs or []}
-
-
-def make_var_plan(var_id: str, sub_steps: List[Dict]) -> Dict[str, Any]:
-    """A var instance plan with its acquisition steps (decl, read)."""
-    return make_plan(var_id, needs=sub_steps)
-
-
-# Example usage / demo (mirrors the broken main.go intent, now working)
-if __name__ == "__main__":
-    # Build plan tree just like the Go example (but using 'needs')
-    # a and b have their decl+read attached
-    decl_a = make_plan("declaration", needs=[make_plan("a")])
-    read_a = make_plan("read", needs=[make_plan("a")])
-    a_plan = make_var_plan("a", [decl_a, read_a])
-
-    decl_b = make_plan("declaration", needs=[make_plan("b")])
-    read_b = make_plan("read", needs=[make_plan("b")])
-    b_plan = make_var_plan("b", [decl_b, read_b])
-
-    sum_plan = make_plan("sum", needs=[a_plan, b_plan])
-    print_plan = make_plan("print", needs=[sum_plan])
-
-    ctx = Context()
-    root = solve_plan(print_plan, ctx)
-
-    lines = emit(root)
-
-    print("package main")
-    print('import "fmt"')
-    print("\nfunc main() {")
-    for line in lines:
-        print("  " + line)
-    print("}")
-    print("\n--- bindings at root ---")
-    print(root.bindings)
+# Legacy plan-building helpers (make_plan / make_var_plan) and the old demo
+# have been removed. We now use the ontology-native flow exclusively.
 
 
 # ------------------------------------------------------------------
@@ -249,6 +218,7 @@ def _extract_intent_features(tree) -> dict:
     detector automatically support any new templates you add to KB
     (e.g. 'loop', 'if', 'sort', 'filter'...) without changing this code.
     """
+    logger.debug("Extracting intent features from tree...")
     words, pos_tags, lower_words = [], [], []
 
     for leaf in _walk_leaves(tree):
@@ -260,15 +230,19 @@ def _extract_intent_features(tree) -> dict:
 
     text = ' '.join(lower_words)
 
+    # Collect interesting words for concept matching
     verbs = [w for w, p in zip(words, pos_tags)
              if isinstance(p, str) and p.startswith('VB')]
     nouns = [w for w, p in zip(words, pos_tags)
-             if isinstance(p, str) and p.startswith('NN')]
+             if isinstance(p, str) and p.startswith(('NN', 'JJ', 'NNP'))]  # include adjectives and proper nouns
+
+    # Also include some key words like "program", "code" etc. from the full text
+    interesting_words = verbs + nouns + [w for w in lower_words if w in ("program", "code", "script", "read", "print", "sum", "add", "write")]
 
     # Ontology-driven detection (new format)
     detected_concepts = set()
     ontology = get_ontology()
-    for w in verbs + nouns:
+    for w in interesting_words:
         cid = _normalize_to_concept_id(w)
         if cid in ontology.concepts:
             detected_concepts.add(cid)
@@ -291,14 +265,14 @@ def _extract_intent_features(tree) -> dict:
         if w in lang_hints:
             features['languages'].append(lang_hints[w])
 
-    # Classify the detected concepts into higher-level buckets
+    # Classify detected concepts into higher-level action buckets
     for cid in detected_concepts:
         cl = cid.lower()
-        if cl in ('read', 'declaration', 'var', 'scanf'):
+        if any(x in cl for x in ['read', 'scanf', 'input', 'scan']):
             features['io_verbs'].add('read')
-        if 'print' in cl:
+        if any(x in cl for x in ['print', 'output', 'write']):
             features['io_verbs'].add('print')
-        if cl in ('sum', 'add', 'addition', 'binary'):
+        if any(x in cl for x in ['sum', 'add', 'addition', 'plus', 'binary']):
             features['arithmetic'].add('sum')
 
     # Fallback numeric hint (unchanged, very lightweight)
@@ -318,46 +292,60 @@ def _extract_intent_features(tree) -> dict:
 
 def _map_features_to_initial_concepts(features: dict) -> list[Concept]:
     """
-    Piece 1 of the new flow:
-    From the extracted features (verbs, nouns, detected actions from the tagged tree),
-    find relevant starting Concepts in the ontology.
-    Example: "prints" or "print" → concepts related to printing / fmt.Println
+    Piece 1 of the new flow (purely data-driven):
+
+    From the extracted features/words coming from the tagged tree,
+    find relevant starting Concepts in the ontology by matching against
+    each concept's `keywords` field (plus id, name, description, etc.).
+
+    No hard-coded domain logic for specific use cases (print/read/sum) lives here.
+    All intelligence comes from the data in the JSON files.
     """
     ontology = get_ontology()
     detected = features.get('detected_concepts', set())
     io_verbs = features.get('io_verbs', set())
     arithmetic = features.get('arithmetic', set())
+    text = features.get('text', '')
 
-    keywords = list(detected) + list(io_verbs) + list(arithmetic) + ["print", "read", "sum", "add"]
+    # Build keyword list from what the parser actually extracted
+    keywords = list(detected) + list(io_verbs) + list(arithmetic)
 
+    # Also include some raw words from the sentence for broader matching
+    # (the find_concepts_matching function will handle this)
+    if text:
+        keywords.extend(text.split())
+
+    # Purely data-driven lookup using the ontology's keywords
     initial_concepts = ontology.find_concepts_matching(keywords)
 
-    # Prefer more specific concepts when possible
-    preferred = []
-    for c in initial_concepts:
-        if any(k in c.id.lower() for k in ["print", "scanf", "scan", "var", "binary", "addition"]):
-            preferred.append(c)
+    logger.info("Concept discovery found %d initial concepts", len(initial_concepts))
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Discovered concepts: %s", [c.id for c in initial_concepts])
 
-    return preferred or initial_concepts
+    # Deduplicate while preserving order
+    seen = set()
+    deduped = []
+    for c in initial_concepts:
+        if c.id not in seen:
+            seen.add(c.id)
+            deduped.append(c)
+
+    logger.debug("_map_features_to_initial_concepts completed with %d concepts", len(deduped))
+    return deduped
 
 
 def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) -> list[Concept]:
     """
     Proper dependency satisfaction (the requested piece #2).
 
-    Given starting concepts, recursively:
-    1. Collect their direct dependencies (needs, parameters, etc.)
-    2. For each dependency that has a type requirement, try to satisfy it by:
-       - Finding already-resolved concepts that can produce that type
-       - Or discovering new concepts in the ontology that can produce it
-    3. Recurse on newly discovered concepts
-
-    This implements the "prints → print concept → fmt.Println → needs argument → find producer" loop.
+    Given starting concepts, recursively resolves what they need by walking
+    relations and looking for producers of required types.
     """
     ontology = get_ontology()
     resolved: list[Concept] = []
     seen = set()
-    resolved_producers: dict[str, list[Concept]] = {}  # type -> list of concepts that can produce it
+
+    logger.info("Starting dependency resolution for %d concepts", len(starting_concepts))
 
     def can_produce(concept: Concept, required_type: str) -> bool:
         """Quick check if this concept can satisfy a type requirement."""
@@ -365,8 +353,10 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
         for prod in rels.get("produces", []):
             if isinstance(prod, dict):
                 if prod.get("type", "").lower() in (required_type.lower(), "any"):
+                    logger.debug("      %s can produce type '%s'", concept.id, required_type)
                     return True
             elif isinstance(prod, str) and prod.lower() == required_type.lower():
+                logger.debug("      %s can produce type '%s'", concept.id, required_type)
                 return True
         return False
 
@@ -385,6 +375,9 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
                         "name": item.get("name", "arg"),
                         "type": item.get("type", "any")
                     })
+
+        if needs:
+            logger.debug("    %s has %d needs: %s", concept.id, len(needs), needs)
         return needs
 
     def recurse(concept: Concept, depth: int, context: list[Concept]):
@@ -392,6 +385,8 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
             return
         seen.add(concept.id)
         resolved.append(concept)
+
+        logger.debug("  [%d] Resolving concept: %s", depth, concept.id)
 
         needs = collect_needs(concept)
 
@@ -406,9 +401,12 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
 
             if not satisfied:
                 candidates = ontology.find_producers_of_type(req_type)
-                for cand in candidates:
-                    if cand.id not in seen:
-                        recurse(cand, depth + 1, context + [concept])
+                if candidates:
+                    logger.debug("    Need '%s' (%s) → found %d candidate producers",
+                                 need['name'], req_type, len(candidates))
+                    for cand in candidates:
+                        if cand.id not in seen:
+                            recurse(cand, depth + 1, context + [concept])
 
         # Follow structural + implementation relations
         related = ontology.find_related_concepts(
@@ -452,6 +450,10 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
             seen.add(c.id)
             deduped.append(c)
 
+    logger.info("Dependency resolution complete. Resolved %d concepts total", len(deduped))
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Resolved concepts: %s", [c.id for c in deduped])
+
     return deduped
 
 
@@ -462,31 +464,34 @@ def _features_to_plan(features: dict) -> dict:
     """
     get_ontology()
 
-    # Step 1: Map sentence features to starting concepts in the ontology
-    initial_concepts = _map_features_to_initial_concepts(features)
+    logger.info("Building ontology-driven plan...")
 
-    # Step 2: Recursively resolve what those concepts need,
-    # including proper type-based dependency satisfaction.
+    initial_concepts = _map_features_to_initial_concepts(features)
     resolved_concepts = _resolve_dependencies(initial_concepts)
 
-    # For now, still return a structure the current solver understands,
-    # but built from real ontology concepts + their resolved dependencies.
+    logger.info(
+        "Plan built with %d starting concepts and %d resolved dependencies",
+        len(initial_concepts), len(resolved_concepts)
+    )
+    logger.debug("_features_to_plan completed")
+
     return {
         "type": "ontology_driven_plan",
         "starting_concepts": [c.id for c in initial_concepts],
         "resolved_dependencies": [c.id for c in resolved_concepts],
-        "all_concepts": resolved_concepts,   # full Concept objects for the solver
+        "all_concepts": resolved_concepts,
     }
 
 
 def tree_to_solved_plan(parsed_tree, resolved_tree=None):
-    """Public entry point (new ontology-native path).
-
-    We now use the Golang ontology exclusively.
-    """
-    get_ontology()  # ensure new format is loaded
+    """Public entry point (new ontology-native path)."""
+    logger.info("Starting tree-to-plan conversion")
+    get_ontology()
+    logger.debug("tree_to_solved_plan called")
     tree = resolved_tree if resolved_tree is not None else parsed_tree
     features = _extract_intent_features(tree)
     plan = _features_to_plan(features)
     ctx = Context()
-    return solve_plan(plan, ctx)
+    solved = solve_plan(plan, ctx)
+    logger.info("tree_to_solved_plan completed")
+    return solved

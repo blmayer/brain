@@ -3,6 +3,7 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Variable Declaration",
   "parents": ["DeclarationStatement"],
+  "keywords": ["declare", "variable", "var", "declare variable"],
   "relations": {
     "hasParameter": [
       { "name": "name", "type": "identifier" },
