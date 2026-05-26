@@ -14,20 +14,29 @@ This is the actively evolving implementation.
 
 ### Pipeline
 
-```
-Natural Language
-      │
-      ▼
-process_input()          # NLTK tokenization + POS tagging + NE chunking + coreference resolution
-      │
-      ▼
-tree_to_solved_plan()    # Generic feature extraction (KB-driven) → Plan tree
-      │
-      ▼
-solve_plan() + KB        # Augment with needs/produces/emits from knowledge base
-      │
-      ▼
-emit()                   # Depth-first rendering of the final output (e.g. source code)
+The system follows an ontology-driven flow:
+
+```mermaid
+flowchart TD
+    A[Input Sentence] 
+    --> B[process_input<br/>NLTK + Coreference Resolution]
+    
+    B --> C[_extract_intent_features]
+    
+    C --> D[_map_features_to_initial_concepts<br/>Per-word keyword matching]
+    
+    D --> E[_resolve_dependencies<br/>Recursive relation walking + type satisfaction]
+    
+    E --> F[_features_to_plan]
+    
+    F --> G[tree_to_solved_plan]
+    
+    G --> H[solve_plan]
+    
+    H --> I[emit<br/>Using Concept emitters]
+    
+    D -.-> J[get_ontology]
+    E -.-> J
 ```
 
 Current demo: "write a Golang program that reads 2 integers and prints their sum" → correct program using `var`/`fmt.Scanf`/`+`/`fmt.Println` emitted from the knowledge base.

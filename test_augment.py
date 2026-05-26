@@ -1,6 +1,12 @@
 """Tests for the ontology-driven plan augmentation system."""
 
 import unittest
+
+from logging_config import setup_logging
+
+# Force debug logging when running tests so we can see the full ontology flow
+setup_logging("DEBUG")
+
 from augment import (
     solve_plan, emit, Context, tree_to_solved_plan,
     _extract_intent_features, _map_features_to_initial_concepts, 

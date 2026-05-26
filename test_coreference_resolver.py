@@ -1,5 +1,11 @@
 import unittest
 import nltk
+
+from logging_config import setup_logging
+
+# Force debug logging during tests
+setup_logging("DEBUG")
+
 from coreference_resolver import resolve_pronouns
 
 

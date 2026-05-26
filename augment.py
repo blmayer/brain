@@ -253,7 +253,7 @@ def _extract_intent_features(tree) -> dict:
         'text': text,
         'has_program': any(k in text for k in ('program', 'code', 'script')),
         'languages': [],
-        'detected_concepts': detected_concepts,   # e.g. {'VarDeclaration', 'fmt.Println', ...}
+        'detected_concepts': detected_concepts,
         'io_verbs': set(),
         'arithmetic': set(),
         'input_count_hint': 2,
@@ -294,44 +294,56 @@ def _map_features_to_initial_concepts(features: dict) -> list[Concept]:
     """
     Piece 1 of the new flow (purely data-driven):
 
-    From the extracted features/words coming from the tagged tree,
-    find relevant starting Concepts in the ontology by matching against
-    each concept's `keywords` field (plus id, name, description, etc.).
+    Process each word from the tagged tree *separately*.
+    For every individual word, find concepts that match it (mainly via the 'keywords' field).
 
-    No hard-coded domain logic for specific use cases (print/read/sum) lives here.
-    All intelligence comes from the data in the JSON files.
+    Concepts are then ranked by how many individual words triggered them.
+    This allows "prints" and "sum" to independently surface their respective concepts.
+
+    For now we return the full ranked list (callers can take the top one or more).
     """
     ontology = get_ontology()
-    detected = features.get('detected_concepts', set())
-    io_verbs = features.get('io_verbs', set())
-    arithmetic = features.get('arithmetic', set())
-    text = features.get('text', '')
+    verbs = features.get('verbs', [])
+    nouns = features.get('nouns', [])
 
-    # Build keyword list from what the parser actually extracted
-    keywords = list(detected) + list(io_verbs) + list(arithmetic)
+    # Collect candidate words (verbs + nouns)
+    candidate_words = []
+    for w in verbs + nouns:
+        w = w.lower().strip()
+        if len(w) > 2:
+            candidate_words.append(w)
 
-    # Also include some raw words from the sentence for broader matching
-    # (the find_concepts_matching function will handle this)
-    if text:
-        keywords.extend(text.split())
+    if not candidate_words:
+        logger.info("Concept discovery found 0 initial concepts (no candidate words)")
+        return []
 
-    # Purely data-driven lookup using the ontology's keywords
-    initial_concepts = ontology.find_concepts_matching(keywords)
+    # Per-word matching + frequency counting
+    from collections import defaultdict
+    concept_scores = defaultdict(int)
 
-    logger.info("Concept discovery found %d initial concepts", len(initial_concepts))
+    for word in candidate_words:
+        matches = ontology.find_concepts_matching(word, strict=True)
+        for concept in matches:
+            concept_scores[concept.id] += 1
+
+    if not concept_scores:
+        logger.info("Concept discovery found 0 initial concepts")
+        return []
+
+    # Rank by number of triggering words (descending)
+    ranked = sorted(
+        [(ontology.get(cid), score) for cid, score in concept_scores.items() if ontology.get(cid)],
+        key=lambda x: -x[1]
+    )
+
+    initial_concepts = [c for c, score in ranked]
+
+    logger.info("Concept discovery found %d unique concepts (ranked by word match count)", len(initial_concepts))
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Discovered concepts: %s", [c.id for c in initial_concepts])
+        debug_list = [f"{c.id}({score})" for c, score in ranked[:8]]
+        logger.debug("Top concepts by matches: %s", debug_list)
 
-    # Deduplicate while preserving order
-    seen = set()
-    deduped = []
-    for c in initial_concepts:
-        if c.id not in seen:
-            seen.add(c.id)
-            deduped.append(c)
-
-    logger.debug("_map_features_to_initial_concepts completed with %d concepts", len(deduped))
-    return deduped
+    return initial_concepts
 
 
 def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) -> list[Concept]:
@@ -401,6 +413,12 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
 
             if not satisfied:
                 candidates = ontology.find_producers_of_type(req_type)
+
+                # Be much stricter with 'any' — only use it as a last resort
+                if req_type == "any":
+                    # Only consider very specific producers for 'any' (e.g. actual function calls or declarations)
+                    candidates = [c for c in candidates if c.kind in ("BUILTIN", "SYNTACTIC_CONSTRUCT") and "Declaration" in c.id or "Call" in c.id]
+
                 if candidates:
                     logger.debug("    Need '%s' (%s) → found %d candidate producers",
                                  need['name'], req_type, len(candidates))

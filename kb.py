@@ -39,45 +39,66 @@ class Ontology:
     def get(self, concept_id: str) -> Optional[Concept]:
         return self.concepts.get(concept_id)
 
-    def find_concepts_matching(self, keywords: list[str] | str) -> list[Concept]:
+    def find_concepts_matching(self, keywords: list[str] | str, strict: bool = True) -> list[Concept]:
         """
         Find concepts that match any of the given keywords.
-        Matching is done against: id, name, description, parents, relations, emitters, and the new 'keywords' field.
-        This enables purely data-driven mapping from natural language to ontology concepts.
+
+        Results are sorted by relevance (number of keyword matches, descending).
+        This allows callers to take the best match(es) instead of an arbitrary order.
+
+        When strict=True (recommended):
+        - Matches primarily against id, name, and the 'keywords' field.
+        When strict=False:
+        - Also searches description, parents, relations, etc.
         """
-        logger.debug("find_concepts_matching called with keywords: %s", keywords)
+        logger.debug("find_concepts_matching called with keywords: %s (strict=%s)", keywords, strict)
+
         if isinstance(keywords, str):
             keywords = [keywords]
 
-        keywords = [k.lower() for k in keywords]
-        results = []
+        keywords = [k.lower().strip() for k in keywords if k.strip()]
+        if not keywords:
+            return []
+
+        scored_results = []   # list of (concept, match_count)
 
         for concept in self.concepts.values():
-            # Build a big searchable string from all relevant fields
-            searchable_parts = [
-                concept.id.lower(),
-                concept.name.lower(),
-                " ".join(concept.parents).lower(),
-                str(concept.relations).lower(),
-                str(concept.emitters).lower(),
-            ]
+            # Build the text we will search in
+            if strict:
+                searchable = " ".join([
+                    concept.id.lower(),
+                    concept.name.lower(),
+                ])
+                if concept.keywords:
+                    searchable += " " + " ".join(kw.lower() for kw in concept.keywords)
+            else:
+                # Broader search
+                parts = [
+                    concept.id.lower(),
+                    concept.name.lower(),
+                    " ".join(concept.parents).lower(),
+                    str(concept.relations).lower(),
+                    str(concept.emitters).lower(),
+                ]
+                if isinstance(concept.raw, dict):
+                    desc = concept.raw.get("description", "")
+                    if desc:
+                        parts.append(desc.lower())
+                if concept.keywords:
+                    parts.extend(kw.lower() for kw in concept.keywords)
+                searchable = " ".join(parts)
 
-            # Include description if present in raw
-            if isinstance(concept.raw, dict):
-                desc = concept.raw.get("description", "")
-                if desc:
-                    searchable_parts.append(desc.lower())
+            # Count how many of the input keywords appear in this concept
+            match_count = sum(1 for kw in keywords if kw in searchable)
 
-            # Include the new keywords field (most important for NL matching)
-            if concept.keywords:
-                searchable_parts.extend([kw.lower() for kw in concept.keywords])
+            if match_count > 0:
+                scored_results.append((concept, match_count))
 
-            searchable = " ".join(searchable_parts)
+        # Sort by number of matches (descending), then by name for stability
+        scored_results.sort(key=lambda x: (-x[1], x[0].name.lower()))
 
-            if any(kw in searchable for kw in keywords):
-                results.append(concept)
-
-        return results
+        # Return only the concepts (the caller can take the first one or the whole ranked list)
+        return [concept for concept, score in scored_results]
 
     def find_related_concepts(self, concept: Concept, relation_names: list[str] = None) -> list[Concept]:
         """
@@ -193,6 +214,7 @@ class Ontology:
             parents=data.get("parents", []),
             relations=data.get("relations", {}),
             emitters=data.get("emitters", []),
+            keywords=data.get("keywords", []),
             raw=data,
         )
         self.register(concept)
