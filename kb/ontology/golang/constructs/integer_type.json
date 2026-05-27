@@ -1,0 +1,14 @@
+{
+  "id": "IntegerType",
+  "kind": "TYPE",
+  "name": "Integer Type",
+  "description": "Abstract concept representing any integer numeric type (signed or unsigned).",
+  "parents": ["Type"],
+  "keywords": [
+    "integer", "integers", "int", "whole number", "count", "number"
+  ],
+  "relations": {
+    "isNumeric": true,
+    "signed": "optional"
+  }
+}

@@ -11,6 +11,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any, Union
 
+import nltk
+
 from kb import Concept, get_concept, get_ontology
 from logging_config import get_logger
 
@@ -210,140 +212,175 @@ def _normalize_to_concept_id(word: str) -> str:
     return w
 
 
-def _extract_intent_features(tree) -> dict:
-    """Generic, KB-driven feature extraction.
+def add_concepts(tree) -> None:
+    """Modify the tree **in place** by attaching matching ontology Concepts to its nodes.
 
-    Walks the tree, and for every verb/noun checks whether a normalized
-    form is present as a key in the Knowledge Base.  This makes the
-    detector automatically support any new templates you add to KB
-    (e.g. 'loop', 'if', 'sort', 'filter'...) without changing this code.
+    For each leaf we normalize the word and search the ontology.
+    Matching Concept objects are stored directly on the leaf under the key
+    'concepts' (as a list).
+
+    Raw NLTK leaves (word, pos) tuples are converted to dict form so that
+    the annotations can be attached while preserving the overall tree shape.
     """
-    logger.debug("Extracting intent features from tree...")
-    words, pos_tags, lower_words = [], [], []
+    ontology = get_ontology()
+
+    def attach_to_leaf(leaf_dict: dict, word: str):
+        """Normalize and attach concepts to a single leaf dict."""
+        if not isinstance(word, str) or not word.strip():
+            leaf_dict['concepts'] = []
+            return
+
+        normalized = _normalize_to_concept_id(word)
+        matches = ontology.find_concepts_matching(normalized, strict=True)
+        leaf_dict['concepts'] = matches or []
+
+    def process(node: Any):
+        if node is None:
+            return
+
+        # Already a dict leaf (common after resolve_pronouns)
+        if isinstance(node, dict):
+            w = node.get('word', '')
+            attach_to_leaf(node, w)
+            return
+
+        # nltk.Tree (or anything with children)
+        if isinstance(node, nltk.Tree):
+            for i in range(len(node)):
+                child = node[i]
+                if isinstance(child, nltk.Tree):
+                    process(child)
+                else:
+                    # Leaf: either tuple (word, pos) or already a dict
+                    if isinstance(child, dict):
+                        w = child.get('word', '')
+                        attach_to_leaf(child, w)
+                    elif isinstance(child, (list, tuple)) and len(child) >= 2:
+                        word = str(child[0])
+                        pos = str(child[1])
+                        normalized = _normalize_to_concept_id(word)
+                        matches = ontology.find_concepts_matching(normalized, strict=True)
+                        # Replace the raw leaf with a rich dict so we can carry ontology nodes
+                        node[i] = {
+                            'word': word,
+                            'pos': pos,
+                            'reference': None,
+                            'concepts': matches or []
+                        }
+                    else:
+                        # Unexpected leaf form — wrap it
+                        w = str(child)
+                        node[i] = {
+                            'word': w,
+                            'pos': 'UNK',
+                            'reference': None,
+                            'concepts': []
+                        }
+            return
+
+        # Generic sequence (should be rare at top level)
+        if isinstance(node, (list, tuple)):
+            for item in node:
+                process(item)
+
+    process(tree)
+
+    logger.debug("add_concepts finished annotating tree with ontology concepts")
+
+
+def _collect_concepts_from_tree(tree) -> list[Concept]:
+    """Collect ontology Concepts that were previously attached to the tree
+    by add_concepts (looks for the 'concepts' key on leaves).
+
+    Returns concepts in the order they first appear, with duplicates removed.
+    """
+    seen = set()
+    collected: list[Concept] = []
 
     for leaf in _walk_leaves(tree):
-        w = leaf.get('word', '')
-        p = leaf.get('pos', '')
-        words.append(w)
-        pos_tags.append(p)
-        lower_words.append(w.lower())
+        for c in leaf.get('concepts', []):
+            if isinstance(c, Concept) and c.id not in seen:
+                seen.add(c.id)
+                collected.append(c)
 
-    text = ' '.join(lower_words)
-
-    # Collect interesting words for concept matching
-    verbs = [w for w, p in zip(words, pos_tags)
-             if isinstance(p, str) and p.startswith('VB')]
-    nouns = [w for w, p in zip(words, pos_tags)
-             if isinstance(p, str) and p.startswith(('NN', 'JJ', 'NNP'))]  # include adjectives and proper nouns
-
-    # Also include some key words like "program", "code" etc. from the full text
-    interesting_words = verbs + nouns + [w for w in lower_words if w in ("program", "code", "script", "read", "print", "sum", "add", "write")]
-
-    # Ontology-driven detection (new format)
-    detected_concepts = set()
-    ontology = get_ontology()
-    for w in interesting_words:
-        cid = _normalize_to_concept_id(w)
-        if cid in ontology.concepts:
-            detected_concepts.add(cid)
-
-    features = {
-        'verbs': verbs,
-        'nouns': nouns,
-        'text': text,
-        'has_program': any(k in text for k in ('program', 'code', 'script')),
-        'languages': [],
-        'detected_concepts': detected_concepts,
-        'io_verbs': set(),
-        'arithmetic': set(),
-        'input_count_hint': 2,
-    }
-
-    # Language hints (still a small static map – can be moved to KB later)
-    lang_hints = {'go': 'golang', 'golang': 'golang', 'python': 'python', 'py': 'python'}
-    for w in lower_words:
-        if w in lang_hints:
-            features['languages'].append(lang_hints[w])
-
-    # Classify detected concepts into higher-level action buckets
-    for cid in detected_concepts:
-        cl = cid.lower()
-        if any(x in cl for x in ['read', 'scanf', 'input', 'scan']):
-            features['io_verbs'].add('read')
-        if any(x in cl for x in ['print', 'output', 'write']):
-            features['io_verbs'].add('print')
-        if any(x in cl for x in ['sum', 'add', 'addition', 'plus', 'binary']):
-            features['arithmetic'].add('sum')
-
-    # Fallback numeric hint (unchanged, very lightweight)
-    for i, w in enumerate(lower_words):
-        if w.isdigit():
-            try:
-                n = int(w)
-                if 1 <= n <= 10:
-                    window = ' '.join(lower_words[i+1:i+4])
-                    if any(k in window for k in ('integer', 'number', 'int', 'num')):
-                        features['input_count_hint'] = n
-            except ValueError:
-                pass
-
-    return features
+    return collected
 
 
-def _map_features_to_initial_concepts(features: dict) -> list[Concept]:
+def format_tree(tree, prefix: str = "", is_last: bool = True, show_concepts: bool = True, max_concepts: int = 3) -> str:
     """
-    Piece 1 of the new flow (purely data-driven):
+    Return a pretty string representation of the (possibly annotated) tree.
 
-    Process each word from the tagged tree *separately*.
-    For every individual word, find concepts that match it (mainly via the 'keywords' field).
-
-    Concepts are then ranked by how many individual words triggered them.
-    This allows "prints" and "sum" to independently surface their respective concepts.
-
-    For now we return the full ranked list (callers can take the top one or more).
+    Shows the NLTK syntactic structure + any ontology concepts that were
+    attached by add_concepts (under the 'concepts' key on leaves).
     """
-    ontology = get_ontology()
-    verbs = features.get('verbs', [])
-    nouns = features.get('nouns', [])
+    lines = []
 
-    # Collect candidate words (verbs + nouns)
-    candidate_words = []
-    for w in verbs + nouns:
-        w = w.lower().strip()
-        if len(w) > 2:
-            candidate_words.append(w)
+    def _concept_str(c: Concept) -> str:
+        return c.id
 
-    if not candidate_words:
-        logger.info("Concept discovery found 0 initial concepts (no candidate words)")
-        return []
+    def _format_leaf(leaf: dict) -> str:
+        word = leaf.get('word', '?')
+        pos = leaf.get('pos', '')
+        ref = leaf.get('reference')
+        parts = [f'"{word}"']
+        if pos:
+            parts.append(f"({pos})")
+        if ref:
+            parts.append(f"→ {ref}")
 
-    # Per-word matching + frequency counting
-    from collections import defaultdict
-    concept_scores = defaultdict(int)
+        text = " ".join(parts)
 
-    for word in candidate_words:
-        matches = ontology.find_concepts_matching(word, strict=True)
-        for concept in matches:
-            concept_scores[concept.id] += 1
+        if show_concepts:
+            concepts = leaf.get('concepts', []) or []
+            if concepts:
+                names = [_concept_str(c) for c in concepts[:max_concepts]]
+                extra = f" +{len(concepts) - max_concepts}" if len(concepts) > max_concepts else ""
+                text += f"  [concepts: {', '.join(names)}{extra}]"
+        return text
 
-    if not concept_scores:
-        logger.info("Concept discovery found 0 initial concepts")
-        return []
+    def _recurse(node: Any, prefix: str, is_last: bool, is_root: bool = False):
+        if is_root:
+            connector = ""
+        else:
+            connector = "└── " if is_last else "├── "
 
-    # Rank by number of triggering words (descending)
-    ranked = sorted(
-        [(ontology.get(cid), score) for cid, score in concept_scores.items() if ontology.get(cid)],
-        key=lambda x: -x[1]
-    )
+        if isinstance(node, dict):
+            # Leaf (after our normalization)
+            line = prefix + connector + _format_leaf(node)
+            lines.append(line)
+            return
 
-    initial_concepts = [c for c, score in ranked]
+        if isinstance(node, nltk.Tree):
+            # Internal node
+            label = node.label() if hasattr(node, 'label') else str(node)
+            line = prefix + connector + f"[{label}]"
+            lines.append(line)
 
-    logger.info("Concept discovery found %d unique concepts (ranked by word match count)", len(initial_concepts))
-    if logger.isEnabledFor(logging.DEBUG):
-        debug_list = [f"{c.id}({score})" for c, score in ranked[:8]]
-        logger.debug("Top concepts by matches: %s", debug_list)
+            children = list(node)
+            new_prefix = prefix + ("    " if (is_last or is_root) else "│   ")
+            for i, child in enumerate(children):
+                _recurse(child, new_prefix, i == len(children) - 1)
+            return
 
-    return initial_concepts
+        # Fallback for raw tuples or other forms
+        if isinstance(node, (list, tuple)) and len(node) >= 2 and not isinstance(node[0], (dict, nltk.Tree)):
+            word, pos = str(node[0]), str(node[1])
+            fake_leaf = {'word': word, 'pos': pos}
+            line = prefix + connector + _format_leaf(fake_leaf)
+            lines.append(line)
+            return
+
+        # Unknown node type
+        line = prefix + connector + f"<{type(node).__name__}: {str(node)[:60]}>"
+        lines.append(line)
+
+    _recurse(tree, prefix, is_last, is_root=True)
+    return "\n".join(lines)
+
+
+def pretty_print_tree(tree, **kwargs):
+    """Convenience wrapper around format_tree that prints to stdout."""
+    print(format_tree(tree, prefix="", is_last=True, **kwargs))
 
 
 def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) -> list[Concept]:
@@ -475,16 +512,20 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
     return deduped
 
 
-def _features_to_plan(features: dict) -> dict:
+def _features_to_plan(tree) -> dict:
     """
-    New ontology-driven planning (in progress).
-    Uses concept lookup + dependency resolution instead of hardcoded legacy nodes.
+    New ontology-driven planning.
+
+    Takes a parsed tree directly. It first mutates the tree via add_concepts
+    (attaching ontology nodes under 'concepts' on the leaves), then collects
+    those attached concepts to drive the rest of planning + dependency resolution.
     """
     get_ontology()
 
     logger.info("Building ontology-driven plan...")
 
-    initial_concepts = _map_features_to_initial_concepts(features)
+    add_concepts(tree)                                   # mutates tree in place
+    initial_concepts = _collect_concepts_from_tree(tree)
     resolved_concepts = _resolve_dependencies(initial_concepts)
 
     logger.info(
@@ -507,8 +548,7 @@ def tree_to_solved_plan(parsed_tree, resolved_tree=None):
     get_ontology()
     logger.debug("tree_to_solved_plan called")
     tree = resolved_tree if resolved_tree is not None else parsed_tree
-    features = _extract_intent_features(tree)
-    plan = _features_to_plan(features)
+    plan = _features_to_plan(tree)
     ctx = Context()
     solved = solve_plan(plan, ctx)
     logger.info("tree_to_solved_plan completed")

@@ -1,14 +1,29 @@
 import nltk
+from nltk.chunk import RegexpParser
+
 from coreference_resolver import resolve_pronouns
 from logging_config import setup_logging
 from augment import tree_to_solved_plan, emit
 
 
+# Grammar for shallow syntactic chunking using NLTK's RegexpParser.
+# This replaces the previous ne_chunk (which is only a named entity chunker)
+# and gives us better structure, especially verb phrases and their objects.
+CHUNK_GRAMMAR = r'''
+    NP: {<DT|JJ|NN.*|CD>+}          # Noun phrases (including numbers and adjectives)
+    PP: {<IN><NP>}                   # Prepositional phrases
+    VP: {<VB.*><NP|PP>*}             # Verb phrases + following objects/modifiers
+    CLAUSE: {<NP><VP>}               # Simple clause pattern
+'''
+
+chunker = RegexpParser(CHUNK_GRAMMAR)
+
+
 def process_input(task):
-    # Tokenize and parse the input
+    # Tokenize and parse the input using RegexpParser for better syntactic structure
     tokens = nltk.word_tokenize(task)
     tagged = nltk.pos_tag(tokens)
-    parsed_tree = nltk.chunk.ne_chunk(tagged)
+    parsed_tree = chunker.parse(tagged)
     
     # Resolve pronouns and get the new tree
     resolved_tree = resolve_pronouns(parsed_tree)

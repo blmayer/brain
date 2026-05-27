@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain • Data Flow Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #0ea5e9;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 32px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #0f172a;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .sentence {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #334155;
+    }
+    .diagram-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      margin-bottom: 32px;
+      overflow-x: auto;
+    }
+    .diagram-card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .mermaid {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .observations {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .observations h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+    }
+    .observations ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .observations li {
+      margin-bottom: 10px;
+    }
+    .observations li:last-child {
+      margin-bottom: 0;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .meta a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 40px;
+    }
+    @media (max-width: 640px) {
+      body { padding: 20px 12px; }
+      .diagram-card, .observations { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Brain — Data Flow Example</h1>
+      <p class="subtitle">
+        Exact runtime trace for the canonical example from
+        <code>test_augment.py</code>
+      </p>
+    </header>
+
+    <div class="diagram-card">
+      <h2>Sequence Diagram — Full Pipeline</h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User/Test
+    participant M as main.py:process_input
+    participant C as coreference_resolver.py
+    participant A as augment.py
+    participant K as kb.py:Ontology
+
+    U->>M: process_input(sentence: str)
+    Note over M: In: "write a Golang program that reads 2 integers and prints their sum"
+    M->>M: nltk.word_tokenize + pos_tag + ne_chunk
+    Note right of M: parsed_tree: nltk.Tree
+    M->>C: resolve_pronouns(parsed_tree)
+    Note right of C: returns tree with dict leaves<br/>{word, pos, reference}
+    C-->>M: resolved_tree
+    M-->>U: (resolved_tree, parsed_tree)
+
+    U->>A: tree_to_solved_plan(parsed_tree, resolved_tree)
+    Note right of A: Public entry point (ontology-native path)
+
+    A->>A: _extract_intent_features(tree)
+    Note right of A: In: resolved_tree<br/>Out (observed in test):<br/>  verbs=['write','reads','prints',...]<br/>  languages=['golang']<br/>  io_verbs={}, arithmetic={},<br/>  detected_concepts={}   (at print)
+    A->>A: _map_features_to_initial_concepts(features)
+    Note right of A: In: features<br/>Out (exact):<br/>  [PrintOperation,<br/>   fmt.Scanf,<br/>   BinaryAdd]<br/>(ranked by match count)
+    A->>K: find_concepts_matching (per word, strict=True)
+    K-->>A: ranked Concept matches<br/>(PrintOperation scored 2)
+    A->>A: _resolve_dependencies(initial_concepts)
+    Note right of A: In: [PrintOperation, fmt.Scanf, BinaryAdd]<br/>Out (exact list + order):<br/>  [fmt.Println,<br/>   fmt.Scanf,<br/>   FunctionType,<br/>   BinaryAdd]
+    A->>A: _features_to_plan(features)
+    Note right of A: In: features<br/>Out (exact):<br/>  { "type": "ontology_driven_plan",<br/>    "starting_concepts": ["PrintOperation","fmt.Scanf","BinaryAdd"],<br/>    "resolved_dependencies": ["fmt.Println","fmt.Scanf","FunctionType","BinaryAdd"],<br/>    "all_concepts": [...] }
+    A->>A: solve_plan(plan, Context())
+    Note right of A: In: ontology_driven_plan<br/>Out (exact):<br/>  ExecNode(<br/>    concept=FunctionDeclaration,<br/>    deps=[<br/>      ExecNode(fmt.Println),<br/>      ExecNode(fmt.Scanf),<br/>      ExecNode(FunctionType),<br/>      ExecNode(BinaryAdd)<br/>    ] )
+    A-->>U: solved: ExecNode
+
+    U->>A: emit(solved: ExecNode)
+    Note over A: DFS post-order, render() using emitters[0].template
+    A-->>U: lines: list[str]<br/>(exact, current run):<br/>  0: fmt.Println(a)<br/>  1: fmt.Scanf(format, args)<br/>  2: // no emitter defined for FunctionType<br/>  3: left + right<br/>  4: func namesignature {<br/>body<br/>}
+      </div>
+    </div>
+
+    <div class="observations">
+      <h2>Key observations from this trace</h2>
+      <ul>
+        <li>
+          <strong>Concept discovery is entirely KB-driven</strong> — there are no hardcoded verb lists anywhere.
+        </li>
+        <li>
+          <code>_extract_intent_features</code> returns mostly raw words/POS + language hints.
+          The actual <code>Concept</code> objects are produced later by
+          <code>_map_features_to_initial_concepts</code> (via <code>ontology.find_concepts_matching</code>).
+          In the inspection test print, <code>features['detected_concepts']</code> was still empty at that snapshot.
+        </li>
+        <li>
+          <code>_resolve_dependencies</code> is the heart of the new ontology system.
+          It walks <code>specializes</code>, <code>hasParameter</code>, <code>produces</code>, and
+          <code>implementedBy</code> relations to expand the 3 initial matches into the final 4 concrete concepts.
+        </li>
+        <li>
+          The final <code>ExecNode</code> tree is emitted via per-Concept Jinja-style templates
+          stored in the ontology JSON files under <code>kb/ontology/golang/</code>.
+        </li>
+        <li>
+          Emission is still maturing (hence the placeholder lines above). The important part is that
+          the correct concepts were discovered and wired together from natural language.
+        </li>
+      </ul>
+    </div>
+
+    <div class="meta">
+      <strong>Example sentence:</strong>
+      <span class="sentence">"write a Golang program that reads 2 integers and prints their sum"</span><br>
+      <strong>Source:</strong> <code>test_augment.py</code> → <code>TestAugmentWithKB.test_new_ontology_flow_inspection</code><br>
+      <strong>Generated from:</strong> the runtime ontology-driven pipeline in <code>augment.py</code> + <code>main.py</code><br>
+      <strong>Ontology location:</strong> <code>kb/ontology/golang/constructs/</code>
+    </div>
+
+    <div class="footer">
+      This HTML is a standalone export of the data-flow diagram. The source of truth lives in the project README.
+    </div>
+  </div>
+
+  <script>
+    // Initialize Mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      sequence: {
+        diagramMarginX: 40,
+        diagramMarginY: 20,
+        boxTextMargin: 8,
+        noteMargin: 8,
+        messageMargin: 30,
+        mirrorActors: false,
+        bottomMarginAdj: 10,
+        useMaxWidth: true
+      },
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
+    });
+  </script>
+</body>
+</html>

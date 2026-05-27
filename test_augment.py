@@ -9,7 +9,8 @@ setup_logging("DEBUG")
 
 from augment import (
     solve_plan, emit, Context, tree_to_solved_plan,
-    _extract_intent_features, _map_features_to_initial_concepts, 
+    add_concepts, _collect_concepts_from_tree,
+    pretty_print_tree,
     _resolve_dependencies, _features_to_plan
 )
 
@@ -84,17 +85,20 @@ class TestAugmentWithKB(unittest.TestCase):
         except Exception as exc:
             self.skipTest(f"process_input failed (missing NLTK data?): {exc}")
 
-        # 1. Extract features (this is what the parser sees)
-        features = _extract_intent_features(resolved_tree)
+        # 1. Mutate the tree by attaching ontology concepts to nodes
+        add_concepts(resolved_tree)
 
-        # 2. Map to initial concepts in the ontology
-        initial_concepts = _map_features_to_initial_concepts(features)
+        print("\n[0] Annotated tree after add_concepts (syntax + attached ontology concepts):")
+        pretty_print_tree(resolved_tree, show_concepts=True, max_concepts=2)
+
+        # 2. Collect the concepts that were attached by the previous step
+        initial_concepts = _collect_concepts_from_tree(resolved_tree)
 
         # 3. Recursively resolve dependencies (the key new piece)
         resolved_concepts = _resolve_dependencies(initial_concepts)
 
         # 4. Build the plan using the new ontology-driven logic
-        plan = _features_to_plan(features)
+        plan = _features_to_plan(resolved_tree)
 
         # 5. Run the full solver
         solved = tree_to_solved_plan(parsed_tree, resolved_tree)
@@ -104,25 +108,20 @@ class TestAugmentWithKB(unittest.TestCase):
         print("NEW ONTOLOGY FLOW INSPECTION")
         print("="*70)
 
-        print("\n[1] Extracted features (verbs, arithmetic, detected concepts):")
-        print("    io_verbs:", features.get('io_verbs'))
-        print("    arithmetic:", features.get('arithmetic'))
-        print("    detected_concepts:", features.get('detected_concepts'))
-
-        print("\n[2] Initial concepts found from features:")
+        print("\n[1] Initial concepts discovered by add_concepts(tree):")
         for c in initial_concepts:
             print(f"   - {c.id} ({c.name})")
 
-        print("\n[3] Resolved dependencies (after walking relations + type satisfaction):")
+        print("\n[2] Resolved dependencies (after walking relations + type satisfaction):")
         for c in resolved_concepts:
             print(f"   - {c.id} ({c.name})")
 
-        print("\n[4] Final plan structure (ontology_driven_plan):")
+        print("\n[3] Final plan structure (ontology_driven_plan):")
         print("    Type:", plan.get("type"))
         print("    Starting concepts:", plan.get("starting_concepts"))
         print("    Resolved dependencies:", plan.get("resolved_dependencies"))
 
-        print("\n[5] Solved ExecNode tree (top-level concept):")
+        print("\n[4] Solved ExecNode tree (top-level concept):")
         print("    Root concept:", solved.concept.id if solved.concept else None)
         print("    Number of direct deps:", len(solved.deps))
         for i, dep in enumerate(solved.deps[:6]):   # show first few
