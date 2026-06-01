@@ -1,11 +1,6 @@
 import unittest
 import nltk
 
-from logging_config import setup_logging
-
-# Force debug logging during tests
-setup_logging("DEBUG")
-
 from coreference_resolver import resolve_pronouns
 
 
@@ -47,6 +42,59 @@ class TestCoreferenceResolver(unittest.TestCase):
         
         actual_resolutions = self.resolve_and_extract(sentence)
         self.assertEqual(actual_resolutions, expected_resolutions)
+
+    def test_demo_example_real_pipeline(self):
+        """Regression test for the canonical demo example using the actual
+        pipeline that `python main.py` runs.
+
+        Exercises:
+          - parsers.get_default_parser() / RegexpChunkParser (the primary
+            lightweight parser used by the interactive loop)
+          - coreference_resolver.resolve_pronouns (the relative/possessive
+            pronoun solver for WDT "that", PRP$ "their", etc.)
+
+        The test stops after resolve_pronouns (no tree_to_solved_plan or KB
+        augmentation). This locks in correct pronoun resolution behavior on the
+        primary demo input used throughout the project.
+        """
+        try:
+            from parsers import get_default_parser
+            parser = get_default_parser()
+        except Exception as exc:
+            self.skipTest(f"Could not import default parser (NLTK?): {exc}")
+
+        # The single most-referenced demo sentence in README, docs, and tests
+        sentence = "write a Golang program that reads 2 integers and prints their sum"
+
+        try:
+            resolved_tree, parsed_tree = parser.parse(sentence)
+        except Exception as exc:
+            self.skipTest(f"parser.parse failed (missing NLTK data?): {exc}")
+
+        # Extract resolutions the same way the interactive main loop does
+        resolutions = {}
+        for leaf in resolved_tree.leaves():
+            if isinstance(leaf, dict) and leaf.get("reference") is not None:
+                resolutions[leaf["word"]] = leaf["reference"]
+
+        expected = {"that": "a Golang program", "their": "2 integers"}
+        self.assertEqual(resolutions, expected)
+
+        # Structural checks: resolve_pronouns must have produced the rich dict
+        # leaves, and the chunker + resolver must have seen the key pronoun tags.
+        all_leaves = list(resolved_tree.leaves())
+        self.assertTrue(
+            any(isinstance(l, dict) for l in all_leaves),
+            "resolve_pronouns should return dict leaves carrying 'reference'"
+        )
+        self.assertTrue(
+            any(getattr(l, "get", lambda k, d=None: None)("pos") == "PRP$" for l in all_leaves if isinstance(l, dict)),
+            "Demo tree must contain PRP$ (possessive pronoun) leaves after chunking"
+        )
+        self.assertTrue(
+            any(getattr(l, "get", lambda k, d=None: None)("pos") == "WDT" for l in all_leaves if isinstance(l, dict)),
+            "Demo tree must contain WDT (relative pronoun 'that') after chunking"
+        )
 
 
 if __name__ == '__main__':

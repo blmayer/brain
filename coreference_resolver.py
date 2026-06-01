@@ -20,7 +20,8 @@ def extract_noun_phrases(tree):
                     if start_index is None:
                         start_index = i
                     end_index = i
-                    noun_phrase_text.append(leaf[0])
+                    w, _ = _get_word_pos(leaf)
+                    noun_phrase_text.append(w)
             
             if start_index is not None and end_index is not None:
                 noun_phrases.append((start_index, end_index, ' '.join(noun_phrase_text)))
@@ -28,19 +29,37 @@ def extract_noun_phrases(tree):
     return noun_phrases
 
 
+def _get_word_pos(leaf):
+    """Safely extract (word, pos) from various leaf formats (tuple, dict, str from different parsers)."""
+    if isinstance(leaf, dict):
+        return str(leaf.get('word', '')), str(leaf.get('pos', ''))
+    if isinstance(leaf, (list, tuple)) and len(leaf) >= 2:
+        return str(leaf[0]), str(leaf[1])
+    if isinstance(leaf, str):
+        return leaf, 'UNK'
+    return str(leaf), 'UNK'
+
+
 def find_pronouns(tree):
     """
-    Find all pronouns (words tagged as `PRP`, `PRP$`, `DT`, or `WDT`) in the parsed tree.
+    Find pronouns in the parsed tree.
+    Includes possessive pronouns (PRP$) and relative/demonstrative pronouns
+    (WDT/WP for "that", "which", etc.) so that relative clauses can be resolved.
     Return a list of tuples: (pronoun_index, pronoun_text).
     """
     pronouns = []
     leaves = tree.leaves()
     
+    relative_pronouns = {'that', 'which', 'who', 'whom', 'whose', 'this', 'these', 'those'}
+    
     for i, leaf in enumerate(leaves):
-        word, pos = leaf
-        if pos in ['PRP', 'PRP$']:
+        word, pos = _get_word_pos(leaf)
+        if pos == 'PRP$':
             pronouns.append((i, word))
-        elif pos in ['DT', 'WDT'] and word.lower() in ['this', 'that', 'these', 'those']:
+        elif pos in ('WDT', 'WP', 'WRB') and word.lower() in relative_pronouns:
+            pronouns.append((i, word))
+        elif pos in ('DT', 'PDT') and word.lower() in relative_pronouns:
+            # Sometimes demonstratives are tagged DT
             pronouns.append((i, word))
     
     return pronouns
@@ -52,7 +71,7 @@ def is_plural(subtree):
     Returns True if any word in the subtree has a POS tag of `NNS` or `NNPS`.
     """
     for leaf in subtree.leaves():
-        word, pos = leaf
+        word, pos = _get_word_pos(leaf)
         if pos in ['NNS', 'NNPS']:
             return True
     return False
@@ -74,7 +93,7 @@ def extract_noun_sequences(tree):
     start_index = None
     
     for i, leaf in enumerate(leaves):
-        word, pos = leaf
+        word, pos = _get_word_pos(leaf)
         if pos in noun_pos_tags:
             if not current_sequence:
                 start_index = i
@@ -82,7 +101,7 @@ def extract_noun_sequences(tree):
         else:
             if current_sequence:
                 end_index = i - 1
-                noun_phrase_text = ' '.join([word for word, pos in current_sequence])
+                noun_phrase_text = ' '.join([w for w, p in current_sequence])
                 noun_sequences.append((start_index, end_index, noun_phrase_text))
                 current_sequence = []
                 start_index = None
@@ -90,7 +109,7 @@ def extract_noun_sequences(tree):
     # Add the last sequence if it exists
     if current_sequence:
         end_index = len(leaves) - 1
-        noun_phrase_text = ' '.join([word for word, pos in current_sequence])
+        noun_phrase_text = ' '.join([w for w, p in current_sequence])
         noun_sequences.append((start_index, end_index, noun_phrase_text))
     
     return noun_sequences
@@ -121,14 +140,14 @@ def resolve_pronouns(tree):
     if any(pronoun.lower() in ['this', 'that', 'these', 'those'] for _, pronoun in pronouns):
         individual_nouns = []
         for i, leaf in enumerate(leaves):
-            word, pos = leaf
+            word, pos = _get_word_pos(leaf)
             if pos in ['NN', 'NNS', 'NNP', 'NNPS']:
                 individual_nouns.append((i, i, word))
         noun_phrases.extend(individual_nouns)
         
         # Additionally, split noun sequences that include demonstrative pronouns
         # to handle cases like "this program" where "this" refers to "program"
-        demonstrative_indices = [i for i, word in leaves if word.lower() in ['this', 'that', 'these', 'those']]
+        demonstrative_indices = [i for i, lf in enumerate(leaves) if _get_word_pos(lf)[0].lower() in ['this', 'that', 'these', 'those']]
         for start_index, end_index, noun_phrase_text in noun_phrases[:]:
             for demo_index in demonstrative_indices:
                 if start_index <= demo_index <= end_index:
@@ -137,7 +156,7 @@ def resolve_pronouns(tree):
                     if demo_index + 1 <= end_index:
                         new_start = demo_index + 1
                         new_end = end_index
-                        new_text = ' '.join([leaves[i][0] for i in range(new_start, new_end + 1)])
+                        new_text = ' '.join([_get_word_pos(leaves[i])[0] for i in range(new_start, new_end + 1)])
                         noun_phrases.append((new_start, new_end, new_text))
     
     for pronoun_index, pronoun in pronouns:
@@ -172,7 +191,7 @@ def resolve_pronouns(tree):
                 if end_index < pronoun_index:
                     has_det_or_cd = False
                     for i in range(start_index, end_index + 1):
-                        word, pos = leaves[i]
+                        word, pos = _get_word_pos(leaves[i])
                         if pos in ['DT', 'CD']:
                             has_det_or_cd = True
                             break
@@ -180,7 +199,7 @@ def resolve_pronouns(tree):
                     if has_det_or_cd:
                         is_noun_phrase_plural = False
                         for i in range(start_index, end_index + 1):
-                            word, pos = leaves[i]
+                            word, pos = _get_word_pos(leaves[i])
                             if pos in ['NNS', 'NNPS']:
                                 is_noun_phrase_plural = True
                                 break
@@ -205,7 +224,7 @@ def resolve_pronouns(tree):
                     if end_index < pronoun_index:
                         is_noun_phrase_plural = False
                         for i in range(start_index, end_index + 1):
-                            word, pos = leaves[i]
+                            word, pos = _get_word_pos(leaves[i])
                             if pos in ['NNS', 'NNPS']:
                                 is_noun_phrase_plural = True
                                 break
@@ -234,12 +253,16 @@ def resolve_pronouns(tree):
             new_children = [build_new_tree(child) for child in subtree]
             return nltk.Tree(subtree.label(), new_children)
         else:
-            # This is a leaf node: (word, pos)
-            word, pos = subtree
+            # This is a leaf node: (word, pos) or other format from parser
+            word, pos = _get_word_pos(subtree)
             # Find the index of this leaf in the leaves list
-            leaf_index = leaves.index(subtree)
+            try:
+                leaf_index = leaves.index(subtree)
+            except ValueError:
+                # Fallback: match by word content for non-tuple leaf formats
+                leaf_index = next((i for i, lf in enumerate(leaves) if _get_word_pos(lf)[0] == word), None)
             # Check if this leaf is a pronoun with a resolution
-            reference = resolutions_dict.get(leaf_index, None)
+            reference = resolutions_dict.get(leaf_index, None) if leaf_index is not None else None
             return {'word': word, 'pos': pos, 'reference': reference}
     
     new_tree = build_new_tree(tree)

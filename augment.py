@@ -15,6 +15,7 @@ import nltk
 
 from kb import Concept, get_concept, get_ontology
 from logging_config import get_logger
+from coreference_resolver import resolve_pronouns
 
 logger = get_logger(__name__)
 
@@ -157,7 +158,7 @@ def _make_key(e: ExecNode) -> str:
 
 
 # ------------------------------------------------------------------
-# Generic bridge: NLTK POS-tagged / NE trees (from process_input in main.py)
+# Generic bridge: NLTK POS-tagged / NE trees (from any Parser in parsers.py)
 #                       → intent features → Plan → solved ExecNode
 #
 # Detection of actions is now driven by the KB itself:
@@ -288,6 +289,104 @@ def add_concepts(tree) -> None:
     logger.debug("add_concepts finished annotating tree with ontology concepts")
 
 
+def bind_tree_arguments(tree):
+    """
+    Structural argument binding (early experiment).
+
+    After concepts have been attached to leaves, this function looks at the
+    tree structure to bind arguments to verb concepts.
+
+    Current heuristics:
+    - For a verb that has concepts with 'hasParameter', look at the following
+      NP sibling(s) inside the same VP/COORD and record them as potential
+      argument values (especially 'content').
+    - For "that" (relative clause), link the preceding NP to the following
+      clause (COORD or VP) so the dependency solver can see the description
+      of the head noun.
+    """
+    ontology = get_ontology()
+
+    def has_content_need(concept: Concept) -> bool:
+        rels = concept.relations or {}
+        for item in rels.get("hasParameter", []):
+            if isinstance(item, dict) and item.get("name") == "content":
+                return True
+        return False
+
+    def process(node, parent=None, siblings=None):
+        if isinstance(node, dict):
+            # Leaf
+            word = node.get("word", "").lower()
+            pos = node.get("pos", "")
+
+            # Handle relative "that" / "which"
+            if pos in ("WDT", "WP") and word in ("that", "which"):
+                # Find nearest preceding NP (the head) among siblings
+                if siblings:
+                    for i, sib in enumerate(siblings):
+                        if sib is node:
+                            # Look backwards for an NP
+                            for j in range(i - 1, -1, -1):
+                                prev = siblings[j]
+                                if isinstance(prev, dict) and prev.get("pos", "").startswith("NN"):
+                                    # Attach following material (if any) as description of this NP
+                                    following = siblings[i+1:] if i+1 < len(siblings) else []
+                                    if following:
+                                        prev.setdefault("relative_clause", []).extend(following)
+                                    break
+                            break
+                return
+
+            # Verb argument binding (very early heuristic)
+            concepts = node.get("concepts", [])
+            for c in concepts:
+                if has_content_need(c):
+                    # Look for a following NP in the local siblings (inside VP)
+                    if siblings:
+                        idx = None
+                        for i, s in enumerate(siblings):
+                            if s is node:
+                                idx = i
+                                break
+                        if idx is not None:
+                            for j in range(idx + 1, len(siblings)):
+                                nxt = siblings[j]
+                                if isinstance(nxt, dict) and nxt.get("pos", "").startswith(("NN", "CD")):
+                                    node.setdefault("arguments", {})["content"] = nxt
+                                    break
+                                if isinstance(nxt, nltk.Tree) and nxt.label() == "NP":
+                                    node.setdefault("arguments", {})["content"] = nxt
+                                    break
+                            else:
+                                # Also try one level up if we are inside a preterminal (VB/VBZ etc)
+                                # e.g. ideal trees have (VP (VB (write-dict)) (NP ...))
+                                if parent is not None and hasattr(parent, "label"):
+                                    parent_label = parent.label()
+                                    if parent_label.startswith(("VB", "VBP", "VBZ")):
+                                        grand = getattr(parent, "_parent", None)  # not set, so walk via caller's parent? skip complex
+                                        pass
+            return
+
+        if isinstance(node, nltk.Tree):
+            label = node.label() if hasattr(node, "label") else ""
+            children = list(node)
+
+            # Recurse on children, passing siblings for local context
+            for i, child in enumerate(children):
+                process(child, parent=node, siblings=children)
+
+            # Special case: if this is a VP or COORD containing a verb + following material,
+            # we already handled most binding inside the leaf recursion above.
+            return
+
+        if isinstance(node, (list, tuple)):
+            for item in node:
+                process(item)
+
+    process(tree)
+    logger.debug("bind_tree_arguments completed structural attachment")
+
+
 def _collect_concepts_from_tree(tree) -> list[Concept]:
     """Collect ontology Concepts that were previously attached to the tree
     by add_concepts (looks for the 'concepts' key on leaves).
@@ -336,6 +435,15 @@ def format_tree(tree, prefix: str = "", is_last: bool = True, show_concepts: boo
                 names = [_concept_str(c) for c in concepts[:max_concepts]]
                 extra = f" +{len(concepts) - max_concepts}" if len(concepts) > max_concepts else ""
                 text += f"  [concepts: {', '.join(names)}{extra}]"
+
+            # Show structural bindings when present
+            args = leaf.get('arguments')
+            if args:
+                text += f"  [args: {list(args.keys())}]"
+
+            rel = leaf.get('relative_clause')
+            if rel:
+                text += "  [rel_clause]"
         return text
 
     def _recurse(node: Any, prefix: str, is_last: bool, is_root: bool = False):
@@ -525,6 +633,7 @@ def _features_to_plan(tree) -> dict:
     logger.info("Building ontology-driven plan...")
 
     add_concepts(tree)                                   # mutates tree in place
+    bind_tree_arguments(tree)                            # structural argument binding
     initial_concepts = _collect_concepts_from_tree(tree)
     resolved_concepts = _resolve_dependencies(initial_concepts)
 
@@ -543,11 +652,21 @@ def _features_to_plan(tree) -> dict:
 
 
 def tree_to_solved_plan(parsed_tree, resolved_tree=None):
-    """Public entry point (new ontology-native path)."""
+    """Public entry point (new ontology-native path).
+
+    Ensures relative/possessive pronouns (PRP$, WDT, WP, etc.) are resolved
+    via resolve_pronouns() *before* any augmentation steps (_features_to_plan
+    calls add_concepts + bind_tree_arguments). This makes the function safe
+    to call directly with raw parser output.
+    """
     logger.info("Starting tree-to-plan conversion")
     get_ontology()
     logger.debug("tree_to_solved_plan called")
-    tree = resolved_tree if resolved_tree is not None else parsed_tree
+
+    if resolved_tree is None:
+        resolved_tree = resolve_pronouns(parsed_tree)
+    tree = resolved_tree
+
     plan = _features_to_plan(tree)
     ctx = Context()
     solved = solve_plan(plan, ctx)

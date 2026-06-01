@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 ### 2. Required NLTK Data Downloads
 
-These are **mandatory** for `process_input()` and the full pipeline to work:
+These are **mandatory** for the default parser (RegexpChunkParser) and the full pipeline to work:
 
 ```bash
 python -c "
@@ -95,7 +95,8 @@ Key test files:
 
 | File                        | Responsibility |
 |----------------------------|---------------|
-| `main.py`                  | Interactive entry point + `process_input()` (NLTK pipeline) |
+| `main.py`                  | Interactive REPL loop only (delegates to parsers.get_default_parser()) |
+| `parsers.py`               | Parser ABC + RegexpChunkParser (default), Chart, CoreNLP, Stanza impls |
 | `coreference_resolver.py`  | Pronoun resolution logic |
 | `augment.py`               | `tree_to_solved_plan()`, `solve_plan()`, `emit()`, plan construction |
 | `kb.py`                    | Python-native Knowledge Base (`Node`, `needs`, `produces`, `emits`) |

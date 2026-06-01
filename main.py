@@ -1,34 +1,14 @@
-import nltk
-from nltk.chunk import RegexpParser
+"""Interactive entry point for the Brain program-synthesis system.
 
-from coreference_resolver import resolve_pronouns
+The main loop is intentionally minimal:
+- It only handles I/O (the REPL) and wires the pluggable parser into the
+  KB-driven augmentation / emission pipeline.
+- All parsing logic lives in parsers.py behind the Parser interface.
+"""
+
 from logging_config import setup_logging
+from parsers import get_default_parser
 from augment import tree_to_solved_plan, emit
-
-
-# Grammar for shallow syntactic chunking using NLTK's RegexpParser.
-# This replaces the previous ne_chunk (which is only a named entity chunker)
-# and gives us better structure, especially verb phrases and their objects.
-CHUNK_GRAMMAR = r'''
-    NP: {<DT|JJ|NN.*|CD>+}          # Noun phrases (including numbers and adjectives)
-    PP: {<IN><NP>}                   # Prepositional phrases
-    VP: {<VB.*><NP|PP>*}             # Verb phrases + following objects/modifiers
-    CLAUSE: {<NP><VP>}               # Simple clause pattern
-'''
-
-chunker = RegexpParser(CHUNK_GRAMMAR)
-
-
-def process_input(task):
-    # Tokenize and parse the input using RegexpParser for better syntactic structure
-    tokens = nltk.word_tokenize(task)
-    tagged = nltk.pos_tag(tokens)
-    parsed_tree = chunker.parse(tagged)
-    
-    # Resolve pronouns and get the new tree
-    resolved_tree = resolve_pronouns(parsed_tree)
-    
-    return resolved_tree, parsed_tree
 
 
 if __name__ == "__main__":
@@ -37,6 +17,8 @@ if __name__ == "__main__":
     logger = get_logger(__name__)
     logger.info("Starting Brain (ontology-driven mode)")
 
+    parser = get_default_parser()
+
     while True:
         # Accept user input
         task = input("Enter a sentence (or 'exit' to quit): ")
@@ -44,8 +26,8 @@ if __name__ == "__main__":
         if task == "exit":
             break
         
-        # Process the input
-        resolved_tree, parsed_tree = process_input(task)
+        # Process the input via the pluggable Parser interface
+        resolved_tree, parsed_tree = parser.parse(task)
         
         # Print the parsed tree
         print("\nParsed Tree:")
@@ -66,7 +48,7 @@ if __name__ == "__main__":
         if not found_resolutions:
             print("No pronouns found to resolve.")
 
-        # --- New pipeline: from parsed trees → generic plan → KB augmentation → emission ---
+        # --- Pipeline: from parsed trees → generic plan → KB augmentation → emission ---
         print("\n=== KB-Augmented Plan Emission ===")
         try:
             solved = tree_to_solved_plan(parsed_tree, resolved_tree)

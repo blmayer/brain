@@ -137,7 +137,8 @@ sequenceDiagram
 
 | File                        | Purpose |
 |----------------------------|---------|
-| `main.py`                  | Interactive entry point + `process_input()` (NLTK pipeline) |
+| `main.py`                  | Interactive REPL loop only |
+| `parsers.py`               | Parser interface + implementations (default RegexpChunkParser etc.) |
 | `coreference_resolver.py`  | Pronoun resolution on the parsed tree |
 | `augment.py`               | `tree_to_solved_plan()`, generic plan builder, `solve_plan()`, `emit()` |
 | `kb.py`                    | Python-native Knowledge Base (Node with `needs`, `produces`, `emits`) |
