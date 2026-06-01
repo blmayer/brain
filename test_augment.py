@@ -9,8 +9,11 @@ from augment import (
     solve_plan, emit, Context, tree_to_solved_plan,
     add_concepts, bind_tree_arguments, _collect_concepts_from_tree,
     pretty_print_tree,
-    _resolve_dependencies, _features_to_plan
+    _resolve_dependencies, _features_to_plan,
+    check_interface_satisfaction, apply_interface_satisfaction,
 )
+
+from kb import Concept, Ontology
 
 
 class TestAugmentWithKB(unittest.TestCase):
@@ -450,6 +453,171 @@ class TestAugmentIdealTree(unittest.TestCase):
 
         # Note: More detailed per-node attachment checks can be added here
         # once bind_tree_arguments becomes stronger.
+
+
+# ------------------------------------------------------------------
+# Tests for the new interface satisfaction / compliance feature
+# ------------------------------------------------------------------
+
+class TestInterfaceSatisfaction(unittest.TestCase):
+    """
+    Tests for the Recipe-style interface satisfaction system.
+
+    A 'Recipe' interface requires hasIngredients + hasInstructions.
+    Concrete recipes (e.g. fried_egg) declare specific requirements.
+    Requirements can reference classes (e.g. 'spices' with isClass:true).
+    The checker must recognize that 'salt' (which isA Spice) satisfies 'spices'.
+    """
+
+    def _build_minimal_recipe_ontology(self) -> Ontology:
+        """Build a tiny isolated ontology just for this test."""
+        ont = Ontology()
+
+        # The interface
+        ont.register(Concept(
+            id="Recipe",
+            kind="INTERFACE",
+            name="Recipe",
+            relations={"requires": [
+                {"relation": "hasIngredients"},
+                {"relation": "hasInstructions"},
+            ]}
+        ))
+
+        # Class hierarchy (using lowercase ids to match common usage in relations)
+        ont.register(Concept(id="ingredient", kind="CLASS", name="Ingredient"))
+        ont.register(Concept(id="spices", kind="CLASS", name="Spice", parents=["ingredient"]))
+
+        # Concrete ingredients
+        ont.register(Concept(id="butter", kind="INGREDIENT", name="Butter", parents=["ingredient"]))
+        ont.register(Concept(id="egg", kind="INGREDIENT", name="Egg", parents=["ingredient"]))
+        ont.register(Concept(id="salt", kind="INGREDIENT", name="Salt", parents=["spices", "ingredient"]))
+
+        # The concrete recipe under test
+        ont.register(Concept(
+            id="fried_egg",
+            kind="RECIPE",
+            name="Fried Egg",
+            parents=["Recipe"],
+            relations={
+                "hasIngredients": [
+                    {"target": "butter"},
+                    {"target": "egg"},
+                    {"target": "spices", "isClass": True},
+                ],
+                "hasInstructions": [
+                    "add butter to pan",
+                    "add egg",
+                    "add spices",
+                ],
+            }
+        ))
+
+        return ont
+
+    def test_fried_egg_satisfied_by_butter_egg_salt(self):
+        """
+        The key test requested by the user.
+
+        We have:
+          - A node representing 'fried egg recipe' (with the declared requirements)
+          - A list of available nodes containing butter, egg, and salt
+        salt is an instance of Spice, so it should satisfy the 'spices' (class) requirement.
+
+        The function must return satisfied=True and set isA='recipe' on the candidate node.
+        """
+        ont = self._build_minimal_recipe_ontology()
+
+        # This is the "node that needs a fried egg recipe" / the candidate we are checking.
+        # It must declare which interface/class it claims (parents / isA) so that
+        # the required relation names are read from the interface definition in the ontology
+        # instead of being hardcoded anywhere.
+        fried_egg_node = {
+            "id": "fried_egg",
+            "kind": "RECIPE",
+            "parents": ["Recipe"],
+            "relations": {
+                "hasIngredients": [
+                    {"target": "butter"},
+                    {"target": "egg"},
+                    {"target": "spices", "isClass": True},
+                ],
+                "hasInstructions": [
+                    "add butter to pan",
+                    "add egg",
+                    "add spices",
+                ],
+            }
+        }
+
+        # The pool of things we have available in the current context/plan
+        available_nodes = [
+            {"id": "butter", "parents": ["ingredient"]},
+            {"id": "egg", "parents": ["ingredient"]},
+            {"id": "salt", "parents": ["spices", "ingredient"]},   # <-- the key subclass case
+        ]
+
+        result = check_interface_satisfaction(
+            candidate=fried_egg_node,
+            available=available_nodes,
+            ontology=ont
+        )
+
+        self.assertTrue(result["satisfied"], f"Expected satisfaction but got missing: {result['missing']}")
+        self.assertEqual(fried_egg_node.get("isA"), "recipe", "The function must set isA='recipe' on the fried egg node when satisfied")
+        self.assertIn("Recipe", fried_egg_node.get("satisfied_interfaces", []))
+
+        # Also verify that the class-based match was recorded
+        matched_ingredients = [m.get("id") if isinstance(m, dict) else getattr(m, "id", None)
+                               for m in result["matched"].get("hasIngredients", [])]
+        self.assertIn("salt", matched_ingredients, "salt should have been accepted as satisfying the 'spices' class requirement")
+
+    def test_fried_egg_not_satisfied_without_spice(self):
+        """Missing the spice entirely should fail satisfaction."""
+        ont = self._build_minimal_recipe_ontology()
+
+        fried_egg_node = {
+            "id": "fried_egg",
+            "parents": ["Recipe"],
+            "relations": {
+                "hasIngredients": [
+                    {"target": "butter"},
+                    {"target": "egg"},
+                    {"target": "spices", "isClass": True},
+                ],
+                "hasInstructions": ["step1"],
+            }
+        }
+
+        available = [
+            {"id": "butter"},
+            {"id": "egg"},
+            # no spice at all
+        ]
+
+        result = check_interface_satisfaction(fried_egg_node, available, ontology=ont)
+        self.assertFalse(result["satisfied"])
+        self.assertTrue(any(m["requirement"]["target"] == "spices" for m in result["missing"]))
+
+    def test_check_interface_satisfaction_with_real_concepts(self):
+        """Same logic but using real Concept objects from a fresh Ontology (no dicts)."""
+        ont = self._build_minimal_recipe_ontology()
+
+        fried_egg = ont.get("fried_egg")
+        butter = ont.get("butter")
+        egg = ont.get("egg")
+        salt = ont.get("salt")
+
+        result = check_interface_satisfaction(
+            candidate=fried_egg,
+            available=[butter, egg, salt],
+            ontology=ont
+        )
+
+        self.assertTrue(result["satisfied"])
+        # When the candidate is a Concept (immutable shared object) we don't mutate it,
+        # so we only assert on the returned result.
+        self.assertGreaterEqual(len(result["matched"].get("hasIngredients", [])), 3)
 
 
 if __name__ == "__main__":

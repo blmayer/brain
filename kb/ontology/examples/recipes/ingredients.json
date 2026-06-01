@@ -1,0 +1,41 @@
+[
+  {
+    "id": "Ingredient",
+    "kind": "CLASS",
+    "name": "Ingredient"
+  },
+  {
+    "id": "Spice",
+    "kind": "CLASS",
+    "name": "Spice",
+    "parents": ["Ingredient"]
+  },
+  {
+    "id": "butter",
+    "kind": "INGREDIENT",
+    "name": "Butter",
+    "parents": ["Ingredient"],
+    "keywords": ["butter"]
+  },
+  {
+    "id": "egg",
+    "kind": "INGREDIENT",
+    "name": "Egg",
+    "parents": ["Ingredient"],
+    "keywords": ["egg", "eggs"]
+  },
+  {
+    "id": "salt",
+    "kind": "INGREDIENT",
+    "name": "Salt",
+    "parents": ["Spice", "Ingredient"],
+    "keywords": ["salt", "salts", "sal"]
+  },
+  {
+    "id": "pepper",
+    "kind": "INGREDIENT",
+    "name": "Pepper",
+    "parents": ["Spice", "Ingredient"],
+    "keywords": ["pepper", "peppers", "peper"]
+  }
+]

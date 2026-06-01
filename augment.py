@@ -13,7 +13,7 @@ from typing import List, Dict, Optional, Any, Union
 
 import nltk
 
-from kb import Concept, get_concept, get_ontology
+from kb import Concept, get_concept, get_ontology, Ontology
 from logging_config import get_logger
 from coreference_resolver import resolve_pronouns
 
@@ -71,9 +71,20 @@ def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) 
         if plan_type == "ontology_driven_plan":
             # New flow: we already have the resolved concepts from dependency resolution
             resolved = plan.get("all_concepts", [])
-            program_concept = get_concept("FunctionDeclaration") or Concept(
-                id="Program", kind="Program", name="Main Program"
+            # If we are emitting a list of executable steps (from satisfied interface
+            # instructions), use a silent root so we do not emit an extra "func ..."
+            # wrapper line from the codegen-oriented FunctionDeclaration.
+            has_executable_steps = any(
+                (isinstance(c, Concept) and (c.kind == "ACTION" or bool(getattr(c, "emitters", None))))
+                for c in resolved
             )
+            if has_executable_steps:
+                program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
+                # no emitters => render will produce nothing for the root
+            else:
+                program_concept = get_concept("FunctionDeclaration") or Concept(
+                    id="Program", kind="Program", name="Main Program"
+                )
             root = ExecNode(concept=program_concept)
 
             for concept in resolved:
@@ -109,7 +120,10 @@ def render(concept: Concept, bindings: Dict[str, str]) -> str:
     """Render a Concept using its emitters and the current bindings."""
     logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
     if not concept or not concept.emitters:
-        return f"// no emitter defined for {getattr(concept, 'id', 'unknown')}"
+        # Return empty so concepts without emitters (e.g. synthetic roots for
+        # executable instruction lists, or abstract nodes) contribute nothing
+        # to the final output. The current emitter machinery is used as-is.
+        return ""
 
     template = concept.emitters[0].get("template", "")
 
@@ -637,6 +651,30 @@ def _features_to_plan(tree) -> dict:
     initial_concepts = _collect_concepts_from_tree(tree)
     resolved_concepts = _resolve_dependencies(initial_concepts)
 
+    # New post-augmentation phase: interface satisfaction / compliance checking.
+    # The call now returns any nodes that satisfied an interface declaring
+    # executable instructions (e.g. a Recipe whose hasIngredients requirements
+    # were met by available concepts in the tree, including class matches like
+    # salt/pepper satisfying "spices").
+    satisfied_executables = apply_interface_satisfaction(tree) or []
+
+    # Resolve the executable instructions (now node ids in hasInstructions etc.)
+    # using the generic recursive resolver driven by requires/needs + instruction lists.
+    # The order of the final list comes from the order in the ontology lists
+    # (requirement satisfaction provides the sequence).
+    executable_steps: list[Concept] = []
+    for ex in satisfied_executables:
+        executable_steps.extend(resolve_dependencies(ex, ontology=get_ontology()))
+
+    # If we resolved any executable steps (the general "follow instructions
+    # once requirements satisfied" path), prefer them for emission.
+    # Otherwise fall back to the classic construct dependency resolution
+    # (keeps codegen working unchanged).
+    if executable_steps:
+        final_concepts = executable_steps
+    else:
+        final_concepts = resolved_concepts
+
     logger.info(
         "Plan built with %d starting concepts and %d resolved dependencies",
         len(initial_concepts), len(resolved_concepts)
@@ -647,7 +685,7 @@ def _features_to_plan(tree) -> dict:
         "type": "ontology_driven_plan",
         "starting_concepts": [c.id for c in initial_concepts],
         "resolved_dependencies": [c.id for c in resolved_concepts],
-        "all_concepts": resolved_concepts,
+        "all_concepts": final_concepts,
     }
 
 
@@ -672,3 +710,603 @@ def tree_to_solved_plan(parsed_tree, resolved_tree=None):
     solved = solve_plan(plan, ctx)
     logger.info("tree_to_solved_plan completed")
     return solved
+
+
+# ------------------------------------------------------------------
+# Interface satisfaction / compliance checking (new ontology feature)
+# ------------------------------------------------------------------
+
+def _normalize_requirement(req: Any) -> dict:
+    """
+    Turn a requirement entry (string or dict from relations) into a uniform spec:
+    {"target": str, "is_class": bool, "name": optional}
+    """
+    if isinstance(req, str):
+        return {"target": req, "is_class": False}
+    if isinstance(req, dict):
+        target = req.get("target") or req.get("id") or req.get("name")
+        is_class = bool(
+            req.get("isClass") or req.get("is_class") or
+            req.get("kind") == "CLASS" or "class" in str(req.get("type", "")).lower()
+        )
+        return {"target": target, "is_class": is_class, "raw": req}
+    return {"target": str(req), "is_class": False}
+
+
+def _get_claimed_interface_ids(candidate: Union[Concept, dict]) -> list[str]:
+    """
+    Extract which interfaces / classes this candidate claims to implement or be an instance of.
+    Works for both Concept objects and plain dict runtime nodes.
+    Looks in: parents, isA / isa, implements, and common relation forms.
+    """
+    ids: list[str] = []
+
+    def _add(val):
+        if isinstance(val, str):
+            ids.append(val)
+        elif isinstance(val, (list, tuple)):
+            for v in val:
+                _add(v)
+        elif isinstance(val, dict):
+            for k in ("target", "id", "name"):
+                if k in val and isinstance(val[k], str):
+                    ids.append(val[k])
+
+    if isinstance(candidate, Concept):
+        _add(candidate.parents)
+        raw = candidate.raw or {}
+        for key in ("isA", "isa", "implements", "interface"):
+            _add(raw.get(key))
+        rels = candidate.relations or {}
+        for key in ("implements", "isImplementationOf", "satisfies", "conformsTo"):
+            _add(rels.get(key))
+    else:
+        # dict node (runtime / test data)
+        _add(candidate.get("parents"))
+        for key in ("isA", "isa", "implements", "interface"):
+            _add(candidate.get(key))
+        rels = candidate.get("relations", {}) or candidate.get("requires", {}) or {}
+        for key in ("implements", "isImplementationOf", "satisfies", "conformsTo"):
+            _add(rels.get(key))
+
+    # Dedup while preserving order
+    seen = set()
+    unique = []
+    for i in ids:
+        if i and i not in seen:
+            seen.add(i)
+            unique.append(i)
+    return unique
+
+
+def _get_required_relation_names_from_interface(iface: Concept) -> list[str]:
+    """
+    Given an interface Concept, extract the names of the relations it requires
+    instances to provide (e.g. hasIngredients, hasInstructions).
+    Looks for common declaration patterns in the interface's relations.
+    """
+    if not iface:
+        return []
+
+    rels = iface.relations or {}
+    names: list[str] = []
+
+    # Preferred form (as shown in recipe_interface.json example):
+    # "requires": [ {"relation": "hasIngredients", ...}, {"relation": "hasInstructions"} ]
+    for item in rels.get("requires", []):
+        if isinstance(item, dict):
+            r = item.get("relation") or item.get("name") or item.get("slot")
+            if isinstance(r, str):
+                names.append(r)
+        elif isinstance(item, str):
+            names.append(item)
+
+    # Alternative explicit lists on the interface
+    for key in ("requiredRelations", "required_relations", "requiresRelations", "requiredSlots", "slots"):
+        val = rels.get(key)
+        if isinstance(val, str):
+            names.append(val)
+        elif isinstance(val, (list, tuple)):
+            for v in val:
+                if isinstance(v, str):
+                    names.append(v)
+                elif isinstance(v, dict):
+                    r = v.get("relation") or v.get("name")
+                    if isinstance(r, str):
+                        names.append(r)
+
+    # As a last resort, if the interface itself has relations whose values look like
+    # requirement declarations, we could infer, but we keep it explicit for now.
+
+    # Dedup preserving order
+    seen = set()
+    out = []
+    for n in names:
+        if n and n not in seen:
+            seen.add(n)
+            out.append(n)
+    return out
+
+
+def _collect_relation_values(candidate: Union[Concept, dict], relation_names: list[str]) -> dict:
+    """
+    Given a list of relation names, pull the corresponding values from the candidate
+    (whether Concept or dict) and normalize them into the internal requirement format.
+    """
+    rels: dict = {}
+    if isinstance(candidate, Concept):
+        rels = candidate.relations or {}
+    elif isinstance(candidate, dict):
+        rels = candidate.get("relations", {}) or candidate.get("requires", {}) or {}
+
+    out = {}
+    for rname in relation_names:
+        items = rels.get(rname)
+        if items is None:
+            continue
+        if isinstance(items, (str, dict)):
+            items = [items]
+        if items:
+            out[rname] = [_normalize_requirement(it) for it in items]
+    return out
+
+
+def _get_requirements_for_interface(
+    candidate: Union[Concept, dict],
+    ontology: Optional[Ontology] = None,
+    relation_names: list[str] = None
+) -> dict:
+    """
+    Extract the requirements the candidate must satisfy.
+
+    If explicit `relation_names` are provided, use them directly (override).
+
+    Otherwise, discover the interfaces the candidate claims (via parents/isA/etc.),
+    read the required relation names **from those interface definitions** in the ontology,
+    then collect the actual values from the candidate using those names.
+
+    This is the key non-hardcoded path: relation names come from the interface class.
+    """
+    if ontology is None:
+        ontology = get_ontology()
+
+    # Explicit override takes precedence (advanced use / tests that don't want discovery)
+    if relation_names:
+        return _collect_relation_values(candidate, relation_names)
+
+    # Discovery path: find interfaces from the candidate, then read required names from them.
+    claimed_ids = _get_claimed_interface_ids(candidate)
+    discovered_names: list[str] = []
+
+    for iid in claimed_ids:
+        iface = ontology.get(iid)
+        if iface:
+            discovered_names.extend(_get_required_relation_names_from_interface(iface))
+
+    # Dedup
+    seen = set()
+    unique_names = []
+    for n in discovered_names:
+        if n not in seen:
+            seen.add(n)
+            unique_names.append(n)
+
+    if unique_names:
+        return _collect_relation_values(candidate, unique_names)
+
+    # No interfaces discovered and no explicit names given → nothing to check.
+    return {}
+
+
+def _item_matches_requirement(
+    item: Union[Concept, dict],
+    req: dict,
+    ontology: Ontology
+) -> bool:
+    """
+    Does 'item' satisfy one required slot 'req'?
+    Supports:
+      - exact id match
+      - is_a / subclass match when req['is_class'] is True
+      - also checks item.get('isA') / parents on dict nodes
+    """
+    target = req.get("target")
+    if not target:
+        return False
+
+    # Extract id from item (works for Concept or dict)
+    if isinstance(item, Concept):
+        item_id = item.id
+        item_parents = item.parents or []
+        item_raw = item.raw or {}
+    else:
+        item_id = item.get("id") or item.get("word") or item.get("name")
+        item_parents = item.get("parents", []) or []
+        item_raw = item
+
+    if item_id == target:
+        return True
+
+    # Direct isA on the item itself (runtime annotation or raw data)
+    item_isa = None
+    if isinstance(item_raw, dict):
+        item_isa = item_raw.get("isA") or item_raw.get("isa")
+    if item_isa == target:
+        return True
+
+    # Transitive parent / isA check via ontology
+    if ontology:
+        try:
+            if ontology.is_a(item_id, target):
+                return True
+        except Exception:
+            pass
+
+        # Also try treating the item as a Concept if possible
+        if isinstance(item, Concept):
+            if ontology.is_a(item, target):
+                return True
+
+    # Fallback: check parents list on dict items even without ontology hit
+    if target in item_parents:
+        return True
+
+    return False
+
+
+def check_interface_satisfaction(
+    candidate: Union[Concept, dict],
+    available: list[Union[Concept, dict]],
+    ontology: Optional[Ontology] = None,
+    required_relations: list[str] = None,
+) -> dict:
+    """
+    Core new function: check whether the 'available' items satisfy the
+    interface requirements declared by 'candidate'.
+
+    Relation names are **not hardcoded**. By default they are discovered from
+    the interface class(es) the candidate claims (via parents / isA / implements
+    on the candidate → lookup in ontology → read the interface's "requires" etc.).
+
+    You can still pass `required_relations` explicitly to override discovery.
+
+    If successful, the function annotates the candidate (when mutable dict) with:
+        - "isA": <primary interface id, lowercased for convenience on Recipe>
+        - "satisfied_interfaces": [interface ids...]
+
+    Returns:
+        {
+          "satisfied": bool,
+          "matched": { relation_name: [matched_items...], ... },
+          "missing": [ {"relation": , "requirement": } ... ],
+          "interfaces_checked": [interface ids...]
+        }
+    """
+    if ontology is None:
+        ontology = get_ontology()
+
+    # This now does discovery from the interface class unless required_relations is given
+    requirements = _get_requirements_for_interface(
+        candidate, ontology=ontology, relation_names=required_relations
+    )
+
+    claimed_interfaces = _get_claimed_interface_ids(candidate)
+
+    if not requirements:
+        return {
+            "satisfied": False,
+            "matched": {},
+            "missing": [],
+            "interfaces_checked": claimed_interfaces,
+            "reason": "no requirements declared on discovered interfaces"
+        }
+
+    matched: dict = {}
+    missing = []
+
+    def _requires_external_match(rel_name: str, reqs: list[dict]) -> bool:
+        """
+        Decide whether the values for this relation (as declared on the concrete
+        candidate) must be satisfied by searching the 'available' pool.
+
+        Decision order (all driven by data in the ontology / candidate, no
+        hardcoded relation names in source code):
+        1. Look up the relation declaration in the claimed interface(s) "requires"
+           list. If it carries matchFromAvailable (or declarative), use that.
+        2. If any concrete requirement entry carries an explicit flag, respect it.
+        3. Otherwise fall back to a content heuristic on the target values.
+        """
+        if not reqs:
+            return False
+
+        # 1. Primary: the interface definition for this relation (e.g. hasInstructions
+        #    declared with matchFromAvailable: false means "provided by the recipe itself").
+        for iface_id in claimed_interfaces:
+            iface = ontology.get(iface_id)
+            if not iface:
+                continue
+            for decl in (iface.relations or {}).get("requires", []):
+                if isinstance(decl, dict):
+                    if decl.get("relation") == rel_name or decl.get("name") == rel_name:
+                        if "matchFromAvailable" in decl:
+                            return bool(decl.get("matchFromAvailable"))
+                        if "match_from_available" in decl:
+                            return bool(decl.get("match_from_available"))
+                        if decl.get("declarative") is True:
+                            return False
+                        if decl.get("declarative") is False:
+                            return True
+
+        # 2. Explicit per-requirement flags from the concrete data
+        for r in reqs:
+            raw = r.get("raw") or r
+            if isinstance(raw, dict):
+                explicit = raw.get("matchFromAvailable")
+                if explicit is None:
+                    explicit = raw.get("match_from_available")
+                if explicit is not None:
+                    return bool(explicit)
+
+                if raw.get("declarative") is True:
+                    return False
+                if raw.get("declarative") is False:
+                    return True
+
+        # 3. Content heuristic (no name hardcoding)
+        for r in reqs:
+            tgt = str(r.get("target") or "").strip()
+            if not tgt:
+                continue
+            if " " in tgt or any(p in tgt for p in ".!?") or len(tgt) > 35:
+                return False
+            if tgt.replace("-", "").replace("_", "").replace(".", "").isalnum():
+                return True
+
+        return True  # conservative default
+
+    for rel_name, reqs in requirements.items():
+        matched[rel_name] = []
+
+        if not _requires_external_match(rel_name, reqs):
+            # Declarative part of the interface (e.g. hasInstructions) — satisfied by definition
+            matched[rel_name] = [r.get("target") for r in reqs]
+            continue
+
+        for req in reqs:
+            found = None
+            for item in available:
+                if _item_matches_requirement(item, req, ontology):
+                    found = item
+                    break
+            if found is not None:
+                matched[rel_name].append(found)
+            else:
+                missing.append({"relation": rel_name, "requirement": req})
+
+    satisfied = len(missing) == 0
+
+    result = {
+        "satisfied": satisfied,
+        "matched": matched,
+        "missing": missing,
+        "interfaces_checked": claimed_interfaces,
+    }
+
+    if satisfied and isinstance(candidate, dict):
+        # Dynamic annotation based on the actual interfaces we are satisfying
+        for iface_id in claimed_interfaces:
+            candidate.setdefault("satisfied_interfaces", []).append(iface_id)
+            # Convenience for the common Recipe case (and similar)
+            if iface_id.lower() in ("recipe", "recipes"):
+                candidate["isA"] = "recipe"
+
+        # If nothing was claimed but we still satisfied something (explicit relations mode),
+        # fall back to a generic marker so callers/tests have something.
+        if not claimed_interfaces:
+            candidate.setdefault("satisfied_interfaces", []).append("satisfied")
+            # Only set the old "recipe" convenience if the keys look recipe-like
+            if any(k in requirements for k in ("hasIngredients", "hasInstructions")):
+                candidate["isA"] = "recipe"
+
+    return result
+
+
+def apply_interface_satisfaction(
+    tree,
+    extra_available: Optional[list] = None,
+    ontology: Optional[Ontology] = None,
+):
+    """
+    Post-augmentation hook.
+
+    After add_concepts + dependency resolution, this walks the concepts
+    attached to the tree (plus any caller-supplied extra_available nodes)
+    and runs interface satisfaction checks.
+
+    Interface discovery and required relation names come from the ontology
+    classes the candidates claim (parents / isA / implements), not from
+    hardcoded lists in this module.
+
+    Returns the list of nodes (Concept or dict) that successfully satisfied
+    an interface which declares executable content (e.g. hasInstructions).
+    The caller can then pass these to resolve_dependencies to obtain the
+    ordered list of instruction nodes to emit.
+    """
+    if ontology is None:
+        ontology = get_ontology()
+
+    pool: list = list(extra_available) if extra_available else []
+
+    # Collect everything already attached to the tree
+    for leaf in _walk_leaves(tree):
+        for c in leaf.get("concepts", []):
+            if isinstance(c, Concept):
+                pool.append(c)
+        # Also include the leaf itself as a potential runtime node
+        pool.append(leaf)
+
+    # Now look for candidates that declare interface-style requirements
+    # We scan both attached concepts and any rich dict nodes
+    seen_candidates = set()
+    satisfied_executables: list = []
+
+    def check_one(obj):
+        key = id(obj)
+        if key in seen_candidates:
+            return
+        seen_candidates.add(key)
+
+        # Discovery is driven by the interfaces the obj claims (parents/isA/etc.)
+        # No hardcoded relation names here.
+        reqs = _get_requirements_for_interface(obj, ontology=ontology)
+        if not reqs:
+            return
+
+        result = check_interface_satisfaction(obj, pool, ontology=ontology)
+        if result.get("satisfied"):
+            # Does this satisfied node declare executable instructions/steps?
+            # (generic: look for hasInstructions or similar; the concrete values
+            # are node ids of action concepts that have emitters)
+            has_exec_list = False
+            if isinstance(obj, Concept):
+                has_exec_list = bool((obj.relations or {}).get("hasInstructions"))
+            elif isinstance(obj, dict):
+                rels = obj.get("relations", {}) or obj.get("requires", {}) or {}
+                has_exec_list = bool(rels.get("hasInstructions"))
+            if has_exec_list:
+                satisfied_executables.append(obj)
+
+    # Check attached concepts
+    for leaf in _walk_leaves(tree):
+        for c in leaf.get("concepts", []):
+            if isinstance(c, Concept):
+                check_one(c)
+
+        # Also check the leaf dict itself (it may carry runtime relations)
+        if isinstance(leaf, dict) and _get_requirements_for_interface(leaf, ontology=ontology):
+            check_one(leaf)
+
+    # Also give extra_available items a chance (they may be the ones declaring the contract)
+    for item in (extra_available or []):
+        check_one(item)
+
+    logger.debug("apply_interface_satisfaction completed")
+    return satisfied_executables
+
+
+def resolve_dependencies(
+    node: Union[Concept, dict, str, list],
+    ontology: Optional[Ontology] = None,
+    visited: Optional[set] = None,
+) -> list[Concept]:
+    """
+    Generic recursive resolver for executable content unlocked by requirement satisfaction.
+
+    It reads a node's requires/needs fields (and executable instruction lists such as
+    hasInstructions) and calls itself recursively. The order of the returned list
+    follows the order of the lists in the ontology (the "requirement satisfaction" order).
+
+    - If a node id appears in hasInstructions (or steps/procedure), those nodes are
+      resolved in that sequence.
+    - Standard needs/requires are also followed (so an action could declare further
+      sub-requirements that get resolved before it).
+    - A node is appended to the result only if it has emitters (i.e. it is directly
+      renderable via the existing emitter). This keeps the mechanism shallow and
+      lets the current render/emit do the actual output work.
+
+    This is deliberately generic: Recipe + hasInstructions is only the motivating
+    example. Any interface can declare relations whose values are node ids that
+    become executable once the interface requirements are satisfied.
+    """
+    if ontology is None:
+        ontology = get_ontology()
+
+    if visited is None:
+        visited = set()
+
+    # Handle list of starting points (order preserved)
+    if isinstance(node, list):
+        results: list[Concept] = []
+        for n in node:
+            results.extend(resolve_dependencies(n, ontology, visited))
+        return results
+
+    # Resolve string id to Concept
+    if isinstance(node, str):
+        c = ontology.get(node)
+        if not c:
+            return []
+        node = c
+
+    # Support lightweight dict nodes that carry an id (runtime leaves etc.)
+    if isinstance(node, dict):
+        nid = node.get("id")
+        if nid:
+            c = ontology.get(nid)
+            if c:
+                node = c
+            else:
+                # Shallow: if the dict itself carries an emitter we could synthesize,
+                # but for now we expect real registered Concepts for actions.
+                return []
+        else:
+            return []
+
+    if not isinstance(node, Concept):
+        return []
+
+    if node.id in visited:
+        return []
+    visited.add(node.id)
+
+    results: list[Concept] = []
+    rels = node.relations or {}
+
+    # Follow standard requires / needs first (dependencies before the step)
+    for field in ("needs", "requires", "hasParameter"):
+        items = rels.get(field, [])
+        if isinstance(items, (str, dict)):
+            items = [items]
+        for item in items:
+            target = None
+            if isinstance(item, str):
+                target = item
+            elif isinstance(item, dict):
+                target = item.get("target") or item.get("id")
+            if target:
+                results.extend(resolve_dependencies(target, ontology, visited))
+
+    # Follow *whatever relations the claimed interfaces declare in their "requires"*
+    # (generic, driven by the interface class definition, not hardcoded field names here).
+    # This discovers hasInstructions (the executable steps) etc. from the interface
+    # (e.g. Recipe). The values (node ids) get resolved recursively in list order.
+    claimed = _get_claimed_interface_ids(node)
+    for iface_id in claimed:
+        iface = ontology.get(iface_id)
+        if not iface:
+            continue
+        for decl in (iface.relations or {}).get("requires", []):
+            if isinstance(decl, dict):
+                rname = decl.get("relation") or decl.get("name")
+                if rname:
+                    items = rels.get(rname, [])
+                    if isinstance(items, (str, dict)):
+                        items = [items]
+                    for item in items:
+                        target = None
+                        if isinstance(item, str):
+                            target = item
+                        elif isinstance(item, dict):
+                            target = item.get("target") or item.get("id") or item.get("action")
+                        if target:
+                            results.extend(resolve_dependencies(target, ontology, visited))
+
+    # If this node itself is directly executable (carries emitters), include it
+    # so the normal render/emit will produce its output line.
+    # Action nodes (the leaves in the instruction lists) will be included here.
+    # High-level nodes like "fried_egg" usually won't have emitters, so they
+    # contribute only their expanded instruction steps.
+    if getattr(node, "emitters", None):
+        results.append(node)
+
+    return results

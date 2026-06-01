@@ -1,0 +1,12 @@
+{
+  "id": "Recipe",
+  "kind": "INTERFACE",
+  "name": "Recipe",
+  "description": "An interface for any recipe: must declare ingredients and instructions.",
+  "relations": {
+    "requires": [
+      { "relation": "hasIngredients", "type": "list", "matchFromAvailable": true },
+      { "relation": "hasInstructions", "type": "list", "matchFromAvailable": false }
+    ]
+  }
+}

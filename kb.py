@@ -6,7 +6,7 @@ We now use the new Golang ontology format exclusively.
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 
 from logging_config import get_logger
 
@@ -184,6 +184,59 @@ class Ontology:
 
         return implementations
 
+    def get_ancestors(self, concept_id: str, max_depth: int = 20) -> set[str]:
+        """
+        Return all ancestor concept ids (transitive parents) for the given id.
+        Includes the concept itself.
+        """
+        visited: set[str] = set()
+        to_visit: list[str] = [concept_id]
+        depth = 0
+
+        while to_visit and depth < max_depth:
+            current = to_visit.pop()
+            if current in visited:
+                continue
+            visited.add(current)
+
+            c = self.get(current)
+            if not c:
+                continue
+
+            parents = c.parents or []
+            if isinstance(c.raw, dict):
+                # Support explicit isA as well as parents list
+                explicit = c.raw.get("isA")
+                if isinstance(explicit, str):
+                    parents = parents + [explicit]
+                elif isinstance(explicit, list):
+                    parents = parents + explicit
+
+            for p in parents:
+                if isinstance(p, str) and p not in visited:
+                    to_visit.append(p)
+            depth += 1
+
+        return visited
+
+    def is_a(self, concrete: Union[str, "Concept"], abstract: str) -> bool:
+        """
+        Structural/nominal 'is a' check with transitive parents.
+
+        concrete can be a concept id or a Concept object.
+        Returns True if concrete is the same as abstract or abstract is among its ancestors.
+        """
+        if isinstance(concrete, Concept):
+            cid = concrete.id
+        else:
+            cid = str(concrete)
+
+        if cid == abstract:
+            return True
+
+        ancestors = self.get_ancestors(cid)
+        return abstract in ancestors
+
     def load_from_directory(self, base_path: Path):
         if not base_path.exists():
             return
@@ -193,7 +246,10 @@ class Ontology:
                 with open(json_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
-                if isinstance(data, dict) and "instances" in data:
+                if isinstance(data, list):
+                    for item in data:
+                        self._load_single_concept(item, json_file)
+                elif isinstance(data, dict) and "instances" in data:
                     for item in data["instances"]:
                         self._load_single_concept(item, json_file)
                 else:
@@ -207,11 +263,24 @@ class Ontology:
         if not isinstance(data, dict) or "id" not in data:
             return
 
+        parents = data.get("parents", []) or []
+        # Support "is_a" / "isA" (shallow for now, as alias for interface / kind membership)
+        for k in ("is_a", "isA", "isa"):
+            val = data.get(k)
+            if val:
+                if isinstance(val, str):
+                    if val not in parents:
+                        parents = list(parents) + [val]
+                elif isinstance(val, (list, tuple)):
+                    for v in val:
+                        if isinstance(v, str) and v not in parents:
+                            parents = list(parents) + [v]
+
         concept = Concept(
             id=data["id"],
             kind=data.get("kind", "UNKNOWN"),
             name=data.get("name", data["id"]),
-            parents=data.get("parents", []),
+            parents=parents,
             relations=data.get("relations", {}),
             emitters=data.get("emitters", []),
             keywords=data.get("keywords", []),
@@ -234,6 +303,12 @@ def get_ontology() -> Ontology:
         base = Path(__file__).parent / "kb" / "ontology" / "golang"
         _ONTOLOGY.load_from_directory(base / "constructs")
         _ONTOLOGY.load_from_directory(base / "examples")
+        # Load top-level examples (recipes, etc.). These demonstrate the
+        # generic capability of satisfying interface requirements and then
+        # resolving/executing the associated instructions. Not a special
+        # "cooking" mode — just data using the general mechanism.
+        examples_root = Path(__file__).parent / "kb" / "ontology" / "examples"
+        _ONTOLOGY.load_from_directory(examples_root)
         logger.info("Ontology loaded with %d concepts", len(_ONTOLOGY))
     return _ONTOLOGY
 

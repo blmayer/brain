@@ -1,0 +1,12 @@
+{
+  "id": "flip_egg",
+  "kind": "ACTION",
+  "name": "Flip Egg",
+  "is_a": "action",
+  "description": "Flip the egg.",
+  "emitters": [
+    {
+      "template": "flip egg"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "add_salt",
+  "kind": "ACTION",
+  "name": "Add Salt",
+  "is_a": "action",
+  "description": "Add salt (a spice instance).",
+  "emitters": [
+    {
+      "template": "add salt"
+    }
+  ]
+}

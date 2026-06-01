@@ -1,0 +1,12 @@
+{
+  "id": "wait",
+  "kind": "ACTION",
+  "name": "Wait",
+  "is_a": "action",
+  "description": "Wait for cooking.",
+  "emitters": [
+    {
+      "template": "wait 2 minutes"
+    }
+  ]
+}
