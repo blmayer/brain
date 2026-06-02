@@ -1,15 +1,21 @@
 {
-  "subject": "atom",
-  "definitions": [
-    {
-      "subject": "atom",
-      "verb": "is",
-      "object": "smallest unit of matter",
-      "confidence": 0.98,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/atomic-theory"
-    }
+  "id": "atom",
+  "kind": "FACT",
+  "name": "Atom",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "atom",
+        "verb": "is",
+        "object": "smallest unit of matter",
+        "confidence": 0.98,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/atomic-theory"
+      }
+    ]
+  },
+  "keywords": [
+    "atom"
   ]
 }
-

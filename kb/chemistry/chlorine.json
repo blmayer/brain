@@ -1,15 +1,21 @@
 {
-  "subject": "chlorine",
-  "definitions": [
-    {
-      "subject": "chlorine",
-      "verb": "is",
-      "object": "a highly reactive halogen",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/periodic-table"
-    }
+  "id": "chlorine",
+  "kind": "FACT",
+  "name": "Chlorine",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "chlorine",
+        "verb": "is",
+        "object": "a highly reactive halogen",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/periodic-table"
+      }
+    ]
+  },
+  "keywords": [
+    "chlorine"
   ]
 }
-

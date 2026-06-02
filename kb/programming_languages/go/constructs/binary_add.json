@@ -1,0 +1,41 @@
+{
+  "id": "BinaryAdd",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Addition (+)",
+  "description": "Binary addition expression.",
+  "parents": [
+    "BinaryExpression"
+  ],
+  "keywords": [
+    "sum",
+    "add",
+    "plus",
+    "addition",
+    "total",
+    "+"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "left",
+        "type": "any"
+      },
+      {
+        "name": "right",
+        "type": "any"
+      }
+    ],
+    "produces": [
+      {
+        "type": "any"
+      }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-plus",
+      "target": "go",
+      "template": "{{left}} + {{right}}"
+    }
+  ]
+}

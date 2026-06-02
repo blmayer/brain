@@ -1,10 +1,15 @@
 {
-  "subject": "make",
-  "verb": "is",
-  "object": "a built-in function used to initialize slices, maps, and channels",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "make",
+  "kind": "FACT",
+  "name": "Make",
+  "relations": {},
+  "keywords": [
+    "make"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

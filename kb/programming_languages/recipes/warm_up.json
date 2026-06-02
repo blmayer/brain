@@ -1,0 +1,15 @@
+{
+  "id": "warm_up",
+  "kind": "ACTION",
+  "name": "Warm Up",
+  "is_a": "action",
+  "description": "Let the pan warm.",
+  "emitters": [
+    {
+      "template": "let it warm up"
+    }
+  ],
+  "keywords": [
+    "warm_up"
+  ]
+}

@@ -1,14 +1,26 @@
 {
   "id": "print",
-  "type": "instance",
-  "needs": [
-    { "name": "var", "type": "any" }
+  "kind": "PLAN_TEMPLATE",
+  "name": "Print value",
+  "keywords": [
+    "print",
+    "println",
+    "output",
+    "fmt.Println"
   ],
-  "produces": [],
-  "emits": [
-    { "text": "fmt.Println(" },
-    { "ref": "result" },
-    { "text": ")" }
+  "relations": {
+    "needs": [
+      {
+        "name": "var",
+        "type": "any"
+      }
+    ],
+    "produces": []
+  },
+  "emitters": [
+    {
+      "template": "fmt.Println({{var}})"
+    }
   ],
   "context": "golang",
   "confidence": 0.95,

@@ -1,10 +1,15 @@
 {
-  "subject": "fmt.Printf",
-  "verb": "is",
-  "object": "a function in the fmt package used for formatted printing",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/packages/fmt"
+  "id": "fmt.Printf",
+  "kind": "FACT",
+  "name": "Fmt.Printf",
+  "relations": {},
+  "keywords": [
+    "fmt.printf"
+  ],
+  "raw_meta": {
+    "context": "go/packages/fmt",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

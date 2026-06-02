@@ -1,0 +1,15 @@
+{
+  "id": "spread_butter",
+  "kind": "ACTION",
+  "name": "Spread Butter",
+  "is_a": "action",
+  "description": "Spread the butter.",
+  "emitters": [
+    {
+      "template": "spread butter"
+    }
+  ],
+  "keywords": [
+    "spread_butter"
+  ]
+}

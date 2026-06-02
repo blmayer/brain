@@ -1,10 +1,15 @@
 {
-  "subject": "go",
-  "verb": "is",
-  "object": "a keyword used in select statements for channel operations",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "go",
+  "kind": "FACT",
+  "name": "Go",
+  "relations": {},
+  "keywords": [
+    "go"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

@@ -1,10 +1,15 @@
 {
-  "subject": "func keyword",
-  "verb": "is",
-  "object": "used to declare functions and methods",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "func keyword",
+  "kind": "FACT",
+  "name": "Func Keyword",
+  "relations": {},
+  "keywords": [
+    "func keyword"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

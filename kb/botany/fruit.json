@@ -1,24 +1,30 @@
 {
-  "subject": "fruit",
-  "definitions": [
-    {
-      "subject": "fruit",
-      "verb": "is",
-      "object": "seed-bearing part of a plant",
-      "confidence": 0.98,
-      "source": "botany",
-      "date": "2024-01-01",
-      "context": "biology/botany"
-    },
-    {
-      "subject": "fruit",
-      "verb": "is",
-      "object": "edible part of a plant",
-      "confidence": 0.95,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "general/food"
-    }
+  "id": "fruit",
+  "kind": "FACT",
+  "name": "Fruit",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "fruit",
+        "verb": "is",
+        "object": "seed-bearing part of a plant",
+        "confidence": 0.98,
+        "source": "botany",
+        "date": "2024-01-01",
+        "context": "biology/botany"
+      },
+      {
+        "subject": "fruit",
+        "verb": "is",
+        "object": "edible part of a plant",
+        "confidence": 0.95,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "general/food"
+      }
+    ]
+  },
+  "keywords": [
+    "fruit"
   ]
 }
-EOF 2>&1

@@ -1,9 +1,14 @@
 {
-  "subject": "brainscript",
-  "verb": "is",
-  "object": "a very simple programming language for testing",
-  "confidence": 1.0,
-  "source": "user request",
-  "date": "2024-05-22"
+  "id": "brainscript",
+  "kind": "FACT",
+  "name": "Brainscript",
+  "relations": {},
+  "keywords": [
+    "brainscript"
+  ],
+  "raw_meta": {
+    "confidence": 1.0,
+    "source": "user request",
+    "date": "2024-05-22"
+  }
 }
-

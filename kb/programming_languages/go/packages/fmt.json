@@ -1,10 +1,15 @@
 {
-  "subject": "fmt package",
-  "verb": "is",
-  "object": "a standard library package used for formatted I/O",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/packages"
+  "id": "fmt package",
+  "kind": "FACT",
+  "name": "Fmt Package",
+  "relations": {},
+  "keywords": [
+    "fmt package"
+  ],
+  "raw_meta": {
+    "context": "go/packages",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

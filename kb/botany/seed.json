@@ -1,15 +1,21 @@
 {
-  "subject": "seed",
-  "definitions": [
-    {
-      "subject": "seed",
-      "verb": "is",
-      "object": "embryonic plant",
-      "confidence": 0.98,
-      "source": "botany",
-      "date": "2024-01-01",
-      "context": "biology/botany"
-    }
+  "id": "seed",
+  "kind": "FACT",
+  "name": "Seed",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "seed",
+        "verb": "is",
+        "object": "embryonic plant",
+        "confidence": 0.98,
+        "source": "botany",
+        "date": "2024-01-01",
+        "context": "biology/botany"
+      }
+    ]
+  },
+  "keywords": [
+    "seed"
   ]
 }
-EOF 2>&1

@@ -1,15 +1,21 @@
 {
-  "subject": "gold",
-  "definitions": [
-    {
-      "subject": "gold",
-      "verb": "is",
-      "object": "a precious yellow metal",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/periodic-table"
-    }
+  "id": "gold",
+  "kind": "FACT",
+  "name": "Gold",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "gold",
+        "verb": "is",
+        "object": "a precious yellow metal",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/periodic-table"
+      }
+    ]
+  },
+  "keywords": [
+    "gold"
   ]
 }
-

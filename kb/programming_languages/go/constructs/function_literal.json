@@ -1,0 +1,50 @@
+{
+  "id": "FunctionLiteral",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Function Literal",
+  "description": "An anonymous function expression (closure).",
+  "parents": [
+    "Callable",
+    "Expression"
+  ],
+  "keywords": [
+    "anonymous function",
+    "function literal",
+    "lambda",
+    "closure"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "target": "Parameter",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasNamedReturn": [
+      {
+        "target": "Binding",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasPositionalReturn": [
+      {
+        "target": "ReturnValue",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasBody": [
+      {
+        "target": "Block",
+        "cardinality": "1"
+      }
+    ]
+  },
+  "emitters": [
+    {
+      "id": "go-func-literal",
+      "target": "go",
+      "style": "standard",
+      "template": "func{{signature}} {\n{{body}}\n}"
+    }
+  ]
+}

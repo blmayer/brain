@@ -6,7 +6,7 @@ import unittest
 from nltk.tree import Tree
 
 from augment import (
-    solve_plan, emit, Context, tree_to_solved_plan,
+    emit, tree_to_solved_plan,
     add_concepts, bind_tree_arguments, _collect_concepts_from_tree,
     pretty_print_tree,
     _resolve_dependencies, _features_to_plan,

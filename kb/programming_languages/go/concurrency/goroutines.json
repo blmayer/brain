@@ -1,10 +1,15 @@
 {
-  "subject": "goroutines",
-  "verb": "is",
-  "object": "a lightweight thread managed by the Go runtime",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/concurrency"
+  "id": "goroutines",
+  "kind": "FACT",
+  "name": "Goroutines",
+  "relations": {},
+  "keywords": [
+    "goroutines"
+  ],
+  "raw_meta": {
+    "context": "go/concurrency",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

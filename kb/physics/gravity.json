@@ -1,15 +1,21 @@
 {
-  "subject": "gravity",
-  "definitions": [
-    {
-      "subject": "gravity",
-      "verb": "is",
-      "object": "force of attraction between masses",
-      "confidence": 0.99,
-      "source": "physics",
-      "date": "2024-01-01",
-      "context": "physics/mechanics"
-    }
+  "id": "gravity",
+  "kind": "FACT",
+  "name": "Gravity",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "gravity",
+        "verb": "is",
+        "object": "force of attraction between masses",
+        "confidence": 0.99,
+        "source": "physics",
+        "date": "2024-01-01",
+        "context": "physics/mechanics"
+      }
+    ]
+  },
+  "keywords": [
+    "gravity"
   ]
 }
-

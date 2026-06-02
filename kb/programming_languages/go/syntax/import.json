@@ -1,10 +1,15 @@
 {
-  "subject": "import statement",
-  "verb": "is",
-  "object": "used to include external packages",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "import statement",
+  "kind": "FACT",
+  "name": "Import Statement",
+  "relations": {},
+  "keywords": [
+    "import statement"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

@@ -1,10 +1,15 @@
 {
-  "subject": "arithmetic operators",
-  "verb": "include",
-  "object": "+, -, *, /, %",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/operators"
+  "id": "arithmetic operators",
+  "kind": "FACT",
+  "name": "Arithmetic Operators",
+  "relations": {},
+  "keywords": [
+    "arithmetic operators"
+  ],
+  "raw_meta": {
+    "context": "go/operators",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

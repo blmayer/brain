@@ -1,10 +1,15 @@
 {
-  "subject": "switch",
-  "verb": "is",
-  "object": "a keyword used for multi-way conditional branching",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "switch",
+  "kind": "FACT",
+  "name": "Switch",
+  "relations": {},
+  "keywords": [
+    "switch"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

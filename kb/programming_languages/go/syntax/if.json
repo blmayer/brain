@@ -1,10 +1,15 @@
 {
-  "subject": "if",
-  "verb": "is",
-  "object": "a keyword used for conditional statements",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "if",
+  "kind": "FACT",
+  "name": "If",
+  "relations": {},
+  "keywords": [
+    "if"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

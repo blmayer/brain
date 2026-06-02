@@ -1,15 +1,21 @@
 {
-  "subject": "evolution",
-  "definitions": [
-    {
-      "subject": "evolution",
-      "verb": "is",
-      "object": "change in heritable characteristics of populations over generations",
-      "confidence": 0.98,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/evolutionary-biology"
-    }
+  "id": "evolution",
+  "kind": "FACT",
+  "name": "Evolution",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "evolution",
+        "verb": "is",
+        "object": "change in heritable characteristics of populations over generations",
+        "confidence": 0.98,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/evolutionary-biology"
+      }
+    ]
+  },
+  "keywords": [
+    "evolution"
   ]
 }
-

@@ -1,0 +1,13 @@
+{
+  "instances": [
+    {
+      "id": "instance.print_result",
+      "concept": "CallExpression",
+      "target": "fmt.Println",
+      "arguments": [
+        "result"
+      ],
+      "context": "main_function"
+    }
+  ]
+}

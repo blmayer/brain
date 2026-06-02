@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 @dataclass
 class Concept:
-    """A concept loaded from the ontology JSON files."""
+    """A concept loaded from the KB JSON files (under kb/programming_languages/)."""
     id: str
     kind: str
     name: str
@@ -244,7 +244,15 @@ class Ontology:
         for json_file in base_path.rglob("*.json"):
             try:
                 with open(json_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+                    text = f.read().strip()
+
+                # Robust parse: tolerate trailing garbage (e.g. shell artifacts
+                # like "EOF 2>&1" that appear in some legacy kb/*.json files).
+                try:
+                    data = json.loads(text)
+                except json.JSONDecodeError:
+                    decoder = json.JSONDecoder()
+                    data, _ = decoder.raw_decode(text)
 
                 if isinstance(data, list):
                     for item in data:
@@ -260,7 +268,24 @@ class Ontology:
                 print(f"[Ontology] Failed to load {json_file}: {e}")
 
     def _load_single_concept(self, data: Dict, source: Path):
-        if not isinstance(data, dict) or "id" not in data:
+        if not isinstance(data, dict):
+            return
+
+        # Support legacy triplet/definition style files that don't have a top-level "id"
+        # but have "subject" + "definitions". Turn the subject into an id so that
+        # get_ontology() truly ingests everything under kb/.
+        if "id" not in data and "subject" in data:
+            data = dict(data)  # don't mutate original
+            data["id"] = data["subject"]
+            if "kind" not in data:
+                data["kind"] = "FACT"
+            if "name" not in data:
+                data["name"] = data["subject"]
+            # Put the definitions into relations/raw for later use
+            if "definitions" in data and "relations" not in data:
+                data.setdefault("relations", {})["definitions"] = data["definitions"]
+
+        if "id" not in data:
             return
 
         parents = data.get("parents", []) or []
@@ -300,15 +325,11 @@ def get_ontology() -> Ontology:
     global _ONTOLOGY
     if _ONTOLOGY is None:
         _ONTOLOGY = Ontology()
-        base = Path(__file__).parent / "kb" / "ontology" / "golang"
-        _ONTOLOGY.load_from_directory(base / "constructs")
-        _ONTOLOGY.load_from_directory(base / "examples")
-        # Load top-level examples (recipes, etc.). These demonstrate the
-        # generic capability of satisfying interface requirements and then
-        # resolving/executing the associated instructions. Not a special
-        # "cooking" mode — just data using the general mechanism.
-        examples_root = Path(__file__).parent / "kb" / "ontology" / "examples"
-        _ONTOLOGY.load_from_directory(examples_root)
+        # Load *everything* under kb/ so all JSON data (triplets, plan templates,
+        # constructs, recipes, biology/chemistry/etc. domains, etc.) is available.
+        # The loader skips files without "id" (e.g. pure triplet facts) gracefully.
+        kb_root = Path(__file__).parent / "kb"
+        _ONTOLOGY.load_from_directory(kb_root)
         logger.info("Ontology loaded with %d concepts", len(_ONTOLOGY))
     return _ONTOLOGY
 

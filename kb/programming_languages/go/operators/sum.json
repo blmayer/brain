@@ -1,19 +1,36 @@
 {
   "id": "sum",
-  "type": "instance",
-  "needs": [
-    { "name": "var_a", "type": "int" },
-    { "name": "var_b", "type": "int" }
+  "kind": "PLAN_TEMPLATE",
+  "name": "Sum two integers",
+  "keywords": [
+    "sum",
+    "add",
+    "plus",
+    "+",
+    "addition"
   ],
-  "produces": [
-    { "name": "result", "type": "int" }
-  ],
-  "emits": [
-    { "ref": "result" },
-    { "text": " := " },
-    { "ref": "var_a" },
-    { "text": " + " },
-    { "ref": "var_b" }
+  "relations": {
+    "needs": [
+      {
+        "name": "var_a",
+        "type": "int"
+      },
+      {
+        "name": "var_b",
+        "type": "int"
+      }
+    ],
+    "produces": [
+      {
+        "name": "result",
+        "type": "int"
+      }
+    ]
+  },
+  "emitters": [
+    {
+      "template": "{{result}} := {{var_a}} + {{var_b}}"
+    }
   ],
   "context": "golang",
   "confidence": 0.95,

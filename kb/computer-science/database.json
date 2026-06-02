@@ -1,15 +1,21 @@
 {
-  "subject": "database",
-  "definitions": [
-    {
-      "subject": "database",
-      "verb": "is",
-      "object": "structured set of data",
-      "confidence": 0.98,
-      "source": "computer-science",
-      "date": "2024-01-01",
-      "context": "computer-science/data-management"
-    }
+  "id": "database",
+  "kind": "FACT",
+  "name": "Database",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "database",
+        "verb": "is",
+        "object": "structured set of data",
+        "confidence": 0.98,
+        "source": "computer-science",
+        "date": "2024-01-01",
+        "context": "computer-science/data-management"
+      }
+    ]
+  },
+  "keywords": [
+    "database"
   ]
 }
-

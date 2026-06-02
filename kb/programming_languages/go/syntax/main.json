@@ -1,10 +1,15 @@
 {
-  "subject": "main function",
-  "verb": "is",
-  "object": "the entry point for an executable Go program",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "main function",
+  "kind": "FACT",
+  "name": "Main Function",
+  "relations": {},
+  "keywords": [
+    "main function"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

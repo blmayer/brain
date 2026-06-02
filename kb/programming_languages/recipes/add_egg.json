@@ -1,0 +1,15 @@
+{
+  "id": "add_egg",
+  "kind": "ACTION",
+  "name": "Add Egg",
+  "is_a": "action",
+  "description": "Add the egg.",
+  "emitters": [
+    {
+      "template": "add egg"
+    }
+  ],
+  "keywords": [
+    "add_egg"
+  ]
+}

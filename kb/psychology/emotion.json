@@ -1,15 +1,21 @@
 {
-  "subject": "emotion",
-  "definitions": [
-    {
-      "subject": "emotion",
-      "verb": "is",
-      "object": "feeling or reaction",
-      "confidence": 0.95,
-      "source": "psychology",
-      "date": "2024-01-01",
-      "context": "psychology/affective-science"
-    }
+  "id": "emotion",
+  "kind": "FACT",
+  "name": "Emotion",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "emotion",
+        "verb": "is",
+        "object": "feeling or reaction",
+        "confidence": 0.95,
+        "source": "psychology",
+        "date": "2024-01-01",
+        "context": "psychology/affective-science"
+      }
+    ]
+  },
+  "keywords": [
+    "emotion"
   ]
 }
-

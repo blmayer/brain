@@ -1,0 +1,67 @@
+{
+  "id": "FunctionDeclaration",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Function Declaration",
+  "description": "A named function definition at package or local scope.",
+  "parents": [
+    "Callable",
+    "Declaration",
+    "Statement"
+  ],
+  "keywords": [
+    "function",
+    "func",
+    "define function",
+    "method"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "target": "Parameter",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasReceiver": [
+      {
+        "target": "Receiver",
+        "cardinality": "0..1"
+      }
+    ],
+    "hasNamedReturn": [
+      {
+        "target": "Binding",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasPositionalReturn": [
+      {
+        "target": "ReturnValue",
+        "cardinality": "0..*"
+      }
+    ],
+    "hasBody": [
+      {
+        "target": "Block",
+        "cardinality": "1"
+      }
+    ],
+    "belongsToPackage": [
+      {
+        "target": "Package",
+        "cardinality": "0..1"
+      }
+    ]
+  },
+  "constraints": [
+    "Must have exactly one body (Block)",
+    "Named returns and positional returns are mutually exclusive in a single declaration"
+  ],
+  "emitters": [
+    {
+      "id": "go-func-decl",
+      "target": "go",
+      "style": "standard",
+      "template": "func {{name}}{{signature}} {\n{{body}}\n}"
+    }
+  ]
+}

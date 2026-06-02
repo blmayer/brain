@@ -1,10 +1,14 @@
-
 {
-  "subject": "sun",
-  "verb": "is",
-  "object": "star",
-  "confidence": 0.95,
-  "source": "general knowledge",
-  "date": "2024-01-01"
+  "id": "sun",
+  "kind": "FACT",
+  "name": "Sun",
+  "relations": {},
+  "keywords": [
+    "sun"
+  ],
+  "raw_meta": {
+    "confidence": 0.95,
+    "source": "general knowledge",
+    "date": "2024-01-01"
+  }
 }
-

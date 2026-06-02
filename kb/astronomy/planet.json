@@ -1,24 +1,30 @@
 {
-  "subject": "planet",
-  "definitions": [
-    {
-      "subject": "planet",
-      "verb": "is",
-      "object": "celestial body",
-      "confidence": 0.99,
-      "source": "astronomy",
-      "date": "2024-01-01",
-      "context": "astronomy/planetary-science"
-    },
-    {
-      "subject": "planet",
-      "verb": "is",
-      "object": "orbits a star",
-      "confidence": 0.98,
-      "source": "astronomy",
-      "date": "2024-01-01",
-      "context": "astronomy/planetary-science"
-    }
+  "id": "planet",
+  "kind": "FACT",
+  "name": "Planet",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "planet",
+        "verb": "is",
+        "object": "celestial body",
+        "confidence": 0.99,
+        "source": "astronomy",
+        "date": "2024-01-01",
+        "context": "astronomy/planetary-science"
+      },
+      {
+        "subject": "planet",
+        "verb": "is",
+        "object": "orbits a star",
+        "confidence": 0.98,
+        "source": "astronomy",
+        "date": "2024-01-01",
+        "context": "astronomy/planetary-science"
+      }
+    ]
+  },
+  "keywords": [
+    "planet"
   ]
 }
-

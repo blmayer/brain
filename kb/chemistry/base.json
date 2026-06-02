@@ -1,15 +1,21 @@
 {
-  "subject": "base",
-  "definitions": [
-    {
-      "subject": "base",
-      "verb": "is",
-      "object": "substance that increases hydroxide ion concentration",
-      "confidence": 0.98,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/acid-base"
-    }
+  "id": "base",
+  "kind": "FACT",
+  "name": "Base",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "base",
+        "verb": "is",
+        "object": "substance that increases hydroxide ion concentration",
+        "confidence": 0.98,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/acid-base"
+      }
+    ]
+  },
+  "keywords": [
+    "base"
   ]
 }
-

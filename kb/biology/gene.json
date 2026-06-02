@@ -1,15 +1,21 @@
 {
-  "subject": "gene",
-  "definitions": [
-    {
-      "subject": "gene",
-      "verb": "is",
-      "object": "unit of heredity",
-      "confidence": 0.99,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/genetics"
-    }
+  "id": "gene",
+  "kind": "FACT",
+  "name": "Gene",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "gene",
+        "verb": "is",
+        "object": "unit of heredity",
+        "confidence": 0.99,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/genetics"
+      }
+    ]
+  },
+  "keywords": [
+    "gene"
   ]
 }
-

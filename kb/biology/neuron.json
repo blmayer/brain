@@ -1,15 +1,21 @@
 {
-  "subject": "neuron",
-  "definitions": [
-    {
-      "subject": "neuron",
-      "verb": "is",
-      "object": "cell that transmits nerve impulses",
-      "confidence": 0.99,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/neuroscience"
-    }
+  "id": "neuron",
+  "kind": "FACT",
+  "name": "Neuron",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "neuron",
+        "verb": "is",
+        "object": "cell that transmits nerve impulses",
+        "confidence": 0.99,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/neuroscience"
+      }
+    ]
+  },
+  "keywords": [
+    "neuron"
   ]
 }
-

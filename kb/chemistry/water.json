@@ -1,24 +1,30 @@
 {
-  "subject": "water",
-  "definitions": [
-    {
-      "subject": "water",
-      "verb": "is",
-      "object": "H2O",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/molecular-structure"
-    },
-    {
-      "subject": "water",
-      "verb": "is",
-      "object": "a liquid",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/states-of-matter"
-    }
+  "id": "water",
+  "kind": "FACT",
+  "name": "Water",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "water",
+        "verb": "is",
+        "object": "H2O",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/molecular-structure"
+      },
+      {
+        "subject": "water",
+        "verb": "is",
+        "object": "a liquid",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/states-of-matter"
+      }
+    ]
+  },
+  "keywords": [
+    "water"
   ]
 }
-

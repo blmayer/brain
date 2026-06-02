@@ -1,15 +1,21 @@
 {
-  "subject": "molecule",
-  "definitions": [
-    {
-      "subject": "molecule",
-      "verb": "is",
-      "object": "group of atoms",
-      "confidence": 0.98,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/molecular-structure"
-    }
+  "id": "molecule",
+  "kind": "FACT",
+  "name": "Molecule",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "molecule",
+        "verb": "is",
+        "object": "group of atoms",
+        "confidence": 0.98,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/molecular-structure"
+      }
+    ]
+  },
+  "keywords": [
+    "molecule"
   ]
 }
-

@@ -1,0 +1,40 @@
+{
+  "id": "fried_egg",
+  "kind": "RECIPE",
+  "name": "Fried Egg",
+  "parents": [
+    "Recipe"
+  ],
+  "description": "A simple fried egg. Spices is declared as a class so that salt, pepper, etc. all satisfy it. Instructions are node ids (action concepts) that carry emitters.",
+  "relations": {
+    "hasIngredients": [
+      {
+        "target": "egg",
+        "type": "Ingredient"
+      },
+      {
+        "target": "Spice",
+        "type": "Spice",
+        "isClass": true
+      }
+    ],
+    "hasInstructions": [
+      "heat_pan",
+      "warm_up",
+      "add_butter",
+      "spread_butter",
+      "add_egg",
+      "add_salt",
+      "add_pepper",
+      "wait",
+      "flip_egg",
+      "turn_off_stove"
+    ]
+  },
+  "keywords": [
+    "fried egg",
+    "egg",
+    "fry",
+    "fried"
+  ]
+}

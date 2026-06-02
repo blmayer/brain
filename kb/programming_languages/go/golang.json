@@ -1,10 +1,15 @@
 {
-  "subject": "golang",
-  "verb": "is",
-  "object": "a compiled, concurrent language",
-  "confidence": 0.95,
-  "source": "KnowledgeBase",
-  "date": "2024-05-15",
-  "path": "defs/golang.json",
-  "context": "ProgrammingLanguage"
+  "id": "golang",
+  "kind": "FACT",
+  "name": "Golang",
+  "relations": {},
+  "keywords": [
+    "golang"
+  ],
+  "raw_meta": {
+    "context": "ProgrammingLanguage",
+    "confidence": 0.95,
+    "source": "KnowledgeBase",
+    "date": "2024-05-15"
+  }
 }

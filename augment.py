@@ -2,7 +2,7 @@
 
 Flow:
 1. Parse sentence → tagged tree (via NLTK + coref).
-2. Map words/actions from the tree to Concepts in the ontology (kb/ontology/).
+2. Map words/actions from the tree to Concepts in the KB (loaded from kb/programming_languages/).
 3. Recursively resolve dependencies (e.g. "prints" → Print concept → fmt.Println → its required arguments).
 4. Bind variables and emit code using the resolved Concepts' emitters.
 """
@@ -28,42 +28,15 @@ class ExecNode:
     deps: List["ExecNode"] = field(default_factory=list)
 
 
-@dataclass
-class Context:
-    """Binding context for names during solve (shared across tree)."""
-    bindings: Dict[str, str] = field(default_factory=dict)
-    types: Dict[str, str] = field(default_factory=dict)  # actual_name -> type e.g. "a" -> "int"
-    counter: int = 0
-
-    def bind(self, logical: str, typ: str, preferred: Optional[str] = None) -> str:
-        if logical in self.bindings:
-            return self.bindings[logical]
-        self.counter += 1
-        if preferred:
-            actual = preferred
-        else:
-            base = typ if typ not in ("any", "type") else "v"
-            actual = f"{base}{self.counter}"
-        self.bindings[logical] = actual
-        if typ not in ("any", "type"):
-            self.types[actual] = typ
-        return actual
-
-    def get_type(self, name: str) -> str:
-        return self.types.get(name, "any")
-
-
 # _is_leaf_plan removed - no longer needed in ontology-native flow
 
 
-def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) -> ExecNode:
+def solve_plan(plan: Any) -> ExecNode:
     """
     Ontology-native solver.
     Walks plans produced by the new dependency-resolution flow.
     """
     logger.debug("Entering solve_plan with plan type: %s", plan.get("type") if isinstance(plan, dict) else type(plan))
-    if ctx is None:
-        ctx = Context()
 
     if isinstance(plan, dict):
         plan_type = plan.get("type")
@@ -91,19 +64,6 @@ def solve_plan(plan: Any, ctx: Optional[Context] = None, providing: Any = None) 
                 if isinstance(concept, Concept):
                     root.deps.append(ExecNode(concept=concept))
 
-            return root
-
-        if plan_type == "sum_program":
-            # Temporary fallback for the older structure during transition
-            steps = plan.get("steps", [])
-            program_concept = get_concept("FunctionDeclaration") or Concept(
-                id="Program", kind="Program", name="Main Program"
-            )
-            root = ExecNode(concept=program_concept)
-            for step in steps:
-                step_concept = step.get("concept")
-                if isinstance(step_concept, Concept):
-                    root.deps.append(ExecNode(concept=step_concept, bindings=step))
             return root
 
         fb = get_concept("FunctionDeclaration") or Concept(id="Unknown", kind="Unknown", name="Unknown")
@@ -158,13 +118,6 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
         out.append(line)
 
     return out
-
-
-def _make_key(e: ExecNode) -> str:
-    key = e.node.id
-    for k, v in sorted(e.bindings.items()):
-        key += f"|{k}={v}"
-    return key
 
 
 # Legacy plan-building helpers (make_plan / make_var_plan) and the old demo
@@ -706,8 +659,7 @@ def tree_to_solved_plan(parsed_tree, resolved_tree=None):
     tree = resolved_tree
 
     plan = _features_to_plan(tree)
-    ctx = Context()
-    solved = solve_plan(plan, ctx)
+    solved = solve_plan(plan)
     logger.info("tree_to_solved_plan completed")
     return solved
 

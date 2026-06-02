@@ -1,33 +1,39 @@
 {
-  "subject": "nature",
-  "definitions": [
-    {
-      "subject": "nature",
-      "verb": "is",
-      "object": "natural world",
-      "confidence": 0.98,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "general/environment"
-    },
-    {
-      "subject": "nature",
-      "verb": "is",
-      "object": "ecosystem",
-      "confidence": 0.96,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "general/ecology"
-    },
-    {
-      "subject": "nature",
-      "verb": "is",
-      "object": "beautiful",
-      "confidence": 0.90,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "general/aesthetics"
-    }
+  "id": "nature",
+  "kind": "FACT",
+  "name": "Nature",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "nature",
+        "verb": "is",
+        "object": "natural world",
+        "confidence": 0.98,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "general/environment"
+      },
+      {
+        "subject": "nature",
+        "verb": "is",
+        "object": "ecosystem",
+        "confidence": 0.96,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "general/ecology"
+      },
+      {
+        "subject": "nature",
+        "verb": "is",
+        "object": "beautiful",
+        "confidence": 0.9,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "general/aesthetics"
+      }
+    ]
+  },
+  "keywords": [
+    "nature"
   ]
 }
-EOF 2>&1

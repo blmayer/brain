@@ -1,0 +1,31 @@
+{
+  "id": "Import",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Import",
+  "parents": [
+    "Declaration"
+  ],
+  "keywords": [
+    "import",
+    "use package"
+  ],
+  "relations": {
+    "importsPackage": [
+      {
+        "target": "Package",
+        "cardinality": "1"
+      }
+    ],
+    "alias": {
+      "cardinality": "0..1",
+      "description": "Optional import alias (including _ for blank imports)"
+    }
+  },
+  "emitters": [
+    {
+      "id": "go-import",
+      "target": "go",
+      "template": "import {{alias}} \"{{path}}\""
+    }
+  ]
+}

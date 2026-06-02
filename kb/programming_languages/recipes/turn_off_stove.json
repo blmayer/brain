@@ -1,0 +1,15 @@
+{
+  "id": "turn_off_stove",
+  "kind": "ACTION",
+  "name": "Turn Off Stove",
+  "is_a": "action",
+  "description": "Finish cooking.",
+  "emitters": [
+    {
+      "template": "turn off stove"
+    }
+  ],
+  "keywords": [
+    "turn_off_stove"
+  ]
+}

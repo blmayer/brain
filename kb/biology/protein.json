@@ -1,15 +1,21 @@
 {
-  "subject": "protein",
-  "definitions": [
-    {
-      "subject": "protein",
-      "verb": "is",
-      "object": "large biomolecule composed of amino acids",
-      "confidence": 0.99,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/biochemistry"
-    }
+  "id": "protein",
+  "kind": "FACT",
+  "name": "Protein",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "protein",
+        "verb": "is",
+        "object": "large biomolecule composed of amino acids",
+        "confidence": 0.99,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/biochemistry"
+      }
+    ]
+  },
+  "keywords": [
+    "protein"
   ]
 }
-

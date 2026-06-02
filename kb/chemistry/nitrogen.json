@@ -1,15 +1,21 @@
 {
-  "subject": "nitrogen",
-  "definitions": [
-    {
-      "subject": "nitrogen",
-      "verb": "is",
-      "object": "a colorless, odorless, highly inert gas",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/periodic-table"
-    }
+  "id": "nitrogen",
+  "kind": "FACT",
+  "name": "Nitrogen",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "nitrogen",
+        "verb": "is",
+        "object": "a colorless, odorless, highly inert gas",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/periodic-table"
+      }
+    ]
+  },
+  "keywords": [
+    "nitrogen"
   ]
 }
-

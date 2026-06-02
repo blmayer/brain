@@ -1,17 +1,31 @@
 {
   "id": "declaration",
-  "type": "instance",
-  "needs": [
-    { "name": "type", "type": "type" }
+  "kind": "PLAN_TEMPLATE",
+  "name": "Variable declaration",
+  "keywords": [
+    "declare",
+    "var",
+    "variable",
+    "declaration"
   ],
-  "produces": [
-    { "name": "var", "type": "any" }
-  ],
-  "emits": [
-    { "text": "var " },
-    { "ref": "var" },
-    { "text": " " },
-    { "ref": "type" }
+  "relations": {
+    "needs": [
+      {
+        "name": "type",
+        "type": "type"
+      }
+    ],
+    "produces": [
+      {
+        "name": "var",
+        "type": "any"
+      }
+    ]
+  },
+  "emitters": [
+    {
+      "template": "var {{var}} {{type}}"
+    }
   ],
   "context": "golang",
   "confidence": 0.95,

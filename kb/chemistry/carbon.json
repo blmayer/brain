@@ -1,15 +1,21 @@
 {
-  "subject": "carbon",
-  "definitions": [
-    {
-      "subject": "carbon",
-      "verb": "is",
-      "object": "a nonmetal element",
-      "confidence": 0.99,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/periodic-table"
-    }
+  "id": "carbon",
+  "kind": "FACT",
+  "name": "Carbon",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "carbon",
+        "verb": "is",
+        "object": "a nonmetal element",
+        "confidence": 0.99,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/periodic-table"
+      }
+    ]
+  },
+  "keywords": [
+    "carbon"
   ]
 }
-

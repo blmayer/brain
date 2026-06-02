@@ -1,10 +1,15 @@
 {
-  "subject": "var",
-  "verb": "is",
-  "object": "a keyword used to declare variables",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "var",
+  "kind": "FACT",
+  "name": "Var",
+  "relations": {},
+  "keywords": [
+    "var"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

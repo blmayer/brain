@@ -1,10 +1,15 @@
 {
-  "subject": "for",
-  "verb": "is",
-  "object": "a keyword used for loops",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "for",
+  "kind": "FACT",
+  "name": "For",
+  "relations": {},
+  "keywords": [
+    "for"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

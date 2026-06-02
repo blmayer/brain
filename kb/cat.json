@@ -1,10 +1,14 @@
-
 {
-  "subject": "cat",
-  "verb": "is",
-  "object": "mammal",
-  "confidence": 0.95,
-  "source": "general knowledge",
-  "date": "2024-01-01"
+  "id": "cat",
+  "kind": "FACT",
+  "name": "Cat",
+  "relations": {},
+  "keywords": [
+    "cat"
+  ],
+  "raw_meta": {
+    "confidence": 0.95,
+    "source": "general knowledge",
+    "date": "2024-01-01"
+  }
 }
-

@@ -1,15 +1,21 @@
 {
-  "subject": "ecosystem",
-  "definitions": [
-    {
-      "subject": "ecosystem",
-      "verb": "is",
-      "object": "biological community of interacting organisms",
-      "confidence": 0.98,
-      "source": "ecology",
-      "date": "2024-01-01",
-      "context": "biology/ecology"
-    }
+  "id": "ecosystem",
+  "kind": "FACT",
+  "name": "Ecosystem",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "ecosystem",
+        "verb": "is",
+        "object": "biological community of interacting organisms",
+        "confidence": 0.98,
+        "source": "ecology",
+        "date": "2024-01-01",
+        "context": "biology/ecology"
+      }
+    ]
+  },
+  "keywords": [
+    "ecosystem"
   ]
 }
-

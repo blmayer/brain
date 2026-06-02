@@ -1,15 +1,21 @@
 {
-  "subject": "language",
-  "definitions": [
-    {
-      "subject": "language",
-      "verb": "is",
-      "object": "system of communication",
-      "confidence": 0.98,
-      "source": "linguistics",
-      "date": "2024-01-01",
-      "context": "general/linguistics"
-    }
+  "id": "language",
+  "kind": "FACT",
+  "name": "Language",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "language",
+        "verb": "is",
+        "object": "system of communication",
+        "confidence": 0.98,
+        "source": "linguistics",
+        "date": "2024-01-01",
+        "context": "general/linguistics"
+      }
+    ]
+  },
+  "keywords": [
+    "language"
   ]
 }
-

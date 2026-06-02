@@ -1,15 +1,21 @@
 {
-  "subject": "cell",
-  "definitions": [
-    {
-      "subject": "cell",
-      "verb": "is",
-      "object": "basic structural unit of life",
-      "confidence": 0.99,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/cell-biology"
-    }
+  "id": "cell",
+  "kind": "FACT",
+  "name": "Cell",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "cell",
+        "verb": "is",
+        "object": "basic structural unit of life",
+        "confidence": 0.99,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/cell-biology"
+      }
+    ]
+  },
+  "keywords": [
+    "cell"
   ]
 }
-

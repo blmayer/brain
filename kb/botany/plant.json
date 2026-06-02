@@ -1,24 +1,30 @@
 {
-  "subject": "plant",
-  "definitions": [
-    {
-      "subject": "plant",
-      "verb": "is",
-      "object": "multicellular organism",
-      "confidence": 0.98,
-      "source": "botany",
-      "date": "2024-01-01",
-      "context": "biology/botany"
-    },
-    {
-      "subject": "plant",
-      "verb": "is",
-      "object": "photosynthetic",
-      "confidence": 0.95,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/botany"
-    }
+  "id": "plant",
+  "kind": "FACT",
+  "name": "Plant",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "plant",
+        "verb": "is",
+        "object": "multicellular organism",
+        "confidence": 0.98,
+        "source": "botany",
+        "date": "2024-01-01",
+        "context": "biology/botany"
+      },
+      {
+        "subject": "plant",
+        "verb": "is",
+        "object": "photosynthetic",
+        "confidence": 0.95,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/botany"
+      }
+    ]
+  },
+  "keywords": [
+    "plant"
   ]
 }
-

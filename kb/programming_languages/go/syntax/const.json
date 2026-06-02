@@ -1,10 +1,15 @@
 {
-  "subject": "const",
-  "verb": "is",
-  "object": "a keyword used to declare constants",
-  "confidence": 1.0,
-  "source": "Go documentation",
-  "date": "2024-05-22",
-  "context": "go/syntax"
+  "id": "const",
+  "kind": "FACT",
+  "name": "Const",
+  "relations": {},
+  "keywords": [
+    "const"
+  ],
+  "raw_meta": {
+    "context": "go/syntax",
+    "confidence": 1.0,
+    "source": "Go documentation",
+    "date": "2024-05-22"
+  }
 }
-

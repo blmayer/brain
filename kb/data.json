@@ -1,33 +1,39 @@
 {
-  "subject": "data",
-  "definitions": [
-    {
-      "subject": "data",
-      "verb": "is",
-      "object": "information",
-      "confidence": 0.98,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "computer-science/data"
-    },
-    {
-      "subject": "data",
-      "verb": "is",
-      "object": "stored",
-      "confidence": 0.97,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "computer-science/data"
-    },
-    {
-      "subject": "data",
-      "verb": "is",
-      "object": "processed",
-      "confidence": 0.96,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "computer-science/data"
-    }
+  "id": "data",
+  "kind": "FACT",
+  "name": "Data",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "data",
+        "verb": "is",
+        "object": "information",
+        "confidence": 0.98,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "computer-science/data"
+      },
+      {
+        "subject": "data",
+        "verb": "is",
+        "object": "stored",
+        "confidence": 0.97,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "computer-science/data"
+      },
+      {
+        "subject": "data",
+        "verb": "is",
+        "object": "processed",
+        "confidence": 0.96,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "computer-science/data"
+      }
+    ]
+  },
+  "keywords": [
+    "data"
   ]
 }
-EOF 2>&1

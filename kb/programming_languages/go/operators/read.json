@@ -1,14 +1,26 @@
 {
   "id": "read",
-  "type": "instance",
-  "needs": [
-    { "name": "var", "type": "any" }
+  "kind": "PLAN_TEMPLATE",
+  "name": "Read integer",
+  "keywords": [
+    "read",
+    "scanf",
+    "input",
+    "fmt.Scanf"
   ],
-  "produces": [],
-  "emits": [
-    { "text": "fmt.Scanf(\"%d\", &" },
-    { "ref": "var" },
-    { "text": ")" }
+  "relations": {
+    "needs": [
+      {
+        "name": "var",
+        "type": "any"
+      }
+    ],
+    "produces": []
+  },
+  "emitters": [
+    {
+      "template": "fmt.Scanf(\"%d\", &{{var}})"
+    }
   ],
   "context": "golang",
   "confidence": 0.95,

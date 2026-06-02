@@ -1,24 +1,30 @@
 {
-  "subject": "star",
-  "definitions": [
-    {
-      "subject": "star",
-      "verb": "is",
-      "object": "luminous ball of plasma",
-      "confidence": 0.99,
-      "source": "astronomy",
-      "date": "2024-01-01",
-      "context": "astronomy/stellar-physics"
-    },
-    {
-      "subject": "star",
-      "verb": "is",
-      "object": "center of a solar system",
-      "confidence": 0.97,
-      "source": "astronomy",
-      "date": "2024-01-01",
-      "context": "astronomy/solar-systems"
-    }
+  "id": "star",
+  "kind": "FACT",
+  "name": "Star",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "star",
+        "verb": "is",
+        "object": "luminous ball of plasma",
+        "confidence": 0.99,
+        "source": "astronomy",
+        "date": "2024-01-01",
+        "context": "astronomy/stellar-physics"
+      },
+      {
+        "subject": "star",
+        "verb": "is",
+        "object": "center of a solar system",
+        "confidence": 0.97,
+        "source": "astronomy",
+        "date": "2024-01-01",
+        "context": "astronomy/solar-systems"
+      }
+    ]
+  },
+  "keywords": [
+    "star"
   ]
 }
-

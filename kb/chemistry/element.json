@@ -1,15 +1,21 @@
 {
-  "subject": "element",
-  "definitions": [
-    {
-      "subject": "element",
-      "verb": "is",
-      "object": "pure substance",
-      "confidence": 0.98,
-      "source": "chemistry",
-      "date": "2024-01-01",
-      "context": "chemistry/periodic-table"
-    }
+  "id": "element",
+  "kind": "FACT",
+  "name": "Element",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "element",
+        "verb": "is",
+        "object": "pure substance",
+        "confidence": 0.98,
+        "source": "chemistry",
+        "date": "2024-01-01",
+        "context": "chemistry/periodic-table"
+      }
+    ]
+  },
+  "keywords": [
+    "element"
   ]
 }
-

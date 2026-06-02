@@ -1,0 +1,15 @@
+{
+  "id": "add_butter",
+  "kind": "ACTION",
+  "name": "Add Butter",
+  "is_a": "action",
+  "description": "Add butter to the pan.",
+  "emitters": [
+    {
+      "template": "add butter to pan"
+    }
+  ],
+  "keywords": [
+    "add_butter"
+  ]
+}

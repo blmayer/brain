@@ -1,15 +1,21 @@
 {
-  "subject": "brain",
-  "definitions": [
-    {
-      "subject": "brain",
-      "verb": "is",
-      "object": "organ of the nervous system",
-      "confidence": 0.99,
-      "source": "biology",
-      "date": "2024-01-01",
-      "context": "biology/neuroscience"
-    }
+  "id": "brain",
+  "kind": "FACT",
+  "name": "Brain",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "brain",
+        "verb": "is",
+        "object": "organ of the nervous system",
+        "confidence": 0.99,
+        "source": "biology",
+        "date": "2024-01-01",
+        "context": "biology/neuroscience"
+      }
+    ]
+  },
+  "keywords": [
+    "brain"
   ]
 }
-

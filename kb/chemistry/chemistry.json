@@ -1,15 +1,21 @@
 {
-  "subject": "chemistry",
-  "definitions": [
-    {
-      "subject": "chemistry",
-      "verb": "is",
-      "object": "study of matter",
-      "confidence": 0.99,
-      "source": "general knowledge",
-      "date": "2024-01-01",
-      "context": "science/chemistry"
-    }
+  "id": "chemistry",
+  "kind": "FACT",
+  "name": "Chemistry",
+  "relations": {
+    "definitions": [
+      {
+        "subject": "chemistry",
+        "verb": "is",
+        "object": "study of matter",
+        "confidence": 0.99,
+        "source": "general knowledge",
+        "date": "2024-01-01",
+        "context": "science/chemistry"
+      }
+    ]
+  },
+  "keywords": [
+    "chemistry"
   ]
 }
-
