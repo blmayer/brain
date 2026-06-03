@@ -1,5 +1,5 @@
 {
-  "id": "neuron",
+  "id": "biology/neuron",
   "kind": "FACT",
   "name": "Neuron",
   "relations": {

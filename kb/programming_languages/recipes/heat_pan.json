@@ -1,5 +1,5 @@
 {
-  "id": "heat_pan",
+  "id": "programming_languages/recipes/heat_pan",
   "kind": "ACTION",
   "name": "Heat Pan",
   "is_a": "action",

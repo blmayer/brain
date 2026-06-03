@@ -1,10 +1,10 @@
 {
-  "id": "FunctionType",
+  "id": "programming_languages/go/constructs/function_type",
   "kind": "TYPE",
   "name": "Function Type",
   "description": "The type of a function (signature without body).",
   "parents": [
-    "Type"
+    "programming_languages/go/constructs/type"
   ],
   "keywords": [
     "function type",
@@ -14,13 +14,13 @@
   "relations": {
     "hasParameterTypes": [
       {
-        "target": "Type",
+        "target": "programming_languages/go/constructs/type",
         "cardinality": "0..*"
       }
     ],
     "hasReturnTypes": [
       {
-        "target": "Type",
+        "target": "programming_languages/go/constructs/type",
         "cardinality": "0..*"
       }
     ],

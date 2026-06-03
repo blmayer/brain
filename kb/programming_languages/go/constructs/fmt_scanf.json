@@ -1,5 +1,5 @@
 {
-  "id": "fmt.Scanf",
+  "id": "programming_languages/go/constructs/fmt_scanf",
   "kind": "BUILTIN",
   "name": "fmt.Scanf",
   "description": "Standard library function to read formatted input from stdin.",
@@ -22,22 +22,22 @@
     "hasParameter": [
       {
         "name": "format",
-        "type": "string"
+        "type": "programming_languages/go/constructs/string"
       },
       {
         "name": "args",
-        "type": "any",
+        "type": "programming_languages/go/constructs/any",
         "variadic": true
       }
     ],
     "produces": [
       {
         "name": "n",
-        "type": "int"
+        "type": "programming_languages/go/constructs/int"
       },
       {
         "name": "err",
-        "type": "error"
+        "type": "programming_languages/go/constructs/error"
       }
     ]
   },

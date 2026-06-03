@@ -1,5 +1,5 @@
 {
-  "id": "water",
+  "id": "chemistry/water",
   "kind": "FACT",
   "name": "Water",
   "relations": {

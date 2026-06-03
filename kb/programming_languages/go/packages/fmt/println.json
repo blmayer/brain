@@ -1,5 +1,5 @@
 {
-  "id": "fmt.Println",
+  "id": "programming_languages/go/packages/fmt/println",
   "kind": "FACT",
   "name": "Fmt.Println",
   "relations": {},

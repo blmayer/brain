@@ -1,5 +1,5 @@
 {
-  "id": "channels",
+  "id": "programming_languages/go/concurrency/channels",
   "kind": "FACT",
   "name": "Channels",
   "relations": {},

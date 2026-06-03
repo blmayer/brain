@@ -1,5 +1,5 @@
 {
-  "id": "add_pepper",
+  "id": "programming_languages/recipes/add_pepper",
   "kind": "ACTION",
   "name": "Add Pepper",
   "is_a": "action",

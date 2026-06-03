@@ -1,5 +1,5 @@
 {
-  "id": "SelectStatement",
+  "id": "programming_languages/go/constructs/select_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Select Statement",
   "parents": [

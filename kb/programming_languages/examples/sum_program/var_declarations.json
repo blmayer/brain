@@ -1,8 +1,8 @@
 {
   "instances": [
     {
-      "id": "instance.declare_a",
-      "concept": "VarDeclaration",
+      "id": "programming_languages/examples/sum_program/instance_declare_a",
+      "concept": "programming_languages/go/constructs/var_declaration",
       "binds": {
         "name": "a",
         "type": "int"
@@ -10,8 +10,8 @@
       "context": "main_function"
     },
     {
-      "id": "instance.declare_b",
-      "concept": "VarDeclaration",
+      "id": "programming_languages/examples/sum_program/instance_declare_b",
+      "concept": "programming_languages/go/constructs/var_declaration",
       "binds": {
         "name": "b",
         "type": "int"
@@ -19,7 +19,7 @@
       "context": "main_function"
     },
     {
-      "id": "instance.declare_result",
+      "id": "programming_languages/examples/sum_program/instance_declare_result",
       "concept": "ShortVarDeclaration",
       "binds": {
         "name": "result",

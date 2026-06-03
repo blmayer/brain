@@ -1,5 +1,5 @@
 {
-  "id": "sum",
+  "id": "programming_languages/go/operators/sum",
   "kind": "PLAN_TEMPLATE",
   "name": "Sum two integers",
   "keywords": [
@@ -13,17 +13,17 @@
     "needs": [
       {
         "name": "var_a",
-        "type": "int"
+        "type": "programming_languages/go/constructs/int"
       },
       {
         "name": "var_b",
-        "type": "int"
+        "type": "programming_languages/go/constructs/int"
       }
     ],
     "produces": [
       {
         "name": "result",
-        "type": "int"
+        "type": "programming_languages/go/constructs/int"
       }
     ]
   },

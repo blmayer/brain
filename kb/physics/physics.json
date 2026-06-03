@@ -1,5 +1,5 @@
 {
-  "id": "physics",
+  "id": "physics/physics",
   "kind": "FACT",
   "name": "Physics",
   "relations": {

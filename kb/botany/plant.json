@@ -1,5 +1,5 @@
 {
-  "id": "plant",
+  "id": "botany/plant",
   "kind": "FACT",
   "name": "Plant",
   "relations": {

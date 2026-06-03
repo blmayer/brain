@@ -1,5 +1,5 @@
 {
-  "id": "SwitchStatement",
+  "id": "programming_languages/go/constructs/switch_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Switch Statement",
   "parents": [
@@ -32,7 +32,7 @@
     ],
     "hasDefault": [
       {
-        "target": "Block",
+        "target": "programming_languages/go/constructs/block",
         "cardinality": "0..1"
       }
     ]

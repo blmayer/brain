@@ -1,9 +1,9 @@
 {
   "instances": [
     {
-      "id": "instance.print_result",
+      "id": "programming_languages/examples/sum_program/instance_print_result",
       "concept": "CallExpression",
-      "target": "fmt.Println",
+      "target": "programming_languages/go/constructs/fmt_println",
       "arguments": [
         "result"
       ],

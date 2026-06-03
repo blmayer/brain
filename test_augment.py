@@ -399,31 +399,31 @@ class TestAugmentIdealTree(unittest.TestCase):
         return {
             "key_nodes": {
                 "write": {
-                    "concepts": ["PrintOperation"],   # Current mapping via keywords in print_operation.json
+                    "concepts": ["programming_languages/go/constructs/print_operation"],   # Current mapping via keywords in print_operation.json
                     "arguments": {"content": "the 'a Golang program' NP (with its relative clause)"},
                 },
                 "program": {
                     "concepts": [],
                 },
                 "reads": {
-                    "concepts": ["fmt.Scanf"],
+                    "concepts": ["programming_languages/go/constructs/fmt_scanf"],
                     "arguments": {"args": "the '2 integers' NP typed as IntegerType"},
                 },
                 "integers": {
-                    "concepts": ["IntegerType", "int"],
+                    "concepts": ["programming_languages/go/constructs/integer_type", "programming_languages/go/constructs/int"],
                 },
                 "outputs": {
-                    "concepts": ["PrintOperation"],
+                    "concepts": ["programming_languages/go/constructs/print_operation"],
                 },
                 "sum": {
-                    "concepts": ["BinaryAdd"],
+                    "concepts": ["programming_languages/go/constructs/binary_add"],
                 },
             },
             "final_plan_should_contain": {
-                "PrintOperation",
-                "fmt.Scanf",
-                "IntegerType",
-                "BinaryAdd",
+                "programming_languages/go/constructs/print_operation",
+                "programming_languages/go/constructs/fmt_scanf",
+                "programming_languages/go/constructs/integer_type",
+                "programming_languages/go/constructs/binary_add",
             },
         }
 

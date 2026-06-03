@@ -1,7 +1,7 @@
 {
   "instances": [
     {
-      "id": "instance.addition",
+      "id": "programming_languages/examples/sum_program/instance_addition",
       "concept": "BinaryExpression",
       "operator": "+",
       "left": "a",

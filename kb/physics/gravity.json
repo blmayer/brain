@@ -1,5 +1,5 @@
 {
-  "id": "gravity",
+  "id": "physics/gravity",
   "kind": "FACT",
   "name": "Gravity",
   "relations": {

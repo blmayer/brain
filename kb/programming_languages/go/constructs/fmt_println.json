@@ -1,5 +1,5 @@
 {
-  "id": "fmt.Println",
+  "id": "programming_languages/go/constructs/fmt_println",
   "kind": "BUILTIN",
   "name": "fmt.Println",
   "description": "Standard library function that prints values followed by a newline.",
@@ -22,18 +22,18 @@
     "hasParameter": [
       {
         "name": "a",
-        "type": "any",
+        "type": "programming_languages/go/constructs/any",
         "variadic": true
       }
     ],
     "produces": [
       {
         "name": "n",
-        "type": "int"
+        "type": "programming_languages/go/constructs/int"
       },
       {
         "name": "err",
-        "type": "error"
+        "type": "programming_languages/go/constructs/error"
       }
     ]
   },

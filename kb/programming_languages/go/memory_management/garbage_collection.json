@@ -1,5 +1,5 @@
 {
-  "id": "garbage collection",
+  "id": "programming_languages/go/memory_management/garbage_collection",
   "kind": "FACT",
   "name": "Garbage Collection",
   "relations": {},

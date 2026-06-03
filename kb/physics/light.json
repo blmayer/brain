@@ -1,5 +1,5 @@
 {
-  "id": "light",
+  "id": "physics/light",
   "kind": "FACT",
   "name": "Light",
   "relations": {

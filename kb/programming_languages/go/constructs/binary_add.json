@@ -1,5 +1,5 @@
 {
-  "id": "BinaryAdd",
+  "id": "programming_languages/go/constructs/binary_add",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Addition (+)",
   "description": "Binary addition expression.",
@@ -18,16 +18,16 @@
     "hasParameter": [
       {
         "name": "left",
-        "type": "any"
+        "type": "programming_languages/go/constructs/any"
       },
       {
         "name": "right",
-        "type": "any"
+        "type": "programming_languages/go/constructs/any"
       }
     ],
     "produces": [
       {
-        "type": "any"
+        "type": "programming_languages/go/constructs/any"
       }
     ]
   },

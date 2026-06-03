@@ -1,5 +1,5 @@
 {
-  "id": "fmt package",
+  "id": "programming_languages/go/packages/fmt",
   "kind": "FACT",
   "name": "Fmt Package",
   "relations": {},

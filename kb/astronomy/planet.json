@@ -1,5 +1,5 @@
 {
-  "id": "planet",
+  "id": "astronomy/planet",
   "kind": "FACT",
   "name": "Planet",
   "relations": {

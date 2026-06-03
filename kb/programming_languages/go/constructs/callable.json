@@ -1,5 +1,5 @@
 {
-  "id": "Callable",
+  "id": "programming_languages/go/constructs/callable",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Callable",
   "description": "Abstract concept representing anything that can be invoked (called).",
@@ -22,7 +22,7 @@
     ],
     "hasSignature": [
       {
-        "target": "FunctionType",
+        "target": "programming_languages/go/constructs/function_type",
         "cardinality": "1"
       }
     ]

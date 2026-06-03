@@ -1,5 +1,5 @@
 {
-  "id": "declaration",
+  "id": "programming_languages/go/syntax/declaration",
   "kind": "PLAN_TEMPLATE",
   "name": "Variable declaration",
   "keywords": [
@@ -11,14 +11,14 @@
   "relations": {
     "needs": [
       {
-        "name": "type",
-        "type": "type"
+        "name": "programming_languages/go/syntax/type",
+        "type": "programming_languages/go/constructs/type"
       }
     ],
     "produces": [
       {
         "name": "var",
-        "type": "any"
+        "type": "programming_languages/go/constructs/any"
       }
     ]
   },

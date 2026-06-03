@@ -4,6 +4,7 @@ We now use the new Golang ontology format exclusively.
 """
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
@@ -62,6 +63,22 @@ class Ontology:
 
         scored_results = []   # list of (concept, match_count)
 
+        def _word_match(haystack: str, needle: str) -> bool:
+            if not needle:
+                return False
+            h = haystack.lower()
+            n = needle.lower()
+            if n in h.split():
+                return True
+            # word boundary (handles punctuation and paths like .../program/...)
+            if re.search(r'(?i)\b' + re.escape(n) + r'\b', h):
+                return True
+            # also allow match on the leaf of a path id (e.g. word "declaration" matches .../declaration)
+            leaf = h.rsplit("/", 1)[-1]
+            if n == leaf or n in leaf.split("_"):
+                return True
+            return False
+
         for concept in self.concepts.values():
             # Build the text we will search in
             if strict:
@@ -76,7 +93,7 @@ class Ontology:
                 parts = [
                     concept.id.lower(),
                     concept.name.lower(),
-                    " ".join(concept.parents).lower(),
+                    " ".join([p.id if isinstance(p, Concept) else str(p) for p in (concept.parents or [])]).lower(),
                     str(concept.relations).lower(),
                     str(concept.emitters).lower(),
                 ]
@@ -88,8 +105,8 @@ class Ontology:
                     parts.extend(kw.lower() for kw in concept.keywords)
                 searchable = " ".join(parts)
 
-            # Count how many of the input keywords appear in this concept
-            match_count = sum(1 for kw in keywords if kw in searchable)
+            # Count how many of the input keywords appear (whole-word / leaf aware)
+            match_count = sum(1 for kw in keywords if _word_match(searchable, kw))
 
             if match_count > 0:
                 scored_results.append((concept, match_count))
@@ -118,10 +135,14 @@ class Ontology:
                 targets = [targets]
 
             for target in targets:
-                if isinstance(target, dict):
-                    target_id = target.get("target") or target.get("id")
-                    if target_id and target_id in self.concepts:
-                        related.append(self.concepts[target_id])
+                if isinstance(target, Concept):
+                    related.append(target)
+                elif isinstance(target, dict):
+                    t = target.get("target") or target.get("id")
+                    if isinstance(t, Concept):
+                        related.append(t)
+                    elif isinstance(t, str) and t in self.concepts:
+                        related.append(self.concepts[t])
                 elif isinstance(target, str) and target in self.concepts:
                     related.append(self.concepts[target])
 
@@ -132,17 +153,23 @@ class Ontology:
         Find concepts in the ontology that can produce a value/binding of the given type.
         Used for proper dependency satisfaction.
         """
+        if isinstance(target_type, Concept):
+            target_type = target_type.id
         logger.debug("find_producers_of_type called for type: %s", target_type)
         producers = []
         target_type = target_type.lower()
+        target_type_leaf = target_type.rsplit("/", 1)[-1] if "/" in target_type else target_type
 
         for concept in self.concepts.values():
             rels = concept.relations or {}
 
             for prod in rels.get("produces", []):
                 if isinstance(prod, dict):
-                    ptype = prod.get("type", "").lower()
-                    if ptype == target_type or ptype == "any":
+                    t = prod.get("type")
+                    ptype = (t.id if isinstance(t, Concept) else (t or "")).lower()
+                    ptype_leaf = ptype.rsplit("/", 1)[-1] if "/" in ptype else ptype
+                    tt = target_type
+                    if ptype == tt or ptype_leaf == tt or ptype == target_type_leaf or ptype_leaf == target_type_leaf or ptype == "any" or ptype_leaf == "any":
                         producers.append(concept)
                         break
                 elif isinstance(prod, str) and prod.lower() == target_type:
@@ -150,7 +177,7 @@ class Ontology:
                     break
 
             raw_str = str(concept.raw).lower()
-            if target_type in raw_str and "return" in raw_str:
+            if (target_type in raw_str or target_type_leaf in raw_str) and "return" in raw_str:
                 if concept not in producers:
                     producers.append(concept)
 
@@ -174,8 +201,11 @@ class Ontology:
                 if isinstance(targets, (str, dict)):
                     targets = [targets]
                 for t in targets:
-                    if isinstance(t, dict):
-                        tid = t.get("target") or t.get("id")
+                    if isinstance(t, Concept):
+                        tid = t.id
+                    elif isinstance(t, dict):
+                        tt = t.get("target") or t.get("id")
+                        tid = tt.id if isinstance(tt, Concept) else tt
                     else:
                         tid = t
                     if tid == concept_id:
@@ -215,6 +245,10 @@ class Ontology:
             for p in parents:
                 if isinstance(p, str) and p not in visited:
                     to_visit.append(p)
+                elif isinstance(p, Concept):
+                    pid = p.id
+                    if pid not in visited:
+                        to_visit.append(pid)
             depth += 1
 
         return visited
@@ -267,6 +301,10 @@ class Ontology:
             except Exception as e:
                 print(f"[Ontology] Failed to load {json_file}: {e}")
 
+        # After all files loaded, turn string id refs into direct Concept pointers
+        # so relations/parents contain real nodes (graph edges) not just ids.
+        self._resolve_links()
+
     def _load_single_concept(self, data: Dict, source: Path):
         if not isinstance(data, dict):
             return
@@ -315,6 +353,45 @@ class Ontology:
 
     def __len__(self):
         return len(self.concepts)
+
+    def _resolve_links(self):
+        """Post-load: substitute string node ids inside parents and relations
+        with direct Concept object references (in-memory 'pointers').
+        Virtual/undefined ids (e.g. abstract 'Statement') remain as strings.
+        raw/ is left untouched (original source strings).
+        """
+        for concept in list(self.concepts.values()):
+            # parents may mix str (virtual) and Concept now
+            new_parents: list = []
+            for p in (concept.parents or []):
+                if isinstance(p, str):
+                    c = self.concepts.get(p)
+                    new_parents.append(c if c is not None else p)
+                else:
+                    new_parents.append(p)
+            concept.parents = new_parents
+
+            concept.relations = self._dereference_val(concept.relations or {})
+
+    def _dereference_val(self, val: Any) -> Any:
+        """Recursively replace any str that is a known concept id with the Concept."""
+        if isinstance(val, str):
+            c = self.concepts.get(val)
+            return c if c is not None else val
+        if isinstance(val, list):
+            return [self._dereference_val(x) for x in val]
+        if isinstance(val, dict):
+            d = dict(val)
+            for lk in ("target", "id", "concept", "type"):
+                if lk in d and isinstance(d[lk], str):
+                    c = self.concepts.get(d[lk])
+                    if c is not None:
+                        d[lk] = c
+            for k, v in list(d.items()):
+                if isinstance(v, (list, dict)):
+                    d[k] = self._dereference_val(v)
+            return d
+        return val
 
 
 _ONTOLOGY: Optional[Ontology] = None

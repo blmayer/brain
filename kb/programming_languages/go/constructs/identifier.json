@@ -1,0 +1,15 @@
+{
+  "id": "programming_languages/go/constructs/identifier",
+  "kind": "TYPE",
+  "name": "identifier",
+  "description": "Syntactic identifier / name (used for parameter names, variable names etc.).",
+  "parents": [
+    "programming_languages/go/constructs/type"
+  ],
+  "keywords": [
+    "identifier",
+    "name",
+    "id"
+  ],
+  "relations": {}
+}

@@ -1,5 +1,5 @@
 {
-  "id": "Import",
+  "id": "programming_languages/go/constructs/import",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Import",
   "parents": [
@@ -12,7 +12,7 @@
   "relations": {
     "importsPackage": [
       {
-        "target": "Package",
+        "target": "programming_languages/go/constructs/package",
         "cardinality": "1"
       }
     ],

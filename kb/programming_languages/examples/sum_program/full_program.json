@@ -2,7 +2,7 @@
   "program": "sum_two_numbers",
   "language": "go",
   "main_function": {
-    "concept": "FunctionDeclaration",
+    "concept": "programming_languages/go/constructs/function_declaration",
     "name": "main",
     "body": [
       "instance.declare_a",

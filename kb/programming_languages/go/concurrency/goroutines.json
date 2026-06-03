@@ -1,5 +1,5 @@
 {
-  "id": "goroutines",
+  "id": "programming_languages/go/concurrency/goroutines",
   "kind": "FACT",
   "name": "Goroutines",
   "relations": {},

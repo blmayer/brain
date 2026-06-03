@@ -1,5 +1,5 @@
 {
-  "id": "flip_egg",
+  "id": "programming_languages/recipes/flip_egg",
   "kind": "ACTION",
   "name": "Flip Egg",
   "is_a": "action",

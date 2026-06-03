@@ -1,5 +1,5 @@
 {
-  "id": "read",
+  "id": "programming_languages/go/operators/read",
   "kind": "PLAN_TEMPLATE",
   "name": "Read integer",
   "keywords": [
@@ -11,8 +11,8 @@
   "relations": {
     "needs": [
       {
-        "name": "var",
-        "type": "any"
+        "name": "programming_languages/go/syntax/var",
+        "type": "programming_languages/go/constructs/any"
       }
     ],
     "produces": []

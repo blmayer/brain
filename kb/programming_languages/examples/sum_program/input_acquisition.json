@@ -1,9 +1,9 @@
 {
   "instances": [
     {
-      "id": "instance.read_a",
+      "id": "programming_languages/examples/sum_program/instance_read_a",
       "concept": "CallExpression",
-      "target": "fmt.Scanf",
+      "target": "programming_languages/go/constructs/fmt_scanf",
       "arguments": [
         "\"%d\"",
         "&a"
@@ -14,9 +14,9 @@
       "context": "main_function"
     },
     {
-      "id": "instance.read_b",
+      "id": "programming_languages/examples/sum_program/instance_read_b",
       "concept": "CallExpression",
-      "target": "fmt.Scanf",
+      "target": "programming_languages/go/constructs/fmt_scanf",
       "arguments": [
         "\"%d\"",
         "&b"

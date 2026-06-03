@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/go/constructs/type",
+  "kind": "TYPE",
+  "name": "Type",
+  "description": "Abstract base concept for all Go types in the ontology.",
+  "abstract": true,
+  "keywords": [
+    "type"
+  ],
+  "relations": {}
+}

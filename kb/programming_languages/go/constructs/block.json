@@ -1,5 +1,5 @@
 {
-  "id": "Block",
+  "id": "programming_languages/go/constructs/block",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Block",
   "description": "A sequence of statements enclosed in braces. Introduces a new lexical scope.",

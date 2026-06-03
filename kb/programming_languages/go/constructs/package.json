@@ -1,5 +1,5 @@
 {
-  "id": "Package",
+  "id": "programming_languages/go/constructs/package",
   "kind": "PACKAGE",
   "name": "Package",
   "description": "A collection of Go source files in the same directory that are compiled together.",
@@ -16,7 +16,7 @@
     ],
     "imports": [
       {
-        "target": "Import",
+        "target": "programming_languages/go/constructs/import",
         "cardinality": "0..*"
       }
     ],

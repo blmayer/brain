@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/go/constructs/any",
+  "kind": "TYPE",
+  "name": "any",
+  "description": "The universal / wildcard type (corresponds to interface{}). Matches any value.",
+  "parents": [
+    "programming_languages/go/constructs/type"
+  ],
+  "keywords": [
+    "any",
+    "interface{}",
+    "interface {}",
+    "wildcard",
+    "empty interface"
+  ],
+  "relations": {
+    "isUniversal": true,
+    "isWildcard": true
+  }
+}

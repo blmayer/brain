@@ -55,7 +55,7 @@ def solve_plan(plan: Any) -> ExecNode:
                 program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
                 # no emitters => render will produce nothing for the root
             else:
-                program_concept = get_concept("FunctionDeclaration") or Concept(
+                program_concept = get_concept("programming_languages/go/constructs/function_declaration") or Concept(
                     id="Program", kind="Program", name="Main Program"
                 )
             root = ExecNode(concept=program_concept)
@@ -66,10 +66,10 @@ def solve_plan(plan: Any) -> ExecNode:
 
             return root
 
-        fb = get_concept("FunctionDeclaration") or Concept(id="Unknown", kind="Unknown", name="Unknown")
+        fb = get_concept("programming_languages/go/constructs/function_declaration") or Concept(id="Unknown", kind="Unknown", name="Unknown")
         return ExecNode(concept=fb)
 
-    fb = get_concept("FunctionDeclaration") or Concept(id="Fallback", kind="Fallback", name="Fallback")
+    fb = get_concept("programming_languages/go/constructs/function_declaration") or Concept(id="Fallback", kind="Fallback", name="Fallback")
     return ExecNode(concept=fb)
 
 # Legacy solve_plan body completely removed.
@@ -476,10 +476,15 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
         rels = concept.relations or {}
         for prod in rels.get("produces", []):
             if isinstance(prod, dict):
-                if prod.get("type", "").lower() in (required_type.lower(), "any"):
+                t = prod.get("type")
+                ptype = (t.id if isinstance(t, Concept) else (t or "")).lower()
+                ptype_leaf = ptype.rsplit("/", 1)[-1] if "/" in ptype else ptype
+                rt = (required_type.id if isinstance(required_type, Concept) else required_type or "").lower()
+                rt_leaf = rt.rsplit("/", 1)[-1] if "/" in rt else rt
+                if ptype in (rt, "any") or ptype_leaf in (rt, rt_leaf, "any") or ptype_leaf == "any":
                     logger.debug("      %s can produce type '%s'", concept.id, required_type)
                     return True
-            elif isinstance(prod, str) and prod.lower() == required_type.lower():
+            elif isinstance(prod, str) and prod.lower() == (required_type.id if isinstance(required_type, Concept) else required_type or "").lower():
                 logger.debug("      %s can produce type '%s'", concept.id, required_type)
                 return True
         return False
@@ -516,6 +521,8 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
 
         for need in needs:
             req_type = need["type"]
+            req_type_str = req_type.id if isinstance(req_type, Concept) else str(req_type or "")
+            req_type_leaf = req_type_str.rsplit("/", 1)[-1] if "/" in req_type_str else req_type_str
 
             satisfied = False
             for prev in context + resolved:
@@ -527,13 +534,13 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
                 candidates = ontology.find_producers_of_type(req_type)
 
                 # Be much stricter with 'any' — only use it as a last resort
-                if req_type == "any":
+                if req_type_str == "any" or req_type_leaf == "any":
                     # Only consider very specific producers for 'any' (e.g. actual function calls or declarations)
                     candidates = [c for c in candidates if c.kind in ("BUILTIN", "SYNTACTIC_CONSTRUCT") and "Declaration" in c.id or "Call" in c.id]
 
                 if candidates:
                     logger.debug("    Need '%s' (%s) → found %d candidate producers",
-                                 need['name'], req_type, len(candidates))
+                                 need['name'], req_type_str, len(candidates))
                     for cand in candidates:
                         if cand.id not in seen:
                             recurse(cand, depth + 1, context + [concept])
@@ -676,7 +683,8 @@ def _normalize_requirement(req: Any) -> dict:
     if isinstance(req, str):
         return {"target": req, "is_class": False}
     if isinstance(req, dict):
-        target = req.get("target") or req.get("id") or req.get("name")
+        t = req.get("target") or req.get("id") or req.get("name")
+        target = t.id if isinstance(t, Concept) else t
         is_class = bool(
             req.get("isClass") or req.get("is_class") or
             req.get("kind") == "CLASS" or "class" in str(req.get("type", "")).lower()
@@ -696,6 +704,8 @@ def _get_claimed_interface_ids(candidate: Union[Concept, dict]) -> list[str]:
     def _add(val):
         if isinstance(val, str):
             ids.append(val)
+        elif isinstance(val, Concept):
+            ids.append(val.id)
         elif isinstance(val, (list, tuple)):
             for v in val:
                 _add(v)
@@ -703,6 +713,8 @@ def _get_claimed_interface_ids(candidate: Union[Concept, dict]) -> list[str]:
             for k in ("target", "id", "name"):
                 if k in val and isinstance(val[k], str):
                     ids.append(val[k])
+                elif k in val and isinstance(val[k], Concept):
+                    ids.append(val[k].id)
 
     if isinstance(candidate, Concept):
         _add(candidate.parents)
@@ -865,6 +877,7 @@ def _item_matches_requirement(
     target = req.get("target")
     if not target:
         return False
+    t = target.id if isinstance(target, Concept) else target
 
     # Extract id from item (works for Concept or dict)
     if isinstance(item, Concept):
@@ -876,31 +889,31 @@ def _item_matches_requirement(
         item_parents = item.get("parents", []) or []
         item_raw = item
 
-    if item_id == target:
+    if item_id == t:
         return True
 
     # Direct isA on the item itself (runtime annotation or raw data)
     item_isa = None
     if isinstance(item_raw, dict):
         item_isa = item_raw.get("isA") or item_raw.get("isa")
-    if item_isa == target:
+    if item_isa == t:
         return True
 
     # Transitive parent / isA check via ontology
     if ontology:
         try:
-            if ontology.is_a(item_id, target):
+            if ontology.is_a(item_id, t):
                 return True
         except Exception:
             pass
 
         # Also try treating the item as a Concept if possible
         if isinstance(item, Concept):
-            if ontology.is_a(item, target):
+            if ontology.is_a(item, t):
                 return True
 
     # Fallback: check parents list on dict items even without ontology hit
-    if target in item_parents:
+    if t in item_parents:
         return True
 
     return False
@@ -1006,7 +1019,9 @@ def check_interface_satisfaction(
 
         # 3. Content heuristic (no name hardcoding)
         for r in reqs:
-            tgt = str(r.get("target") or "").strip()
+            raw_t = r.get("target")
+            tgt = (raw_t.id if isinstance(raw_t, Concept) else raw_t) or ""
+            tgt = str(tgt).strip()
             if not tgt:
                 continue
             if " " in tgt or any(p in tgt for p in ".!?") or len(tgt) > 35:
@@ -1021,7 +1036,7 @@ def check_interface_satisfaction(
 
         if not _requires_external_match(rel_name, reqs):
             # Declarative part of the interface (e.g. hasInstructions) — satisfied by definition
-            matched[rel_name] = [r.get("target") for r in reqs]
+            matched[rel_name] = [(r.get("target").id if isinstance(r.get("target"), Concept) else r.get("target")) for r in reqs]
             continue
 
         for req in reqs:
@@ -1221,10 +1236,13 @@ def resolve_dependencies(
             items = [items]
         for item in items:
             target = None
-            if isinstance(item, str):
+            if isinstance(item, Concept):
+                target = item
+            elif isinstance(item, str):
                 target = item
             elif isinstance(item, dict):
-                target = item.get("target") or item.get("id")
+                t = item.get("target") or item.get("id")
+                target = t if isinstance(t, (str, Concept)) else None
             if target:
                 results.extend(resolve_dependencies(target, ontology, visited))
 
@@ -1246,10 +1264,13 @@ def resolve_dependencies(
                         items = [items]
                     for item in items:
                         target = None
-                        if isinstance(item, str):
+                        if isinstance(item, Concept):
+                            target = item
+                        elif isinstance(item, str):
                             target = item
                         elif isinstance(item, dict):
-                            target = item.get("target") or item.get("id") or item.get("action")
+                            t = item.get("target") or item.get("id") or item.get("action")
+                            target = t if isinstance(t, (str, Concept)) else None
                         if target:
                             results.extend(resolve_dependencies(target, ontology, visited))
 

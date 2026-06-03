@@ -1,5 +1,5 @@
 {
-  "id": "gene",
+  "id": "biology/gene",
   "kind": "FACT",
   "name": "Gene",
   "relations": {

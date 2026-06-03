@@ -1,10 +1,10 @@
 {
-  "id": "FunctionLiteral",
+  "id": "programming_languages/go/constructs/function_literal",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Function Literal",
   "description": "An anonymous function expression (closure).",
   "parents": [
-    "Callable",
+    "programming_languages/go/constructs/callable",
     "Expression"
   ],
   "keywords": [
@@ -34,7 +34,7 @@
     ],
     "hasBody": [
       {
-        "target": "Block",
+        "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
       }
     ]

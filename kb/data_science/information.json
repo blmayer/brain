@@ -1,5 +1,5 @@
 {
-  "id": "information",
+  "id": "data_science/information",
   "kind": "FACT",
   "name": "Information",
   "relations": {

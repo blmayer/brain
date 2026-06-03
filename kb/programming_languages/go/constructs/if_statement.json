@@ -1,5 +1,5 @@
 {
-  "id": "IfStatement",
+  "id": "programming_languages/go/constructs/if_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "If Statement",
   "parents": [
@@ -22,7 +22,7 @@
     ],
     "hasThenBranch": [
       {
-        "target": "Block",
+        "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
       }
     ],

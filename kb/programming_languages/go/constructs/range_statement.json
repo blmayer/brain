@@ -1,9 +1,9 @@
 {
-  "id": "RangeStatement",
+  "id": "programming_languages/go/constructs/range_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Range Statement",
   "parents": [
-    "ForStatement"
+    "programming_languages/go/constructs/for_statement"
   ],
   "keywords": [
     "range",
@@ -32,7 +32,7 @@
     ],
     "hasBody": [
       {
-        "target": "Block",
+        "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
       }
     ]

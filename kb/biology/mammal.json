@@ -1,5 +1,5 @@
 {
-  "id": "mammal",
+  "id": "biology/mammal",
   "kind": "FACT",
   "name": "Mammal",
   "relations": {

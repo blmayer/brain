@@ -1,5 +1,5 @@
 {
-  "id": "molecule",
+  "id": "chemistry/molecule",
   "kind": "FACT",
   "name": "Molecule",
   "relations": {

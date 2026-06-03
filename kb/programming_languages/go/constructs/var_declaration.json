@@ -1,5 +1,5 @@
 {
-  "id": "VarDeclaration",
+  "id": "programming_languages/go/constructs/var_declaration",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Variable Declaration",
   "parents": [
@@ -15,11 +15,11 @@
     "hasParameter": [
       {
         "name": "name",
-        "type": "identifier"
+        "type": "programming_languages/go/constructs/identifier"
       },
       {
         "name": "type",
-        "type": "type"
+        "type": "programming_languages/go/constructs/type"
       }
     ]
   },

@@ -1,10 +1,10 @@
 {
-  "id": "MethodDeclaration",
+  "id": "programming_languages/go/constructs/method_declaration",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Method Declaration",
   "description": "A function declaration attached to a type via a receiver.",
   "parents": [
-    "FunctionDeclaration"
+    "programming_languages/go/constructs/function_declaration"
   ],
   "keywords": [
     "method",

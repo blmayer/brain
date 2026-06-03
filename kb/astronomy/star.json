@@ -1,5 +1,5 @@
 {
-  "id": "star",
+  "id": "astronomy/star",
   "kind": "FACT",
   "name": "Star",
   "relations": {

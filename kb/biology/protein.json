@@ -1,5 +1,5 @@
 {
-  "id": "protein",
+  "id": "biology/protein",
   "kind": "FACT",
   "name": "Protein",
   "relations": {

@@ -1,5 +1,5 @@
 {
-  "id": "organism",
+  "id": "biology/organism",
   "kind": "FACT",
   "name": "Organism",
   "relations": {
