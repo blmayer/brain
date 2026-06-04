@@ -2,7 +2,13 @@
   "id": "programming_languages/go/operators/arithmetic",
   "kind": "FACT",
   "name": "Arithmetic Operators",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "arithmetic operators"
   ],

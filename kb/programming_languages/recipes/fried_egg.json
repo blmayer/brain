@@ -3,7 +3,7 @@
   "kind": "RECIPE",
   "name": "Fried Egg",
   "parents": [
-    "programming_languages/recipes/recipe_interface"
+    "programming_languages/recipes/recipe"
   ],
   "description": "A simple fried egg. Spices is declared as a class so that salt, pepper, etc. all satisfy it. Instructions are node ids (action concepts) that carry emitters.",
   "relations": {

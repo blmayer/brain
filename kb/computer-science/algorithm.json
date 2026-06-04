@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Algorithm",
   "relations": {
+    "partOf": [
+      {"target": "computer-science/computer"}
+    ],
     "definitions": [
       {
         "subject": "algorithm",

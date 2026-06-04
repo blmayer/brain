@@ -2,6 +2,9 @@
   "id": "biology/virus",
   "kind": "FACT",
   "name": "Virus",
+  "parents": [
+    "biology/organism"
+  ],
   "relations": {
     "definitions": [
       {

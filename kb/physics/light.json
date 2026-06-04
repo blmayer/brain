@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Light",
   "relations": {
+    "partOf": [
+      {"target": "physics/physics"}
+    ],
     "definitions": [
       {
         "subject": "light",

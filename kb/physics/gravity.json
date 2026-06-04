@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Gravity",
   "relations": {
+    "partOf": [
+      {"target": "physics/physics"}
+    ],
     "definitions": [
       {
         "subject": "gravity",

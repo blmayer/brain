@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Carbon",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "carbon",

@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Ecosystem",
   "relations": {
+    "partOf": [
+      {"target": "biology/organism"}
+    ],
     "definitions": [
       {
         "subject": "ecosystem",

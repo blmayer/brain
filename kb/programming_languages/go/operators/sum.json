@@ -25,6 +25,11 @@
         "name": "result",
         "type": "programming_languages/go/constructs/int"
       }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
     ]
   },
   "emitters": [

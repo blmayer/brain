@@ -2,7 +2,16 @@
   "id": "sun",
   "kind": "FACT",
   "name": "Sun",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "astronomy/star"
+      },
+      {
+        "target": "physics/energy"
+      }
+    ]
+  },
   "keywords": [
     "sun"
   ],

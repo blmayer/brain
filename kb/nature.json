@@ -31,6 +31,17 @@
         "date": "2024-01-01",
         "context": "general/aesthetics"
       }
+    ],
+    "partOf": [
+      {
+        "target": "biology/organism"
+      },
+      {
+        "target": "astronomy/planet"
+      },
+      {
+        "target": "physics/gravity"
+      }
     ]
   },
   "keywords": [

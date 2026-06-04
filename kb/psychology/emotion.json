@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Emotion",
   "relations": {
+    "partOf": [
+      {"target": "psychology/mind"}
+    ],
     "definitions": [
       {
         "subject": "emotion",

@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Data",
   "relations": {
+    "partOf": [
+      {"target": "data_science/information"}
+    ],
     "definitions": [
       {
         "subject": "data",

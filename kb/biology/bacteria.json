@@ -2,6 +2,9 @@
   "id": "biology/bacteria",
   "kind": "FACT",
   "name": "Bacteria",
+  "parents": [
+    "biology/organism"
+  ],
   "relations": {
     "definitions": [
       {

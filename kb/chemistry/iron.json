@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Iron",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "iron",

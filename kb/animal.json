@@ -2,6 +2,9 @@
   "id": "animal",
   "kind": "FACT",
   "name": "Animal",
+  "parents": [
+    "biology/organism"
+  ],
   "relations": {
     "definitions": [
       {

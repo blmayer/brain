@@ -2,7 +2,13 @@
   "id": "programming_languages/go/concurrency/channels",
   "kind": "FACT",
   "name": "Channels",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "channels"
   ],

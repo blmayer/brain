@@ -15,7 +15,12 @@
         "type": "programming_languages/go/constructs/any"
       }
     ],
-    "produces": []
+    "produces": [],
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
   },
   "emitters": [
     {

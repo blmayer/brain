@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/defer",
   "kind": "FACT",
   "name": "Defer",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "defer"
   ],

@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/select",
   "kind": "FACT",
   "name": "Go",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "go"
   ],

@@ -2,7 +2,16 @@
   "id": "python",
   "kind": "FACT",
   "name": "Python",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming"
+      },
+      {
+        "target": "computer-science/software"
+      }
+    ]
+  },
   "keywords": [
     "python"
   ],

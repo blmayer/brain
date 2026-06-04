@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Neuron",
   "relations": {
+    "partOf": [
+      {"target": "biology/organism"}
+    ],
     "definitions": [
       {
         "subject": "neuron",

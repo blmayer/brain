@@ -2,7 +2,13 @@
   "id": "programming_languages/go/concurrency/goroutines",
   "kind": "FACT",
   "name": "Goroutines",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "goroutines"
   ],

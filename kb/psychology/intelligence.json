@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Intelligence",
   "relations": {
+    "partOf": [
+      {"target": "psychology/mind"}
+    ],
     "definitions": [
       {
         "subject": "intelligence",

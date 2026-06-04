@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Evolution",
   "relations": {
+    "partOf": [
+      {"target": "biology/organism"}
+    ],
     "definitions": [
       {
         "subject": "evolution",

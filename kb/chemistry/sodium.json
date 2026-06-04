@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Sodium",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "sodium",

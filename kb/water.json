@@ -31,6 +31,14 @@
         "date": "2024-01-01",
         "context": "general/biology"
       }
+    ],
+    "partOf": [
+      {
+        "target": "chemistry/water"
+      },
+      {
+        "target": "biology/organism"
+      }
     ]
   },
   "keywords": [

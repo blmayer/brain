@@ -31,6 +31,14 @@
         "date": "2024-01-01",
         "context": "physics/relativity"
       }
+    ],
+    "partOf": [
+      {
+        "target": "physics/gravity"
+      },
+      {
+        "target": "astronomy/planet"
+      }
     ]
   },
   "keywords": [

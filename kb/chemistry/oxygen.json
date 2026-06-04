@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Oxygen",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "oxygen",

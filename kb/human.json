@@ -2,6 +2,9 @@
   "id": "human",
   "kind": "FACT",
   "name": "Human",
+  "parents": [
+    "biology/organism"
+  ],
   "relations": {
     "definitions": [
       {
@@ -30,6 +33,14 @@
         "source": "general knowledge",
         "date": "2024-01-01",
         "context": "general/biology"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "psychology/mind"
+      },
+      {
+        "target": "psychology/intelligence"
       }
     ]
   },

@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Chlorine",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "chlorine",

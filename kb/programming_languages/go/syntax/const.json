@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/const",
   "kind": "FACT",
   "name": "Const",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "const"
   ],

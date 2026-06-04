@@ -755,7 +755,7 @@ def _get_required_relation_names_from_interface(iface: Concept) -> list[str]:
     rels = iface.relations or {}
     names: list[str] = []
 
-    # Preferred form (as shown in recipe_interface.json example):
+    # Preferred form (as shown in recipe.json example):
     # "requires": [ {"relation": "hasIngredients", ...}, {"relation": "hasInstructions"} ]
     for item in rels.get("requires", []):
         if isinstance(item, dict):

@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/if",
   "kind": "FACT",
   "name": "If",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "if"
   ],

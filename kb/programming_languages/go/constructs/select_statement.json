@@ -18,6 +18,14 @@
         "target": "SelectCase",
         "cardinality": "1..*"
       }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/go/concurrency/channels"
+      },
+      {
+        "target": "programming_languages/go/concurrency/goroutines"
+      }
     ]
   },
   "emitters": [

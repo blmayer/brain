@@ -20,6 +20,11 @@
         "name": "var",
         "type": "programming_languages/go/constructs/any"
       }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
     ]
   },
   "emitters": [

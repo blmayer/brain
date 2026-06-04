@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/package",
   "kind": "FACT",
   "name": "Package Declaration",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "package declaration"
   ],

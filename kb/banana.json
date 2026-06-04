@@ -2,6 +2,9 @@
   "id": "banana",
   "kind": "FACT",
   "name": "Banana",
+  "parents": [
+    "botany/fruit"
+  ],
   "relations": {
     "definitions": [
       {

@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/len",
   "kind": "FACT",
   "name": "Len",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "len"
   ],

@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Database",
   "relations": {
+    "partOf": [
+      {"target": "computer-science/computer"}
+    ],
     "definitions": [
       {
         "subject": "database",

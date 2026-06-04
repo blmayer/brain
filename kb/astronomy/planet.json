@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Planet",
   "relations": {
+    "partOf": [
+      {"target": "astronomy/star"}
+    ],
     "definitions": [
       {
         "subject": "planet",

@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Silver",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "silver",

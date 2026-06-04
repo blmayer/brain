@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Energy",
   "relations": {
+    "partOf": [
+      {"target": "physics/physics"}
+    ],
     "definitions": [
       {
         "subject": "energy",

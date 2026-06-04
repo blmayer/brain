@@ -2,7 +2,13 @@
   "id": "programming_languages/go/packages/fmt/println",
   "kind": "FACT",
   "name": "Fmt.Println",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "fmt.println"
   ],

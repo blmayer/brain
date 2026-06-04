@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Hydrogen",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "hydrogen",

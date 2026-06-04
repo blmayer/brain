@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Fruit",
   "relations": {
+    "partOf": [
+      {"target": "botany/plant"}
+    ],
     "definitions": [
       {
         "subject": "fruit",

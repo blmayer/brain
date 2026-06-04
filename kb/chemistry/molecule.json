@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Molecule",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "molecule",

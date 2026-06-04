@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Memory",
   "relations": {
+    "partOf": [
+      {"target": "psychology/mind"}
+    ],
     "definitions": [
       {
         "subject": "memory",

@@ -2,6 +2,9 @@
   "id": "cat",
   "kind": "FACT",
   "name": "Cat",
+  "parents": [
+    "biology/mammal"
+  ],
   "relations": {},
   "keywords": [
     "cat"

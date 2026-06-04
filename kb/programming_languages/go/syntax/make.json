@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/make",
   "kind": "FACT",
   "name": "Make",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "make"
   ],

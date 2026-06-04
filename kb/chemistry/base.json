@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Base",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "base",

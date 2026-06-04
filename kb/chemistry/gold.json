@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Gold",
   "relations": {
+    "partOf": [
+      {"target": "chemistry/chemistry"}
+    ],
     "definitions": [
       {
         "subject": "gold",

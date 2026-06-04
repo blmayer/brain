@@ -3,6 +3,9 @@
   "kind": "FACT",
   "name": "Software",
   "relations": {
+    "partOf": [
+      {"target": "computer-science/computer"}
+    ],
     "definitions": [
       {
         "subject": "software",

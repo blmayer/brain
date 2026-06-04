@@ -13,6 +13,14 @@
         "date": "2024-01-01",
         "context": "general/linguistics"
       }
+    ],
+    "partOf": [
+      {
+        "target": "psychology/mind"
+      },
+      {
+        "target": "programming"
+      }
     ]
   },
   "keywords": [

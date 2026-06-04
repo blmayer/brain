@@ -1,5 +1,5 @@
 {
-  "id": "programming_languages/recipes/recipe_interface",
+  "id": "programming_languages/recipes/recipe",
   "kind": "INTERFACE",
   "name": "Recipe",
   "description": "An interface for any recipe: must declare ingredients and instructions.",

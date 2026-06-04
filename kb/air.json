@@ -31,6 +31,17 @@
         "date": "2024-01-01",
         "context": "general/physics"
       }
+    ],
+    "partOf": [
+      {
+        "target": "chemistry/oxygen"
+      },
+      {
+        "target": "chemistry/nitrogen"
+      },
+      {
+        "target": "physics/energy"
+      }
     ]
   },
   "keywords": [

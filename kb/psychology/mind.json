@@ -13,6 +13,14 @@
         "date": "2024-01-01",
         "context": "psychology/cognitive-science"
       }
+    ],
+    "partOf": [
+      {
+        "target": "biology/brain"
+      },
+      {
+        "target": "biology/neuron"
+      }
     ]
   },
   "keywords": [

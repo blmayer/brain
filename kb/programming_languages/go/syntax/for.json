@@ -2,7 +2,13 @@
   "id": "programming_languages/go/syntax/for",
   "kind": "FACT",
   "name": "For",
-  "relations": {},
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/go"
+      }
+    ]
+  },
   "keywords": [
     "for"
   ],
