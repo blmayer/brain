@@ -81,66 +81,16 @@ def render(concept: Concept, bindings: Dict[str, str]) -> str:
     """Render a Concept using its emitters and the current bindings."""
     logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
     if not concept or not concept.emitters:
-        # Modern structural fallback for knowledge/FACT nodes:
-        # "X is a Y" is modeled via top-level "isA" / "parents" (or relations.isA)
-        # rather than legacy "definitions" arrays (we don't use definitions any more
-        # for new entries; see banana.json under botany/ as the example with "isA").
-        # This produces natural language classification sentences when a FACT
-        # (e.g. "botany/banana" isA "botany/fruit") ends up in a resolved plan.
-        name = getattr(concept, "name", None) or str(getattr(concept, "id", "Unknown")).rsplit("/", 1)[-1].capitalize()
-
-        # Collect isA targets (explicit "isA"/"is_a" at root or in raw, plus parents)
-        isas = []
-        raw = getattr(concept, "raw", {}) or {}
-        for k in ("isA", "is_a", "isa"):
-            val = raw.get(k) or getattr(concept, k, None)
-            if val:
-                if isinstance(val, (list, tuple)):
-                    isas.extend([v for v in val if v])
-                elif val:
-                    isas.append(val)
-        pars = getattr(concept, "parents", []) or []
-        for p in pars:
-            if p not in isas:
-                isas.append(p)
-
-        if isas:
-            p = isas[0]
-            if isinstance(p, Concept):
-                pname = getattr(p, "name", str(p)).lower()
-            else:
-                pname = str(p).rsplit("/", 1)[-1].replace("_", " ").lower()
-            article = "an" if pname and pname[0] in "aeiou" else "a"
-            return f"{name} is {article} {pname}."
-
-        # Legacy definitions fallback (kept only for any old data files that still
-        # carry them; new content should use parents + isA instead).
-        rels = getattr(concept, "relations", {}) or {}
-        dlist = rels.get("definitions") or []
-        if not dlist and isinstance(getattr(concept, "raw", None), dict):
-            dlist = concept.raw.get("definitions", []) or []
-        if dlist:
-            # Prefer highest-confidence "is ..." definition
-            best = None
-            best_conf = -1.0
-            for d in dlist:
-                if isinstance(d, dict) and d.get("verb") == "is" and d.get("object"):
-                    try:
-                        conf = float(d.get("confidence", 0))
-                    except Exception:
-                        conf = 0.0
-                    if conf > best_conf:
-                        best_conf = conf
-                        best = d
-            if best:
-                return f"{name} is {best['object']}."
-            for d in dlist:
-                if isinstance(d, dict) and d.get("object"):
-                    return f"{name} is {d['object']}."
-
-        # Return empty so concepts without emitters (e.g. synthetic roots for
-        # executable instruction lists, or abstract nodes) contribute nothing
-        # to the final output. The current emitter machinery is used as-is.
+        # Only concepts that declare emitters contribute output.
+        # We do not auto-emit classification text ("X is a Y") for every
+        # matched FACT or interrogative node. The ontology (needs/produces,
+        # relatedTo, interface requirements such as hasInstructions, and
+        # dependency resolution) is responsible for pulling in the actual
+        # content nodes that have emitters. This prevents "pushing" nodes
+        # into the response.
+        # Return empty so abstract nodes, pure FACTs, interrogatives etc.
+        # contribute nothing unless the resolver explicitly brought in
+        # emitter-bearing steps.
         return ""
 
     template = concept.emitters[0].get("template", "")
@@ -667,8 +617,6 @@ def _features_to_plan(tree) -> dict:
         logger.info("Matched concepts from sentence: %s", [c.id for c in initial_concepts])
     else:
         logger.info("Matched concepts from sentence: []")
-
-    logger.info("Building ontology-driven plan...")
 
     resolved_concepts = _resolve_dependencies(initial_concepts)
 

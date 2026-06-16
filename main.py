@@ -66,3 +66,11 @@ if __name__ == "__main__":
                 print("(No output lines generated from the current knowledge base)")
         except Exception as e:
             print(f"[Pipeline error] {e}")
+
+        # Re-print the tree after augmentation so the attached ontology concepts are visible.
+        print("\nAugmented tree (with attached ontology concepts):")
+        try:
+            from augment import pretty_print_tree
+            pretty_print_tree(resolved_tree, show_concepts=True)
+        except Exception as e:
+            print(f"(could not reprint annotated tree: {e})")
