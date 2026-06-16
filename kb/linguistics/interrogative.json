@@ -1,0 +1,30 @@
+{
+  "id": "linguistics/interrogative",
+  "kind": "CLASS",
+  "name": "Interrogative",
+  "description": "A linguistic element used to form questions and request information of a specific type (definition, manner, time, place, reason, etc.).",
+  "parents": [
+    "linguistics/language"
+  ],
+  "relations": {
+    "hasSubtypes": [
+      "linguistics/interrogative/what",
+      "linguistics/interrogative/how",
+      "linguistics/interrogative/when",
+      "linguistics/interrogative/where",
+      "linguistics/interrogative/why",
+      "linguistics/interrogative/who"
+    ],
+    "produces": [
+      {
+        "target": "linguistics/answer"
+      }
+    ]
+  },
+  "keywords": [
+    "question",
+    "interrogative",
+    "query",
+    "ask"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "linguistics/interrogative/what",
+  "kind": "INTERROGATIVE",
+  "name": "What",
+  "description": "Interrogative used to inquire about the identity, nature, definition, or composition of something.",
+  "parents": [
+    "linguistics/interrogative"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "subject",
+        "description": "The entity, concept, or phenomenon whose nature or identity is being requested"
+      }
+    ],
+    "produces": [
+      {
+        "target": "linguistics/answer/definition"
+      },
+      {
+        "target": "linguistics/answer"
+      }
+    ],
+    "relatedTo": [
+      {
+        "target": "data/information"
+      }
+    ]
+  },
+  "keywords": [
+    "what",
+    "what is",
+    "what are",
+    "define",
+    "definition",
+    "identity"
+  ]
+}

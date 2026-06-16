@@ -609,6 +609,7 @@ def _features_to_plan(tree) -> dict:
     add_concepts(tree)                                   # mutates tree in place
     bind_tree_arguments(tree)                            # structural argument binding
     initial_concepts = _collect_concepts_from_tree(tree)
+
     resolved_concepts = _resolve_dependencies(initial_concepts)
 
     # New post-augmentation phase: interface satisfaction / compliance checking.

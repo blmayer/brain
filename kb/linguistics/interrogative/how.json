@@ -1,0 +1,44 @@
+{
+  "id": "linguistics/interrogative/how",
+  "kind": "INTERROGATIVE",
+  "name": "How",
+  "description": "Interrogative used to request information about manner, method, procedure, process, or degree.",
+  "parents": [
+    "linguistics/interrogative"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "goal",
+        "description": "The action, task, or outcome whose method or process is being requested"
+      }
+    ],
+    "produces": [
+      {
+        "target": "linguistics/answer/procedure"
+      },
+      {
+        "target": "linguistics/answer"
+      }
+    ],
+    "relatedTo": [
+      {
+        "target": "programming_languages/recipes/recipe"
+      },
+      {
+        "target": "computer-science/algorithm"
+      }
+    ]
+  },
+  "keywords": [
+    "how",
+    "how to",
+    "how do",
+    "how does",
+    "method",
+    "procedure",
+    "steps",
+    "way",
+    "manner"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "linguistics/answer",
+  "kind": "CLASS",
+  "name": "Answer",
+  "description": "A response or piece of information that satisfies an interrogative request.",
+  "parents": [
+    "data/information"
+  ],
+  "relations": {
+    "definitions": [
+      {
+        "subject": "answer",
+        "verb": "is",
+        "object": "information provided in response to a question",
+        "confidence": 0.99,
+        "source": "linguistics",
+        "date": "2024-01-01",
+        "context": "communication"
+      }
+    ]
+  },
+  "keywords": [
+    "answer",
+    "response",
+    "reply"
+  ]
+}

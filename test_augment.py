@@ -6,14 +6,16 @@ import unittest
 from nltk.tree import Tree
 
 from augment import (
-    emit, tree_to_solved_plan,
+    emit, tree_to_solved_plan, solve_plan,
     add_concepts, bind_tree_arguments, _collect_concepts_from_tree,
     pretty_print_tree,
     _resolve_dependencies, _features_to_plan,
     check_interface_satisfaction, apply_interface_satisfaction,
 )
+from parsers import get_default_parser
 
-from kb import Concept, Ontology
+from kb import Concept, Ontology, get_concept
+from coreference_resolver import resolve_pronouns
 
 
 class TestAugmentWithKB(unittest.TestCase):
@@ -455,6 +457,174 @@ class TestAugmentIdealTree(unittest.TestCase):
         # once bind_tree_arguments becomes stronger.
 
 
+class TestQueryIdealTree(unittest.TestCase):
+    """
+    Tests the query / definition path using a manually authored *ideal* parse tree.
+
+    The ideal tree is the desired "parsed result" for the sentence "what is a banana?".
+    We validate that this ideal parsed tree leads to the correct plan (via
+    resolve_pronouns + _features_to_plan / _detect_query_intent + concept collection),
+    then solve the plan and compare the final result (solved ExecNode + emit output)
+    to the ideal expected result (the definitions sourced from the banana Concept).
+    """
+
+    # This string documents the ideal parsed tree shape (the "gold" output we
+    # would like a parser to produce for a definition query). It is used to
+    # validate the tree constructed in code.
+    IDEAL_WHAT_IS_BANANA_TREE_STR = (
+        "(ROOT (SBARQ (WHNP (WP what/WP)) (SQ (VBZ is/VBZ) "
+        "(NP (DT a/DT) (NN banana/NN))) (. ?/.)))"
+    )
+
+    def _build_ideal_what_is_banana_tree(self):
+        """
+        Manually constructed ideal constituency tree for:
+            "what is a banana?"
+
+        This tree *is* the ideal parsed result. It has clean question structure
+        (SBARQ/SQ) and a proper NP for the subject. Preterminals are (word, POS)
+        tuples so downstream code (resolve_pronouns, add_concepts, leaf walking
+        for query intent) sees exactly the same data as real parser output.
+        """
+        return Tree('ROOT', [
+            Tree('SBARQ', [
+                Tree('WHNP', [
+                    Tree('WP', [('what', 'WP')])
+                ]),
+                Tree('SQ', [
+                    Tree('VBZ', [('is', 'VBZ')]),
+                    Tree('NP', [
+                        Tree('DT', [('a', 'DT')]),
+                        Tree('NN', [('banana', 'NN')])
+                    ])
+                ]),
+                Tree('.', [('?', '.')])
+            ])
+        ])
+
+    def _ideal_banana_definitions(self):
+        """
+        The ideal result for this query: the exact list of "Name is object."
+        strings that should be produced when the subject concept ("banana") is
+        correctly identified from the (ideal) parsed tree and its definitions
+        are pulled from the KB.
+
+        This mirrors the extraction logic in _features_to_plan for the
+        definition_query path, so the test compares against a single source
+        of truth (the loaded Concept) rather than duplicating strings.
+        """
+        banana = get_concept("banana")
+        if banana is None:
+            return []
+        defs = []
+        dlist = (banana.relations or {}).get("definitions") or []
+        if not dlist and isinstance(getattr(banana, "raw", None), dict):
+            dlist = banana.raw.get("definitions", [])
+        name = getattr(banana, "name", "Banana")
+        for d in dlist:
+            if isinstance(d, dict):
+                obj = d.get("object")
+                if obj:
+                    defs.append(f"{name} is {obj}.")
+        return defs
+
+    def test_ideal_parsed_tree_validates_and_produces_definition_query_plan(self):
+        """
+        Validate the parsed result (the ideal tree we constructed to stand in
+        for a perfect parser) against the documented ideal tree, then feed it
+        through the pipeline and assert the resulting plan matches the ideal
+        definition query plan.
+        """
+        ideal_tree = self._build_ideal_what_is_banana_tree()
+
+        # Validate the parsed result against the ideal tree (string form).
+        actual_str = str(ideal_tree)
+        normalized_actual = " ".join(actual_str.split())
+        normalized_ideal = " ".join(self.IDEAL_WHAT_IS_BANANA_TREE_STR.split())
+        self.assertEqual(
+            normalized_actual,
+            normalized_ideal,
+            msg=f"Ideal parsed tree did not match documented ideal tree string.\n"
+                f"Actual: {actual_str}\nIdeal:  {self.IDEAL_WHAT_IS_BANANA_TREE_STR}"
+        )
+
+        # Also validate the terminals the query logic actually cares about.
+        leaf_tuples = []
+        for leaf in ideal_tree.leaves():
+            if isinstance(leaf, (list, tuple)) and len(leaf) >= 2:
+                leaf_tuples.append((str(leaf[0]), str(leaf[1])))
+            elif isinstance(leaf, dict):
+                leaf_tuples.append((leaf.get("word", ""), leaf.get("pos", "")))
+        self.assertEqual(
+            leaf_tuples,
+            [("what", "WP"), ("is", "VBZ"), ("a", "DT"), ("banana", "NN"), ("?", ".")],
+            "Ideal parsed tree must have the WP+VBZ+NP terminals that trigger query intent.",
+        )
+
+        # Now process the ideal parsed result exactly as the real pipeline would
+        # after a parser returns its trees.
+        resolved = resolve_pronouns(ideal_tree)
+        plan = _features_to_plan(resolved)
+
+        self.assertEqual(plan.get("type"), "definition_query")
+
+        expected_defs = self._ideal_banana_definitions()
+        self.assertEqual(
+            plan.get("definitions"),
+            expected_defs,
+            "The plan produced from the ideal parsed tree must contain exactly "
+            "the definitions from the banana KB entry (no fallback).",
+        )
+
+        starting = [c.lower() for c in plan.get("starting_concepts", [])]
+        self.assertTrue(
+            any("banana" in s for s in starting),
+            f"Expected 'banana' among starting_concepts from the ideal parse, got: {starting}",
+        )
+
+    def test_solve_plan_on_ideal_query_and_compare_result_to_ideal(self):
+        """
+        After validating the parsed result (ideal tree) produces the correct
+        definition_query plan, solve that plan and compare the output of
+        solve_plan + emit to the ideal result (the definitions for banana).
+        """
+        ideal_tree = self._build_ideal_what_is_banana_tree()
+        resolved = resolve_pronouns(ideal_tree)
+        plan = _features_to_plan(resolved)
+
+        # This is "after that you solve the plan"
+        solved = solve_plan(plan)
+
+        self.assertIsNotNone(solved)
+        self.assertIsNotNone(solved.concept)
+
+        # Do not rely on .kind (old codepath). Instead inspect the data
+        # carried by the solved node and, more importantly, the emitted result.
+        self.assertTrue(
+            getattr(solved.concept, "emitters", None),
+            "solved ExecNode for a definition query should carry emitters with the answer",
+        )
+        template = (solved.concept.emitters or [{}])[0].get("template", "")
+        expected_joined = "\n".join(self._ideal_banana_definitions())
+        self.assertEqual(
+            template,
+            expected_joined,
+            "The ExecNode produced by solve_plan on the ideal query plan must "
+            "carry the ideal definition text as its emitter template.",
+        )
+
+        # Final user-visible result via emit must match the ideal result.
+        lines = emit(solved)
+        self.assertIsInstance(lines, list)
+        self.assertTrue(len(lines) > 0)
+
+        # emit for definition_query returns a single entry containing the joined answer.
+        self.assertEqual("\n".join(lines), expected_joined)
+
+        # No fallback text.
+        self.assertNotIn("i don't know", "\n".join(lines).lower())
+
+
 # ------------------------------------------------------------------
 # Tests for the new interface satisfaction / compliance feature
 # ------------------------------------------------------------------
@@ -618,6 +788,52 @@ class TestInterfaceSatisfaction(unittest.TestCase):
         # When the candidate is a Concept (immutable shared object) we don't mutate it,
         # so we only assert on the returned result.
         self.assertGreaterEqual(len(result["matched"].get("hasIngredients", [])), 3)
+
+
+class TestQueryIntentionFromPOSTags(unittest.TestCase):
+    """Integration tests for detecting query intention (e.g. 'what is a banana?')
+    from the POS tags / tree structure produced by the parser, and routing
+    it through the existing tree_to_solved_plan / solve_plan / emit pipeline
+    to produce a KB definition answer instead of code.
+    """
+
+    def setUp(self):
+        try:
+            self.parser = get_default_parser()
+        except Exception as exc:
+            self.skipTest(f"Could not create default parser (NLTK data/models?): {exc}")
+
+    def test_what_is_banana_routes_to_definition(self):
+        task = "what is a banana?"
+        resolved_tree, parsed_tree = self.parser.parse(task)
+
+        # The pipeline should detect the WP + VBZ(is) + NP pattern
+        # and produce a definition_query plan.
+        solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+        lines = emit(solved)
+
+        self.assertIsInstance(lines, list)
+        self.assertTrue(len(lines) > 0, "Query should have produced output lines")
+
+        output = "\n".join(lines).lower()
+        self.assertTrue(
+            any(kw in output for kw in ("fruit", "edible", "yellow", "musa", "genus")),
+            f"Expected definition text for banana, got: {lines}"
+        )
+
+    def test_program_sentence_does_not_trigger_query(self):
+        # A normal synthesis sentence should still produce program-related output
+        # (or at least not be treated as definition query).
+        task = "write a program that reads 2 integers and prints their sum"
+        resolved_tree, parsed_tree = self.parser.parse(task)
+        solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+        lines = emit(solved)
+
+        # We don't assert exact code here (depends on KB), but the plan type
+        # should have led to something that is not purely a "I don't know"
+        # definition fallback.
+        output = "\n".join(lines) if lines else ""
+        self.assertNotIn("i don't know what", output.lower())
 
 
 if __name__ == "__main__":

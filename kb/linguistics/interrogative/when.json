@@ -1,0 +1,43 @@
+{
+  "id": "linguistics/interrogative/when",
+  "kind": "INTERROGATIVE",
+  "name": "When",
+  "description": "Interrogative used to request information about time, occasion, condition, or moment at which something occurs or is appropriate.",
+  "parents": [
+    "linguistics/interrogative"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "event",
+        "description": "The action, state, or phenomenon whose timing or conditions are being requested"
+      }
+    ],
+    "produces": [
+      {
+        "target": "time"
+      },
+      {
+        "target": "linguistics/answer"
+      }
+    ],
+    "relatedTo": [
+      {
+        "target": "time"
+      },
+      {
+        "target": "physics/time"
+      }
+    ]
+  },
+  "keywords": [
+    "when",
+    "when does",
+    "when is",
+    "when should",
+    "time",
+    "occasion",
+    "moment",
+    "condition"
+  ]
+}
