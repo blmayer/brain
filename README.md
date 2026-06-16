@@ -143,23 +143,24 @@ sequenceDiagram
 | `parsers.py`               | Parser interface + implementations (default RegexpChunkParser etc.) |
 | `coreference_resolver.py`  | Pronoun resolution on the parsed tree |
 | `augment.py`               | `tree_to_solved_plan()`, `add_concepts`, `bind_tree_arguments`, `apply_interface_satisfaction`, `resolve_dependencies`, `solve_plan()`, `emit()` |
-| `kb.py`                    | `Ontology` + `Concept` loaded from JSONs under `kb/programming_languages/` (go/ constructs+templates, recipes/ etc.); supports relations, emitters, interfaces (`requires`), `is_a`, class matching, etc. |
+| `kb.py`                    | `Ontology` + `Concept` loaded from JSONs under `kb/` (go/ constructs+templates under programming_languages/, recipes/ etc.); supports relations, emitters, interfaces (`requires`), `is_a`, class matching, etc. |
 | `test_augment.py`          | Tests for the plan solver, interface satisfaction, instruction resolution, and end-to-end flow |
 
 ---
 
 ## Knowledge Base
 
-Knowledge lives primarily as a structured **Ontology** of `Concept`s (loaded from JSONs):
+Knowledge lives primarily as a structured **Ontology** of `Concept`s (loaded from JSONs under `kb/`):
 
-- Main location: `kb/programming_languages/` (go/ for constructs, operators, packages, syntax + recipes/ for interface examples + examples/ for sum_program).
-- Each `Concept` has: `id`, `kind`, `parents` / `is_a`, `relations` (e.g. `hasIngredients`, `hasInstructions`, `needs`, `requires`, `produces`), `emitters` (templates for output), `keywords`.
+- Modern examples: `kb/programming_languages/go/...` (constructs, syntax, operators, packages — see e.g. `syntax/print.json` for a representative shape with `relations` for `needs`/`produces`/`partOf`, top-level `context`/`confidence`/`source`/`date`, `emitters`, `keywords`), `kb/recipes/` (the `Recipe` INTERFACE + concrete recipes like `fried_egg` demonstrating `hasIngredients`/`hasInstructions` + class matching), `kb/botany/banana.json` (FACT using `isA` + `parents` for classification).
+- Each `Concept` has: `id`, `kind`, `isA` / `parents` (for "is a" / classification — e.g. banana isA fruit), `relations` (e.g. `hasIngredients`, `hasInstructions`, `needs`, `requires`, `produces`, `partOf`, `specializes`), `emitters` (templates for output), `keywords`.
+- "is a" relationships (banana isA fruit) are expressed with top-level `isA` (or `is_a`/`isa`) and/or `parents`; the loader and `is_a()` / ancestor walking understand them. Legacy `definitions` arrays inside `relations` are no longer used for new content.
 - Interfaces are first-class: a `Recipe` (or any) interface declares required relations via `requires`; concrete concepts provide values. `apply_interface_satisfaction` + `resolve_dependencies` unlock and expand the associated ordered instructions once requirements (including class/subclass matching via `is_a`) are met by context.
-- `emitters` are used by the existing `emit`/`render` for final output (works for both codegen and natural-language step lists).
+- `emitters` (or the structural fallback in `render` for FACTs using isA/parents) are used by `emit`/`render` for final output (code or natural language).
 
 The older triplet `kb/*.json` files and a legacy `Node` style in `kb.py` exist for historical reasons but the active system is the JSON `Ontology`.
 
-Adding new capabilities is usually just adding JSON concept files (or extending relations/emitters). Keyword + relation matching makes new nodes automatically discoverable.
+Adding new capabilities is usually just adding JSON concept files (or extending relations/emitters/parents/isA). Keyword + relation matching makes new nodes automatically discoverable. Recipes live at `kb/recipes/` (no longer under programming_languages).
 
 ---
 

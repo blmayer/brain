@@ -41,45 +41,103 @@ def solve_plan(plan: Any) -> ExecNode:
     if isinstance(plan, dict):
         plan_type = plan.get("type")
 
-        if plan_type == "ontology_driven_plan":
-            # New flow: we already have the resolved concepts from dependency resolution
-            resolved = plan.get("all_concepts", [])
-            # If we are emitting a list of executable steps (from satisfied interface
-            # instructions), use a silent root so we do not emit an extra "func ..."
-            # wrapper line from the codegen-oriented FunctionDeclaration.
-            has_executable_steps = any(
-                (isinstance(c, Concept) and (c.kind == "ACTION" or bool(getattr(c, "emitters", None))))
+        resolved = plan.get("all_concepts", [])
+        # If we are emitting a list of executable steps (from satisfied interface
+        # instructions), use a silent root so we do not emit an extra "func ..."
+        # wrapper line from the codegen-oriented FunctionDeclaration.
+        has_executable_steps = any(
+            (isinstance(c, Concept) and (c.kind == "ACTION" or bool(getattr(c, "emitters", None))))
+            for c in resolved
+        )
+        if has_executable_steps:
+            program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
+            # no emitters => render will produce nothing for the root
+        else:
+            # Avoid hardcoded codegen wrapper for general KB / fact use.
+            # Only pick the Go function declaration root for actual code-synthesis plans.
+            looks_like_code = any(
+                isinstance(c, Concept) and (
+                    "programming_languages/go" in (getattr(c, "id", "") or "") or
+                    getattr(c, "kind", "") in ("SYNTACTIC_CONSTRUCT", "PLAN_TEMPLATE")
+                )
                 for c in resolved
             )
-            if has_executable_steps:
-                program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
-                # no emitters => render will produce nothing for the root
-            else:
+            if looks_like_code:
                 program_concept = get_concept("programming_languages/go/constructs/function_declaration") or Concept(
                     id="Program", kind="Program", name="Main Program"
                 )
-            root = ExecNode(concept=program_concept)
+            else:
+                program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
+        root = ExecNode(concept=program_concept)
 
-            for concept in resolved:
-                if isinstance(concept, Concept):
-                    root.deps.append(ExecNode(concept=concept))
+        for concept in resolved:
+            if isinstance(concept, Concept):
+                root.deps.append(ExecNode(concept=concept))
 
-            return root
-
-        fb = get_concept("programming_languages/go/constructs/function_declaration") or Concept(id="Unknown", kind="Unknown", name="Unknown")
-        return ExecNode(concept=fb)
-
-    fb = get_concept("programming_languages/go/constructs/function_declaration") or Concept(id="Fallback", kind="Fallback", name="Fallback")
-    return ExecNode(concept=fb)
-
-# Legacy solve_plan body completely removed.
-# We are now fully on the new ontology-native flow.
+        return root
 
 
 def render(concept: Concept, bindings: Dict[str, str]) -> str:
     """Render a Concept using its emitters and the current bindings."""
     logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
     if not concept or not concept.emitters:
+        # Modern structural fallback for knowledge/FACT nodes:
+        # "X is a Y" is modeled via top-level "isA" / "parents" (or relations.isA)
+        # rather than legacy "definitions" arrays (we don't use definitions any more
+        # for new entries; see banana.json under botany/ as the example with "isA").
+        # This produces natural language classification sentences when a FACT
+        # (e.g. "botany/banana" isA "botany/fruit") ends up in a resolved plan.
+        name = getattr(concept, "name", None) or str(getattr(concept, "id", "Unknown")).rsplit("/", 1)[-1].capitalize()
+
+        # Collect isA targets (explicit "isA"/"is_a" at root or in raw, plus parents)
+        isas = []
+        raw = getattr(concept, "raw", {}) or {}
+        for k in ("isA", "is_a", "isa"):
+            val = raw.get(k) or getattr(concept, k, None)
+            if val:
+                if isinstance(val, (list, tuple)):
+                    isas.extend([v for v in val if v])
+                elif val:
+                    isas.append(val)
+        pars = getattr(concept, "parents", []) or []
+        for p in pars:
+            if p not in isas:
+                isas.append(p)
+
+        if isas:
+            p = isas[0]
+            if isinstance(p, Concept):
+                pname = getattr(p, "name", str(p)).lower()
+            else:
+                pname = str(p).rsplit("/", 1)[-1].replace("_", " ").lower()
+            article = "an" if pname and pname[0] in "aeiou" else "a"
+            return f"{name} is {article} {pname}."
+
+        # Legacy definitions fallback (kept only for any old data files that still
+        # carry them; new content should use parents + isA instead).
+        rels = getattr(concept, "relations", {}) or {}
+        dlist = rels.get("definitions") or []
+        if not dlist and isinstance(getattr(concept, "raw", None), dict):
+            dlist = concept.raw.get("definitions", []) or []
+        if dlist:
+            # Prefer highest-confidence "is ..." definition
+            best = None
+            best_conf = -1.0
+            for d in dlist:
+                if isinstance(d, dict) and d.get("verb") == "is" and d.get("object"):
+                    try:
+                        conf = float(d.get("confidence", 0))
+                    except Exception:
+                        conf = 0.0
+                    if conf > best_conf:
+                        best_conf = conf
+                        best = d
+            if best:
+                return f"{name} is {best['object']}."
+            for d in dlist:
+                if isinstance(d, dict) and d.get("object"):
+                    return f"{name} is {d['object']}."
+
         # Return empty so concepts without emitters (e.g. synthetic roots for
         # executable instruction lists, or abstract nodes) contribute nothing
         # to the final output. The current emitter machinery is used as-is.
@@ -118,10 +176,6 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
         out.append(line)
 
     return out
-
-
-# Legacy plan-building helpers (make_plan / make_var_plan) and the old demo
-# have been removed. We now use the ontology-native flow exclusively.
 
 
 # ------------------------------------------------------------------
@@ -604,11 +658,17 @@ def _features_to_plan(tree) -> dict:
     """
     get_ontology()
 
-    logger.info("Building ontology-driven plan...")
-
     add_concepts(tree)                                   # mutates tree in place
     bind_tree_arguments(tree)                            # structural argument binding
     initial_concepts = _collect_concepts_from_tree(tree)
+
+    # Log matched concepts at INFO so users see what the ontology bound.
+    if initial_concepts:
+        logger.info("Matched concepts from sentence: %s", [c.id for c in initial_concepts])
+    else:
+        logger.info("Matched concepts from sentence: []")
+
+    logger.info("Building ontology-driven plan...")
 
     resolved_concepts = _resolve_dependencies(initial_concepts)
 

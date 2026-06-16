@@ -1,5 +1,5 @@
 {
-  "id": "programming_languages/recipes/wait",
+  "id": "recipes/wait",
   "kind": "ACTION",
   "name": "Wait",
   "is_a": "action",

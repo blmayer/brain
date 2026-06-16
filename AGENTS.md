@@ -99,7 +99,7 @@ Key test files:
 | `parsers.py`               | Parser ABC + RegexpChunkParser (default), Chart, CoreNLP, Stanza impls |
 | `coreference_resolver.py`  | Pronoun resolution logic |
 | `augment.py`               | `tree_to_solved_plan()`, `solve_plan()`, `emit()`, plan construction |
-| `kb.py`                    | Python-native Knowledge Base (`Node`, `needs`, `produces`, `emits`) |
+| `kb.py`                    | Python-native Knowledge Base (`Concept`, `needs`, `produces`, `emitters`, `parents`/`isA`, `relations`) |
 | `requirements.txt`         | Python dependencies |
 | `test_augment.py`          | Tests for the augmentation + emission pipeline |
 
@@ -110,20 +110,20 @@ Key test files:
 ## Development Guidelines for Agents
 
 - **Prefer the Python path** for new features unless explicitly told otherwise.
-- The Knowledge Base lives primarily in `kb.py`. Add new templates (e.g. loops, conditionals, other languages) there.
+- The Knowledge Base lives primarily in `kb.py`. Add new templates (e.g. loops, conditionals, other languages) or FACTs (model "X isA Y" via top-level `isA` + `parents`; use `relations` for needs/produces/partOf/specializes etc.) there.
 - Feature detection in `_extract_intent_features()` is **KB-driven** — new node IDs in `KB` are automatically discovered from user sentences.
-- When changing the plan emission logic, update both `augment.py` and `kb.py`.
+- When changing the plan emission logic (including structural render fallback for isA/parents on FACTs), update both `augment.py` and `kb.py`.
 - Keep `AGENTS.md` and `README.md` in sync when setup steps change.
 - Always run the relevant tests after making changes to `augment.py`, `kb.py`, or the JSON files under `kb/`.
-- The JSON files under `kb/programming_languages/go/` (especially the plan templates) are the data source for executable steps and should be kept in the Node format.
+- Recipes live at `kb/recipes/`. The JSON files under `kb/programming_languages/go/` (plan templates) + `kb/recipes/` are the data source for executable steps and should follow the current `Concept` shape (relations + parents/isA + emitters).
 
 ---
 
 ## Common Tasks
 
 **Add a new capability to the KB:**
-1. Add a new `Node` entry in `kb.py`
-2. (Optional) Add corresponding JSONs under `kb/programming_languages/...` for reference
+1. Add a new `Concept` (as JSON) under `kb/`. Use `parents`/`isA` for "is a" (e.g. banana isA fruit), `relations` for other links, `emitters` for renderable output.
+2. (Optional) Add corresponding JSONs under `kb/programming_languages/...` or `kb/recipes/` for reference
 3. Update tests in `test_augment.py` if behavior changes
 
 **Improve natural language understanding:**

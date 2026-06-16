@@ -22,7 +22,7 @@
       "linguistics/interrogative/how"
     ],
     "specializes": [
-      "programming_languages/recipes/recipe"
+      "recipes/recipe"
     ]
   },
   "keywords": [

@@ -166,7 +166,7 @@ A concept can have multiple emitters (different styles, different constraints).
 
 See accompanying files under:
 - `kb/programming_languages/go/constructs/`
-- `kb/programming_languages/recipes/`
+- `kb/recipes/`
 - `kb/programming_languages/examples/`
 
 ---
@@ -175,7 +175,7 @@ See accompanying files under:
 
 - The current `kb.py` will evolve to become the main `Ontology` container.
 - `augment.py` / `tree_to_solved_plan` will gradually transition from flat KB lookup to ontology-guided expansion.
-- JSON files under `kb/programming_languages/` (go/ + recipes/ + examples/) are the canonical source of truth for concepts.
+- JSON files under `kb/` (programming_languages/go/ + recipes/ etc.) are the canonical source of truth for concepts.
 
 ---
 

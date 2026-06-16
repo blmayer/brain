@@ -17,6 +17,11 @@ if __name__ == "__main__":
     logger = get_logger(__name__)
     logger.info("Starting Brain (ontology-driven mode)")
 
+    # Eagerly load the ontology at startup so the INFO log ("Ontology loaded with N concepts")
+    # and the kb_graph.html export happen before the first REPL prompt.
+    from kb import get_ontology
+    get_ontology()
+
     parser = get_default_parser()
 
     while True:

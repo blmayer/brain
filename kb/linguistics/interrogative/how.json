@@ -23,7 +23,7 @@
     ],
     "relatedTo": [
       {
-        "target": "programming_languages/recipes/recipe"
+        "target": "recipes/recipe"
       },
       {
         "target": "computer-science/algorithm"
