@@ -1,7 +1,9 @@
 # Project Design: Semantic Decomposition & Graph-Based Assembly
 
 ## Overview
-The goal is to move away from pure LLM-based code generation towards a **Knowledge-Driven Assembly** model. Instead of asking an LLM to "write code," we use the LLM to "translate intent" and then use a structured Knowledge Base (`kb/`) to "assemble instructions."
+The goal is to move away from pure LLM-based code generation towards a **Knowledge-Driven Assembly** model in which the ontology itself guides the solution.
+
+Instead of asking an LLM to "write code," we use the LLM (or a parser) only to translate intent into initial concepts. The structured Knowledge Base (`kb/`) — through its relations (`needs`, `produces`, `requires`, `hasInstructions`, `parents`/`isA`, etc.), interfaces, and resolution logic — then drives plan expansion, requirement satisfaction, and what executable content actually participates in the final result. Emission is limited to nodes the ontology resolution selected that declare emitters.
 
 ## The Four-Phase Pipeline
 
@@ -17,13 +19,12 @@ An engine expands the Intent Specification into a **Dependency Graph of Implemen
     - `arithmetic_sum` $\rightarrow$ `[perform_addition]`
     - `output_display` $\rightarrow$ `[print_result]`
 
-### Phase 3: Knowledge-Driven Assembly (The KB Resolver)
-For every node in the Implementation Graph, the system performs a targeted query against the `kb/` directory.
-- **Process:**
-    1.  Identify the node's semantic requirements.
-    2.  Query the Knowledge Base (e.g., `kb/programming_languages/go/syntax/var.json`).
-    3.  Synthesize a **Code Fragment** using the retrieved facts.
-- **Crucial Aspect:** The KB provides the "atoms" of code (the syntax, the operators, the library functions) to ensure correctness and prevent hallucinations.
+### Phase 3: Ontology-Guided Assembly (The KB Resolver)
+After initial concepts are seeded from the input, the ontology itself guides the solution:
+- The resolver walks the KB graph using declared relations (`needs`/`produces`, `relatedTo`, `requires`, `hasInstructions`, `parents`/`isA`, interface contracts, etc.).
+- `resolve_dependencies`, interface satisfaction, and requirement expansion pull in only the nodes the ontology says are required.
+- The resulting plan contains exactly the executable content (steps, constructs, emitters) dictated by the KB structure.
+- **Crucial Aspect:** There are no special query handlers or manually pushed nodes. The shape of the ontology determines what a "how", a recipe, a program synthesis request, etc. will produce. The KB supplies both the atoms *and* the rules for assembling them.
 
 ## Advantages
 1.  **Precision:** Uses structured facts instead of probabilistic guesses.

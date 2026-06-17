@@ -2,7 +2,12 @@
 
 **Knowledge-driven program synthesis and semantic reasoning.**
 
-`brain` stores knowledge as a structured Ontology of Concepts (JSON-driven, with relations, emitters, and first-class interface support) and uses requirement satisfaction + recursive resolution to assemble correct outputs (code or ordered instruction lists) instead of relying on LLM hallucination.
+`brain` stores knowledge as a structured Ontology of Concepts (JSON-driven, with `parents`/`isA`, rich `relations` such as `needs`/`produces`/`requires`/`hasInstructions`, emitters, and first-class interfaces). 
+
+The ontology itself guides the solution:
+- Natural language is parsed and matched against KB concepts to seed an initial plan.
+- The KB's relations, interfaces, and structure then drive dependency resolution, requirement satisfaction, instruction expansion, and what content actually participates in the final output.
+- Only nodes that the ontology brings in (via needs, produces, relatedTo, interface contracts, etc.) and that declare `emitters` contribute to the result. No hard-coded query paths or node pushing — the graph determines the solution.
 
 The active implementation is in Python.
 
@@ -14,7 +19,7 @@ This is the actively evolving implementation.
 
 ### Pipeline
 
-The system follows an ontology-driven flow:
+The system follows an **ontology-guided** flow. Matching seeds initial concepts from the input; the KB's own relations, interfaces, and structure then guide expansion, satisfaction, and emission:
 
 ```mermaid
 flowchart TD
@@ -23,13 +28,13 @@ flowchart TD
     
     B --> C[tree_to_solved_plan]
     
-    C --> D[add_concepts + bind_tree_arguments]
+    C --> D[add_concepts + bind_tree_arguments<br/>Match words → KB Concepts]
     
-    D --> E[_resolve_dependencies + apply_interface_satisfaction + resolve_dependencies<br/>Requirement satisfaction + executable instruction expansion]
+    D --> E[_resolve_dependencies + apply_interface_satisfaction + resolve_dependencies<br/><b>Ontology guides the solution</b>: walk needs/produces/relatedTo/requires,<br/>satisfy interfaces (e.g. Recipe), expand hasInstructions etc.]
     
     E --> F[solve_plan]
     
-    F --> G[emit<br/>Using Concept emitters from ontology]
+    F --> G[emit<br/>Only emitter-bearing nodes resolved by the ontology contribute output]
     
     D -.-> H[get_ontology]
     E -.-> H
@@ -83,9 +88,9 @@ sequenceDiagram
 **Key observations from this trace:**
 - Concept discovery is entirely **KB-driven** (no hardcoded verb lists) via `find_concepts_matching` against the loaded ontology.
 - `add_concepts` + `bind_tree_arguments` attach ontology Concepts to the parse tree.
-- `_resolve_dependencies` + `apply_interface_satisfaction` + `resolve_dependencies` walk relations, perform requirement satisfaction (including interface + class matching like `Spice`), and expand executable instruction lists from the ontology.
-- The final `ExecNode` tree (or direct executable steps) is emitted via per-Concept `emitters` (templates) stored in the ontology JSON files.
-- The system now supports general "satisfy requirements → execute the associated ordered instructions" (recipes are one example using `hasIngredients` + `hasInstructions` + action nodes). Emission for the codegen path still includes some placeholders for abstract nodes.
+- The ontology **guides the solution**: `_resolve_dependencies`, `apply_interface_satisfaction`, and `resolve_dependencies` walk the KB's relations (`needs`, `produces`, `relatedTo`, `requires`, `hasInstructions`, `parents`/`isA`, etc.), satisfy declared interfaces, and pull in only the executable content the KB says is needed.
+- Emission is strict — only nodes that the ontology resolution brought into the plan *and* that declare `emitters` produce output. There are no special query paths or automatic "pushing" of matched nodes.
+- This design lets the KB structure itself determine answers (e.g. a `how` interrogative whose relations pull procedure/recipe instructions, or a `Recipe` interface whose `hasInstructions` expand into steps).
 
 ### Getting Started (Python)
 
@@ -156,7 +161,7 @@ Knowledge lives primarily as a structured **Ontology** of `Concept`s (loaded fro
 - Each `Concept` has: `id`, `kind`, `isA` / `parents` (for "is a" / classification — e.g. banana isA fruit), `relations` (e.g. `hasIngredients`, `hasInstructions`, `needs`, `requires`, `produces`, `partOf`, `specializes`), `emitters` (templates for output), `keywords`.
 - "is a" relationships (banana isA fruit) are expressed with top-level `isA` (or `is_a`/`isa`) and/or `parents`; the loader and `is_a()` / ancestor walking understand them. Legacy `definitions` arrays inside `relations` are no longer used for new content.
 - Interfaces are first-class: a `Recipe` (or any) interface declares required relations via `requires`; concrete concepts provide values. `apply_interface_satisfaction` + `resolve_dependencies` unlock and expand the associated ordered instructions once requirements (including class/subclass matching via `is_a`) are met by context.
-- `emitters` (or the structural fallback in `render` for FACTs using isA/parents) are used by `emit`/`render` for final output (code or natural language).
+- The ontology guides what participates in the solution and what gets emitted. `emit`/`render` only produce output for nodes that have `emitters` *and* were brought into the plan by ontology-driven resolution.
 
 The older triplet `kb/*.json` files and a legacy `Node` style in `kb.py` exist for historical reasons but the active system is the JSON `Ontology`.
 

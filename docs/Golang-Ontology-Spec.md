@@ -174,7 +174,7 @@ See accompanying files under:
 ## 9. Integration with Existing Codebase
 
 - The current `kb.py` will evolve to become the main `Ontology` container.
-- `augment.py` / `tree_to_solved_plan` will gradually transition from flat KB lookup to ontology-guided expansion.
+- `augment.py` / `tree_to_solved_plan` seeds initial concepts from the parse tree; the rest of the solution (dependency expansion, interface satisfaction, instruction ordering, what gets emitted) is guided by the ontology's relations, `parents`/`isA`, `requires`, `hasInstructions`, etc. There is no special-case query handling — the KB structure drives the result.
 - JSON files under `kb/` (programming_languages/go/ + recipes/ etc.) are the canonical source of truth for concepts.
 
 ---
