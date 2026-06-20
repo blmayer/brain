@@ -7,7 +7,7 @@
 The ontology itself guides the solution:
 - Natural language is parsed and matched against KB concepts to seed an initial plan.
 - The KB's relations, interfaces, and structure then drive dependency resolution, requirement satisfaction, instruction expansion, and what content actually participates in the final output.
-- Only nodes that the ontology brings in (via needs, produces, relatedTo, interface contracts, etc.) and that declare `emitters` contribute to the result. No hard-coded query paths or node pushing — the graph determines the solution.
+- Only nodes that the ontology brings in (via needs, produces, requires, hasInstructions, interface contracts, etc.) and that declare `emitters` contribute to the result. No hard-coded query paths or node pushing — the graph determines the solution.
 
 The active implementation is in Python.
 
@@ -30,7 +30,7 @@ flowchart TD
     
     C --> D[add_concepts + bind_tree_arguments<br/>Match words → KB Concepts]
     
-    D --> E[_resolve_dependencies + apply_interface_satisfaction + resolve_dependencies<br/><b>Ontology guides the solution</b>: walk needs/produces/relatedTo/requires,<br/>satisfy interfaces (e.g. Recipe), expand hasInstructions etc.]
+    D --> E[_resolve_dependencies + apply_interface_satisfaction + resolve_dependencies<br/><b>Ontology guides the solution</b>: walk needs/produces/requires/hasInstructions,<br/>satisfy interfaces (e.g. Recipe), expand hasInstructions etc.]
     
     E --> F[solve_plan]
     
@@ -88,7 +88,7 @@ sequenceDiagram
 **Key observations from this trace:**
 - Concept discovery is entirely **KB-driven** (no hardcoded verb lists) via `find_concepts_matching` against the loaded ontology.
 - `add_concepts` + `bind_tree_arguments` attach ontology Concepts to the parse tree.
-- The ontology **guides the solution**: `_resolve_dependencies`, `apply_interface_satisfaction`, and `resolve_dependencies` walk the KB's relations (`needs`, `produces`, `relatedTo`, `requires`, `hasInstructions`, `parents`/`isA`, etc.), satisfy declared interfaces, and pull in only the executable content the KB says is needed.
+- The ontology **guides the solution**: `_resolve_dependencies`, `apply_interface_satisfaction`, and `resolve_dependencies` walk the KB's relations (`needs`, `produces`, `requires`, `hasInstructions`, `parents`/`isA`, etc.), satisfy declared interfaces, and pull in only the executable content the KB says is needed.
 - Emission is strict — only nodes that the ontology resolution brought into the plan *and* that declare `emitters` produce output. There are no special query paths or automatic "pushing" of matched nodes.
 - This design lets the KB structure itself determine answers (e.g. a `how` interrogative whose relations pull procedure/recipe instructions, or a `Recipe` interface whose `hasInstructions` expand into steps).
 
@@ -159,7 +159,7 @@ Knowledge lives primarily as a structured **Ontology** of `Concept`s (loaded fro
 
 - Modern examples: `kb/programming_languages/go/...` (constructs, syntax, operators, packages — see e.g. `syntax/print.json` for a representative shape with `relations` for `needs`/`produces`/`partOf`, top-level `context`/`confidence`/`source`/`date`, `emitters`, `keywords`), `kb/recipes/` (the `Recipe` INTERFACE + concrete recipes like `fried_egg` demonstrating `hasIngredients`/`hasInstructions` + class matching), `kb/botany/banana.json` (FACT using `isA` + `parents` for classification).
 - Each `Concept` has: `id`, `kind`, `isA` / `parents` (for "is a" / classification — e.g. banana isA fruit), `relations` (e.g. `hasIngredients`, `hasInstructions`, `needs`, `requires`, `produces`, `partOf`, `specializes`), `emitters` (templates for output), `keywords`.
-- "is a" relationships (banana isA fruit) are expressed with top-level `isA` (or `is_a`/`isa`) and/or `parents`; the loader and `is_a()` / ancestor walking understand them. Legacy `definitions` arrays inside `relations` are no longer used for new content.
+- "is a" / parent relationships are expressed with `relations.hasParent` (canonical) and `relations.isA`. Top-level `parents` and the old `definitions` triplet arrays are no longer used. The loader and `is_a()` / ancestor walking read `hasParent`.
 - Interfaces are first-class: a `Recipe` (or any) interface declares required relations via `requires`; concrete concepts provide values. `apply_interface_satisfaction` + `resolve_dependencies` unlock and expand the associated ordered instructions once requirements (including class/subclass matching via `is_a`) are met by context.
 - The ontology guides what participates in the solution and what gets emitted. `emit`/`render` only produce output for nodes that have `emitters` *and* were brought into the plan by ontology-driven resolution.
 

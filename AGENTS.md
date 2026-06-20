@@ -64,7 +64,7 @@ This starts an interactive loop that:
 2. Runs NLTK tokenization + POS tagging + named entity chunking
 3. Performs coreference resolution (`coreference_resolver.py`)
 4. Calls `tree_to_solved_plan()` from `augment.py` (the key generic function)
-5. Matches words to KB Concepts, then lets the ontology guide the rest: `_resolve_dependencies`, interface satisfaction, and `resolve_dependencies` walk relations (`needs`, `produces`, `relatedTo`, `requires`, `hasInstructions`, `isA`/`parents`...) to expand the plan.
+5. Matches words to KB Concepts, then lets the ontology guide the rest: `_resolve_dependencies`, interface satisfaction, and `resolve_dependencies` walk relations (`needs`, `produces`, `requires`, `hasInstructions`, `isA`/`parents`...) to expand the plan.
 6. Only emitter-bearing nodes that the ontology resolution included are emitted via `emit()`.
 
 The ontology (not special query code) determines what instructions, answers, or code fragments appear.
@@ -112,7 +112,7 @@ Key test files:
 ## Development Guidelines for Agents
 
 - **Prefer the Python path** for new features unless explicitly told otherwise.
-- The Knowledge Base lives primarily in `kb.py`. Add new templates or FACTs (use `isA` + `parents` for classification; rich `relations` for `needs`/`produces`/`requires`/`hasInstructions`/etc.). The ontology's structure is what guides planning and solution assembly.
+- The Knowledge Base lives primarily in `kb.py`. Add new templates or FACTs (use `relations.hasParent` + `relations.isA` for classification/parents; rich `relations` like `needs`/`produces`/`requires`/`hasInstructions`/`has` etc.). The ontology's structure is what guides planning and solution assembly.
 - Feature detection in `_extract_intent_features()` is **KB-driven** — new node IDs in `KB` are automatically discovered from user sentences.
 - The core principle: **the ontology guides the solution**. After initial concept matching, resolution walks the KB graph; only what the relations bring in (and that have emitters) participates in output. Avoid special-casing queries or manually pushing nodes.
 - When changing resolution, interface satisfaction, or emission logic, update both `augment.py` and `kb.py`.
@@ -125,9 +125,10 @@ Key test files:
 ## Common Tasks
 
 **Add a new capability to the KB:**
-1. Add a new `Concept` (as JSON) under `kb/`. Use `parents`/`isA` for "is a", `relations` (`needs`, `produces`, `requires`, `hasInstructions`, etc.) so the ontology can guide resolution and expansion when this concept is matched.
-2. (Optional) Add corresponding JSONs under `kb/programming_languages/...` or `kb/recipes/` for reference
-3. Update tests in `test_augment.py` if behavior changes
+1. Add a new `Concept` (as JSON) under `kb/`. Use `relations.hasParent` (and `relations.isA`) for "is a"/classification instead of top-level `parents`; put other definitional knowledge under `isA`/`has`/etc relations (no more `definitions` triplet lists). Use other `relations` (`needs`, `produces`, `requires`, `hasInstructions`, ...) so the ontology can guide resolution.
+2. (Optional) Add corresponding JSONs under `kb/programming_languages/...` or `kb/recipes/` for reference.
+3. Follow the guidelines in `kb/README.md`.
+4. Update tests in `test_augment.py` if behavior changes.
 
 **Improve natural language understanding:**
 - Modify logic in `_extract_intent_features()` and `_features_to_plan()` in `augment.py`

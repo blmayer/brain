@@ -3,11 +3,6 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Function Declaration",
   "description": "A named function definition at package or local scope.",
-  "parents": [
-    "programming_languages/go/constructs/callable",
-    "Declaration",
-    "Statement"
-  ],
   "keywords": [
     "function",
     "func",
@@ -49,6 +44,17 @@
       {
         "target": "programming_languages/go/constructs/package",
         "cardinality": "0..1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/callable"
+      },
+      {
+        "target": "Declaration"
+      },
+      {
+        "target": "Statement"
       }
     ]
   },

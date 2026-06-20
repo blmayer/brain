@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Earth",
   "relations": {
-    "definitions": [
-      {
-        "subject": "earth",
-        "verb": "is",
-        "object": "planet",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/astronomy"
-      },
-      {
-        "subject": "earth",
-        "verb": "is",
-        "object": "third planet from sun",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/astronomy"
-      },
-      {
-        "subject": "earth",
-        "verb": "is",
-        "object": "rocky",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/planetary-science"
-      }
-    ],
     "partOf": [
       {
         "target": "astronomy/planet"
@@ -39,6 +10,11 @@
       {
         "target": "physics/gravity"
       }
+    ],
+    "isA": [
+      "planet",
+      "third planet from sun",
+      "rocky"
     ]
   },
   "keywords": [

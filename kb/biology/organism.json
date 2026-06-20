@@ -3,17 +3,6 @@
   "kind": "FACT",
   "name": "Organism",
   "relations": {
-    "definitions": [
-      {
-        "subject": "organism",
-        "verb": "is",
-        "object": "individual living thing",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/ecology"
-      }
-    ],
     "partOf": [
       {
         "target": "animal"
@@ -24,6 +13,9 @@
       {
         "target": "biology/habitat"
       }
+    ],
+    "isA": [
+      "individual living thing"
     ]
   },
   "keywords": [

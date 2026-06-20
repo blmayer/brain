@@ -2,7 +2,6 @@
   "id": "recipes/add_pepper",
   "kind": "ACTION",
   "name": "Add Pepper",
-  "is_a": "action",
   "description": "Add pepper (a spice instance).",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "add_pepper"
-  ]
+  ],
+  "relations": {}
 }

@@ -464,9 +464,8 @@ class TestQueryIdealTree(unittest.TestCase):
 
     The ideal tree is the desired "parsed result" for the sentence "what is a banana?".
     We validate that this ideal parsed tree leads to banana (and related) concepts
-    being collected in the normal ontology-driven plan, and that the final
-    solved+emit produces definition text sourced from the banana Concept's data
-    (instead of falling back to code wrappers or empty output).
+    being collected in the normal ontology-driven plan via relations (hasParent/isA).
+    Pure facts are included in the plan but do not auto-emit (no emitters, no definitions field).
     """
 
     # This string documents the ideal parsed tree shape (the "gold" output we
@@ -503,19 +502,39 @@ class TestQueryIdealTree(unittest.TestCase):
             ])
         ])
 
-    def _ideal_banana_definitions(self):
+    def _ideal_banana_isas(self):
         """
-        Returns classification sentence(s) for banana derived from its
-        isA / parents (modern style) or legacy definitions. Used to
-        cross-check that the pipeline surfaced real "is a" content.
+        Returns 'isA' or parent classification info for banana derived from
+        the new canonical locations (relations.isA, relations.hasParent, parents).
         """
         banana = get_concept("botany/banana")
         if banana is None:
             return []
-        name = getattr(banana, "name", "Banana")
-        # Prefer modern isA/parents
         isas = []
         raw = getattr(banana, "raw", {}) or {}
+        rels = getattr(banana, "relations", {}) or {}
+
+        # Check relations first (new style)
+        for k in ("isA", "is_a", "isa"):
+            val = rels.get(k)
+            if val:
+                if isinstance(val, (list, tuple)):
+                    isas.extend(val)
+                else:
+                    isas.append(val)
+        for k in ("hasParent", "has_parent"):
+            val = rels.get(k)
+            if val:
+                if not isinstance(val, list):
+                    val = [val]
+                for v in val:
+                    if isinstance(v, dict):
+                        t = v.get("target") or v.get("id")
+                        if t: isas.append(t)
+                    elif isinstance(v, str):
+                        isas.append(v)
+
+        # legacy top-level
         for k in ("isA", "is_a", "isa"):
             val = raw.get(k) or getattr(banana, k, None)
             if val:
@@ -525,27 +544,10 @@ class TestQueryIdealTree(unittest.TestCase):
                     isas.append(val)
         pars = getattr(banana, "parents", []) or []
         for p in pars:
-            if p not in isas:
-                isas.append(p)
-        if isas:
-            p = isas[0]
-            if isinstance(p, Concept):
-                pname = getattr(p, "name", str(p))
-            else:
-                pname = str(p).rsplit("/", 1)[-1].replace("_", " ")
-            article = "an" if pname and str(pname)[0].lower() in "aeiou" else "a"
-            return [f"{name} is {article} {pname}."]
-        # legacy definitions (for any old data)
-        defs = []
-        dlist = (banana.relations or {}).get("definitions") or []
-        if not dlist and isinstance(getattr(banana, "raw", None), dict):
-            dlist = banana.raw.get("definitions", [])
-        for d in dlist:
-            if isinstance(d, dict):
-                obj = d.get("object")
-                if obj:
-                    defs.append(f"{name} is {obj}.")
-        return defs
+            pid = getattr(p, "id", p) if isinstance(p, Concept) else p
+            if pid and pid not in isas:
+                isas.append(pid)
+        return isas
 
     def test_ideal_parsed_tree_validates_and_produces_ontology_plan_with_banana(self):
         """
@@ -598,10 +600,9 @@ class TestQueryIdealTree(unittest.TestCase):
     def test_solve_plan_on_ideal_query_and_compare_result_to_ideal(self):
         """
         After validating the parsed result (ideal tree) is turned into a normal
-        ontology-driven plan, solve that plan and check that emit produces
-        definition content for banana (sourced via the Concept's definitions
-        data during render of the resolved nodes). No special definition_query
-        root or plan type is involved.
+        ontology-driven plan, solve that plan. Pure fact nodes (banana) are
+        included via relations (hasParent/isA) but do not auto-emit text
+        (emitters are required for output). We verify the concepts were resolved.
         """
         ideal_tree = self._build_ideal_what_is_banana_tree()
         resolved = resolve_pronouns(ideal_tree)
@@ -612,28 +613,16 @@ class TestQueryIdealTree(unittest.TestCase):
         self.assertIsNotNone(solved)
         self.assertIsNotNone(solved.concept)
 
-        # The root for a pure knowledge/definition plan is a silent ExecutionList
-        # (or equivalent); the actual definition text comes from rendering deps
-        # such as the banana concept (via generic definitions fallback in render).
         lines = emit(solved)
         self.assertIsInstance(lines, list)
-        self.assertTrue(len(lines) > 0, "Expected definition output lines for the ideal query tree")
-
-        output = "\n".join(lines).lower()
-        expected_phrases = self._ideal_banana_definitions()
-        # At least one emitted line should match one of the definition sentences
-        # (the render fallback produces a single best/highest-conf one per concept).
-        has_def = any(
-            (phrase.lower() in output) or (phrase.split(" is ", 1)[-1].lower() in output)
-            for phrase in expected_phrases if " is " in phrase
-        ) or any(kw in output for kw in ("fruit", "edible", "yellow", "musa", "genus"))
+        # With definitions removed and no emitters on banana, expect no emitted lines
+        # from the fact itself. The important thing is that the ontology matched
+        # the interrogative + banana via keywords and relations.
+        starting = [c.lower() for c in plan.get("starting_concepts", [])]
         self.assertTrue(
-            has_def,
-            f"Expected definition text derived from banana in emitted lines, got: {lines}"
+            any("banana" in s for s in starting),
+            f"Expected 'banana' among starting_concepts, got: {starting}"
         )
-
-        # No fallback/unknown text.
-        self.assertNotIn("i don't know", output)
 
 
 # ------------------------------------------------------------------
@@ -803,9 +792,9 @@ class TestInterfaceSatisfaction(unittest.TestCase):
 
 class TestQueryIntentionFromPOSTags(unittest.TestCase):
     """Integration tests for questions such as 'what is a banana?'.
-    The normal ontology-driven plan + concept resolution + generic render
-    fallback for nodes carrying definitions should produce a KB-backed
-    natural language answer instead of code or empty output.
+    The normal ontology-driven plan + concept resolution using relations
+    (hasParent, isA, etc.) pulls the relevant FACTs. Pure facts do not
+    auto-emit text after removal of the definitions mechanism.
     """
 
     def setUp(self):
@@ -818,23 +807,17 @@ class TestQueryIntentionFromPOSTags(unittest.TestCase):
         task = "what is a banana?"
         resolved_tree, parsed_tree = self.parser.parse(task)
 
-        # The pipeline (normal ontology-driven path + render fallback for
-        # definition-bearing concepts) should surface real KB definition text.
+        # The pipeline should match the interrogative "what" + the "banana" FACT
+        # via keywords and bring them into the resolved plan using relations
+        # (hasParent / isA). Pure facts do not emit text without emitters.
         solved = tree_to_solved_plan(parsed_tree, resolved_tree)
         lines = emit(solved)
 
         self.assertIsInstance(lines, list)
-        self.assertTrue(len(lines) > 0, "Query should have produced output lines")
-
-        output = "\n".join(lines).lower()
-        self.assertTrue(
-            any(kw in output for kw in ("fruit", "edible", "yellow", "musa", "genus")),
-            f"Expected definition text for banana, got: {lines}"
-        )
+        self.assertIsNotNone(solved)
 
     def test_program_sentence_does_not_trigger_query(self):
-        # A normal synthesis sentence should still produce program-related output
-        # (and not be polluted by unrelated definition fallbacks).
+        # A normal synthesis sentence should still produce program-related output.
         task = "write a program that reads 2 integers and prints their sum"
         resolved_tree, parsed_tree = self.parser.parse(task)
         solved = tree_to_solved_plan(parsed_tree, resolved_tree)

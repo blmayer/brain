@@ -3,9 +3,6 @@
   "kind": "INTERROGATIVE",
   "name": "How",
   "description": "Interrogative used to request information about manner, method, procedure, process, or degree.",
-  "parents": [
-    "linguistics/interrogative"
-  ],
   "relations": {
     "needs": [
       {
@@ -21,12 +18,9 @@
         "target": "linguistics/answer"
       }
     ],
-    "relatedTo": [
+    "hasParent": [
       {
-        "target": "recipes/recipe"
-      },
-      {
-        "target": "computer-science/algorithm"
+        "target": "linguistics/interrogative"
       }
     ]
   },

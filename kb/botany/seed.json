@@ -4,18 +4,12 @@
   "name": "Seed",
   "relations": {
     "partOf": [
-      {"target": "botany/plant"}
-    ],
-    "definitions": [
       {
-        "subject": "seed",
-        "verb": "is",
-        "object": "embryonic plant",
-        "confidence": 0.98,
-        "source": "botany",
-        "date": "2024-01-01",
-        "context": "biology/botany"
+        "target": "botany/plant"
       }
+    ],
+    "isA": [
+      "embryonic plant"
     ]
   },
   "keywords": [

@@ -2,20 +2,14 @@
   "id": "biology/virus",
   "kind": "FACT",
   "name": "Virus",
-  "parents": [
-    "biology/organism"
-  ],
   "relations": {
-    "definitions": [
+    "hasParent": [
       {
-        "subject": "virus",
-        "verb": "is",
-        "object": "submicroscopic infectious agent",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/virology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "submicroscopic infectious agent"
     ]
   },
   "keywords": [

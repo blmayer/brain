@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Programming",
   "relations": {
-    "definitions": [
-      {
-        "subject": "programming",
-        "verb": "is",
-        "object": "writing code",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/programming"
-      },
-      {
-        "subject": "programming",
-        "verb": "is",
-        "object": "solving problems",
-        "confidence": 0.95,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/problem-solving"
-      },
-      {
-        "subject": "programming",
-        "verb": "is",
-        "object": "creative",
-        "confidence": 0.85,
-        "source": "programming knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/culture"
-      }
-    ],
     "partOf": [
       {
         "target": "computer-science/software"
@@ -39,6 +10,11 @@
       {
         "target": "computer-science/algorithm"
       }
+    ],
+    "isA": [
+      "writing code",
+      "solving problems",
+      "creative"
     ]
   },
   "keywords": [

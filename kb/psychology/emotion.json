@@ -4,18 +4,12 @@
   "name": "Emotion",
   "relations": {
     "partOf": [
-      {"target": "psychology/mind"}
-    ],
-    "definitions": [
       {
-        "subject": "emotion",
-        "verb": "is",
-        "object": "feeling or reaction",
-        "confidence": 0.95,
-        "source": "psychology",
-        "date": "2024-01-01",
-        "context": "psychology/affective-science"
+        "target": "psychology/mind"
       }
+    ],
+    "isA": [
+      "feeling or reaction"
     ]
   },
   "keywords": [

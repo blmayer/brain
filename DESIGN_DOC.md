@@ -3,7 +3,7 @@
 ## Overview
 The goal is to move away from pure LLM-based code generation towards a **Knowledge-Driven Assembly** model in which the ontology itself guides the solution.
 
-Instead of asking an LLM to "write code," we use the LLM (or a parser) only to translate intent into initial concepts. The structured Knowledge Base (`kb/`) — through its relations (`needs`, `produces`, `requires`, `hasInstructions`, `parents`/`isA`, etc.), interfaces, and resolution logic — then drives plan expansion, requirement satisfaction, and what executable content actually participates in the final result. Emission is limited to nodes the ontology resolution selected that declare emitters.
+Instead of asking an LLM to "write code," we use the LLM (or a parser) only to translate intent into initial concepts. The structured Knowledge Base (`kb/`) — through its relations (`needs`, `produces`, `requires`, `hasInstructions`, `hasParent`/`isA` (inside relations), etc.), interfaces, and resolution logic — then drives plan expansion, requirement satisfaction, and what executable content actually participates in the final result. Emission is limited to nodes the ontology resolution selected that declare emitters.
 
 ## The Four-Phase Pipeline
 
@@ -21,7 +21,7 @@ An engine expands the Intent Specification into a **Dependency Graph of Implemen
 
 ### Phase 3: Ontology-Guided Assembly (The KB Resolver)
 After initial concepts are seeded from the input, the ontology itself guides the solution:
-- The resolver walks the KB graph using declared relations (`needs`/`produces`, `relatedTo`, `requires`, `hasInstructions`, `parents`/`isA`, interface contracts, etc.).
+- The resolver walks the KB graph using declared relations (`needs`/`produces`, `requires`, `hasInstructions`, `hasParent`/`isA` (inside `relations`), interface contracts, etc.). (The generic `relatedTo` edge and top-level `parents` + `definitions` triplets were removed; use `relations.hasParent` + `relations.isA` / `has` etc.)
 - `resolve_dependencies`, interface satisfaction, and requirement expansion pull in only the nodes the ontology says are required.
 - The resulting plan contains exactly the executable content (steps, constructs, emitters) dictated by the KB structure.
 - **Crucial Aspect:** There are no special query handlers or manually pushed nodes. The shape of the ontology determines what a "how", a recipe, a program synthesis request, etc. will produce. The KB supplies both the atoms *and* the rules for assembling them.

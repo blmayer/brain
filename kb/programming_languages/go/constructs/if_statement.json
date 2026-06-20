@@ -2,10 +2,6 @@
   "id": "programming_languages/go/constructs/if_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "If Statement",
-  "parents": [
-    "Statement",
-    "ControlFlowStatement"
-  ],
   "keywords": [
     "if",
     "else",
@@ -30,6 +26,14 @@
       {
         "target": "Statement",
         "cardinality": "0..1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
       }
     ]
   },

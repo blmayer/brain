@@ -3,9 +3,6 @@
   "kind": "INTERROGATIVE",
   "name": "What",
   "description": "Interrogative used to inquire about the identity, nature, definition, or composition of something.",
-  "parents": [
-    "linguistics/interrogative"
-  ],
   "relations": {
     "needs": [
       {
@@ -21,9 +18,9 @@
         "target": "linguistics/answer"
       }
     ],
-    "relatedTo": [
+    "hasParent": [
       {
-        "target": "data/information"
+        "target": "linguistics/interrogative"
       }
     ]
   },

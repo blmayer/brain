@@ -4,18 +4,12 @@
   "name": "Oxygen",
   "relations": {
     "partOf": [
-      {"target": "chemistry/chemistry"}
-    ],
-    "definitions": [
       {
-        "subject": "oxygen",
-        "verb": "is",
-        "object": "a highly reactive nonmetal element",
-        "confidence": 0.99,
-        "source": "chemistry",
-        "date": "2024-01-01",
-        "context": "chemistry/periodic-table"
+        "target": "chemistry/chemistry"
       }
+    ],
+    "isA": [
+      "a highly reactive nonmetal element"
     ]
   },
   "keywords": [

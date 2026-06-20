@@ -4,18 +4,12 @@
   "name": "Ecosystem",
   "relations": {
     "partOf": [
-      {"target": "biology/organism"}
-    ],
-    "definitions": [
       {
-        "subject": "ecosystem",
-        "verb": "is",
-        "object": "biological community of interacting organisms",
-        "confidence": 0.98,
-        "source": "ecology",
-        "date": "2024-01-01",
-        "context": "biology/ecology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "biological community of interacting organisms"
     ]
   },
   "keywords": [

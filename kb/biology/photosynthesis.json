@@ -4,18 +4,12 @@
   "name": "Photosynthesis",
   "relations": {
     "partOf": [
-      {"target": "biology/organism"}
-    ],
-    "definitions": [
       {
-        "subject": "photosynthesis",
-        "verb": "is",
-        "object": "process by which plants use sunlight to synthesize foods",
-        "confidence": 0.99,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/botany"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "process by which plants use sunlight to synthesize foods"
     ]
   },
   "keywords": [

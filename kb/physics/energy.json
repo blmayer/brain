@@ -4,18 +4,12 @@
   "name": "Energy",
   "relations": {
     "partOf": [
-      {"target": "physics/physics"}
-    ],
-    "definitions": [
       {
-        "subject": "energy",
-        "verb": "is",
-        "object": "capacity to do work",
-        "confidence": 0.99,
-        "source": "physics",
-        "date": "2024-01-01",
-        "context": "physics/thermodynamics"
+        "target": "physics/physics"
       }
+    ],
+    "isA": [
+      "capacity to do work"
     ]
   },
   "keywords": [

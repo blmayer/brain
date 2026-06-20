@@ -2,7 +2,6 @@
   "id": "recipes/heat_pan",
   "kind": "ACTION",
   "name": "Heat Pan",
-  "is_a": "action",
   "description": "Put the pan on the heat source.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "heat_pan"
-  ]
+  ],
+  "relations": {}
 }

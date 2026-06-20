@@ -2,7 +2,6 @@
   "id": "recipes/flip_egg",
   "kind": "ACTION",
   "name": "Flip Egg",
-  "is_a": "action",
   "description": "Flip the egg.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "flip_egg"
-  ]
+  ],
+  "relations": {}
 }

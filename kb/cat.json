@@ -2,10 +2,13 @@
   "id": "cat",
   "kind": "FACT",
   "name": "Cat",
-  "parents": [
-    "biology/mammal"
-  ],
-  "relations": {},
+  "relations": {
+    "hasParent": [
+      {
+        "target": "biology/mammal"
+      }
+    ]
+  },
   "keywords": [
     "cat"
   ],

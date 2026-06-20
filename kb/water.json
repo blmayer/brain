@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Water",
   "relations": {
-    "definitions": [
-      {
-        "subject": "water",
-        "verb": "is",
-        "object": "liquid",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/chemistry"
-      },
-      {
-        "subject": "water",
-        "verb": "is",
-        "object": "H2O",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/chemistry"
-      },
-      {
-        "subject": "water",
-        "verb": "is",
-        "object": "essential",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      }
-    ],
     "partOf": [
       {
         "target": "chemistry/water"
@@ -39,6 +10,11 @@
       {
         "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "liquid",
+      "H2O",
+      "essential"
     ]
   },
   "keywords": [

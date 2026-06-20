@@ -2,9 +2,6 @@
   "id": "programming_languages/go/constructs/range_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Range Statement",
-  "parents": [
-    "programming_languages/go/constructs/for_statement"
-  ],
   "keywords": [
     "range",
     "iterate",
@@ -34,6 +31,11 @@
       {
         "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/for_statement"
       }
     ]
   },

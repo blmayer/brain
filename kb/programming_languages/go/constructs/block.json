@@ -3,16 +3,13 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Block",
   "description": "A sequence of statements enclosed in braces. Introduces a new lexical scope.",
-  "parents": [
-    "Statement"
-  ],
   "keywords": [
     "block",
     "body",
     "scope"
   ],
   "relations": {
-    "contains": [
+    "hasParts": [
       {
         "target": "Statement",
         "cardinality": "0..*"
@@ -22,6 +19,11 @@
       {
         "target": "Scope",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
       }
     ]
   },

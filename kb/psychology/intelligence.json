@@ -4,18 +4,12 @@
   "name": "Intelligence",
   "relations": {
     "partOf": [
-      {"target": "psychology/mind"}
-    ],
-    "definitions": [
       {
-        "subject": "intelligence",
-        "verb": "is",
-        "object": "ability to acquire and apply knowledge",
-        "confidence": 0.97,
-        "source": "psychology",
-        "date": "2024-01-01",
-        "context": "psychology/cognitive-science"
+        "target": "psychology/mind"
       }
+    ],
+    "isA": [
+      "ability to acquire and apply knowledge"
     ]
   },
   "keywords": [

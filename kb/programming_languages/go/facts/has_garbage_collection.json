@@ -1,0 +1,21 @@
+{
+  "id": "programming_languages/go/has_garbage_collection",
+  "kind": "FACT",
+  "name": "Go has built-in garbage collection",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "programming_languages/go"
+      }
+    ],
+    "has": [
+      "built-in garbage collection"
+    ],
+    "isA": "has built-in garbage collection"
+  },
+  "keywords": [
+    "garbage collection",
+    "gc",
+    "go memory"
+  ]
+}

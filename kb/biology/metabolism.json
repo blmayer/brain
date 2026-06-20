@@ -4,18 +4,12 @@
   "name": "Metabolism",
   "relations": {
     "partOf": [
-      {"target": "biology/organism"}
-    ],
-    "definitions": [
       {
-        "subject": "metabolism",
-        "verb": "is",
-        "object": "set of chemical reactions in a cell",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/biochemistry"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "set of chemical reactions in a cell"
     ]
   },
   "keywords": [

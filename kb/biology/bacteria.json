@@ -2,20 +2,14 @@
   "id": "biology/bacteria",
   "kind": "FACT",
   "name": "Bacteria",
-  "parents": [
-    "biology/organism"
-  ],
   "relations": {
-    "definitions": [
+    "hasParent": [
       {
-        "subject": "bacteria",
-        "verb": "is",
-        "object": "single-celled microorganism",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/microbiology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "single-celled microorganism"
     ]
   },
   "keywords": [

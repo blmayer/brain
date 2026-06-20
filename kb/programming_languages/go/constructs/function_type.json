@@ -3,9 +3,6 @@
   "kind": "TYPE",
   "name": "Function Type",
   "description": "The type of a function (signature without body).",
-  "parents": [
-    "programming_languages/go/constructs/type"
-  ],
   "keywords": [
     "function type",
     "func type",
@@ -24,7 +21,12 @@
         "cardinality": "0..*"
       }
     ],
-    "isVariadic": false
+    "isVariadic": false,
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/type"
+      }
+    ]
   },
   "examples": [
     "func(int, string) error",

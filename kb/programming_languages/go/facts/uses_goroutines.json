@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/go/uses_goroutines",
+  "kind": "FACT",
+  "name": "Go uses goroutines",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "programming_languages/go"
+      }
+    ],
+    "uses": [
+      "goroutines"
+    ],
+    "isA": "supports lightweight concurrency via goroutines"
+  },
+  "keywords": [
+    "goroutines",
+    "go concurrency"
+  ]
+}

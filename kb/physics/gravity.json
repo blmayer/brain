@@ -4,18 +4,12 @@
   "name": "Gravity",
   "relations": {
     "partOf": [
-      {"target": "physics/physics"}
-    ],
-    "definitions": [
       {
-        "subject": "gravity",
-        "verb": "is",
-        "object": "force of attraction between masses",
-        "confidence": 0.99,
-        "source": "physics",
-        "date": "2024-01-01",
-        "context": "physics/mechanics"
+        "target": "physics/physics"
       }
+    ],
+    "isA": [
+      "force of attraction between masses"
     ]
   },
   "keywords": [

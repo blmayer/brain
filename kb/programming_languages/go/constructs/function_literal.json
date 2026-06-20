@@ -3,10 +3,6 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Function Literal",
   "description": "An anonymous function expression (closure).",
-  "parents": [
-    "programming_languages/go/constructs/callable",
-    "Expression"
-  ],
   "keywords": [
     "anonymous function",
     "function literal",
@@ -36,6 +32,14 @@
       {
         "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/callable"
+      },
+      {
+        "target": "Expression"
       }
     ]
   },

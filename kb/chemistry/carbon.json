@@ -4,18 +4,12 @@
   "name": "Carbon",
   "relations": {
     "partOf": [
-      {"target": "chemistry/chemistry"}
-    ],
-    "definitions": [
       {
-        "subject": "carbon",
-        "verb": "is",
-        "object": "a nonmetal element",
-        "confidence": 0.99,
-        "source": "chemistry",
-        "date": "2024-01-01",
-        "context": "chemistry/periodic-table"
+        "target": "chemistry/chemistry"
       }
+    ],
+    "isA": [
+      "a nonmetal element"
     ]
   },
   "keywords": [

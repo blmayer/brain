@@ -4,18 +4,12 @@
   "name": "Database",
   "relations": {
     "partOf": [
-      {"target": "computer-science/computer"}
-    ],
-    "definitions": [
       {
-        "subject": "database",
-        "verb": "is",
-        "object": "structured set of data",
-        "confidence": 0.98,
-        "source": "computer-science",
-        "date": "2024-01-01",
-        "context": "computer-science/data-management"
+        "target": "computer-science/computer"
       }
+    ],
+    "isA": [
+      "structured set of data"
     ]
   },
   "keywords": [

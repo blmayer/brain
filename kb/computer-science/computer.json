@@ -3,21 +3,13 @@
   "kind": "FACT",
   "name": "Computer",
   "relations": {
-    "definitions": [
-      {
-        "subject": "computer",
-        "verb": "is",
-        "object": "electronic device for processing data",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/hardware"
-      }
-    ],
     "partOf": [
       {
         "target": "programming"
       }
+    ],
+    "isA": [
+      "electronic device for processing data"
     ]
   },
   "keywords": [

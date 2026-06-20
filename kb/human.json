@@ -2,39 +2,7 @@
   "id": "human",
   "kind": "FACT",
   "name": "Human",
-  "parents": [
-    "biology/organism"
-  ],
   "relations": {
-    "definitions": [
-      {
-        "subject": "human",
-        "verb": "is",
-        "object": "mammal",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      },
-      {
-        "subject": "human",
-        "verb": "is",
-        "object": "primate",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      },
-      {
-        "subject": "human",
-        "verb": "is",
-        "object": "bipedal",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      }
-    ],
     "partOf": [
       {
         "target": "psychology/mind"
@@ -42,6 +10,16 @@
       {
         "target": "psychology/intelligence"
       }
+    ],
+    "hasParent": [
+      {
+        "target": "biology/organism"
+      }
+    ],
+    "isA": [
+      "mammal",
+      "primate",
+      "bipedal"
     ]
   },
   "keywords": [

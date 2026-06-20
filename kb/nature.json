@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Nature",
   "relations": {
-    "definitions": [
-      {
-        "subject": "nature",
-        "verb": "is",
-        "object": "natural world",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/environment"
-      },
-      {
-        "subject": "nature",
-        "verb": "is",
-        "object": "ecosystem",
-        "confidence": 0.96,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/ecology"
-      },
-      {
-        "subject": "nature",
-        "verb": "is",
-        "object": "beautiful",
-        "confidence": 0.9,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/aesthetics"
-      }
-    ],
     "partOf": [
       {
         "target": "biology/organism"
@@ -42,6 +13,11 @@
       {
         "target": "physics/gravity"
       }
+    ],
+    "isA": [
+      "natural world",
+      "ecosystem",
+      "beautiful"
     ]
   },
   "keywords": [

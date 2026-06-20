@@ -3,9 +3,6 @@
   "kind": "TYPE",
   "name": "int",
   "description": "Go's default signed integer type (platform dependent size, usually 64-bit).",
-  "parents": [
-    "programming_languages/go/constructs/integer_type"
-  ],
   "keywords": [
     "int",
     "integer"
@@ -15,7 +12,12 @@
       "programming_languages/go/constructs/integer_type"
     ],
     "isDefaultInteger": true,
-    "bitSize": "platform"
+    "bitSize": "platform",
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/integer_type"
+      }
+    ]
   },
   "emitters": [
     {

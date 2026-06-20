@@ -2,7 +2,6 @@
   "id": "recipes/spread_butter",
   "kind": "ACTION",
   "name": "Spread Butter",
-  "is_a": "action",
   "description": "Spread the butter.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "spread_butter"
-  ]
+  ],
+  "relations": {}
 }

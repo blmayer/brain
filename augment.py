@@ -78,19 +78,12 @@ def solve_plan(plan: Any) -> ExecNode:
 
 
 def render(concept: Concept, bindings: Dict[str, str]) -> str:
-    """Render a Concept using its emitters and the current bindings."""
+    """Render a Concept using its emitters and the current bindings.
+    Facts contribute to plans via relations (hasParent, isA, has, produces, ...)
+    but only nodes declaring emitters produce textual output.
+    """
     logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
     if not concept or not concept.emitters:
-        # Only concepts that declare emitters contribute output.
-        # We do not auto-emit classification text ("X is a Y") for every
-        # matched FACT or interrogative node. The ontology (needs/produces,
-        # relatedTo, interface requirements such as hasInstructions, and
-        # dependency resolution) is responsible for pulling in the actual
-        # content nodes that have emitters. This prevents "pushing" nodes
-        # into the response.
-        # Return empty so abstract nodes, pure FACTs, interrogatives etc.
-        # contribute nothing unless the resolver explicitly brought in
-        # emitter-bearing steps.
         return ""
 
     template = concept.emitters[0].get("template", "")
@@ -552,7 +545,7 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
         # Follow structural + implementation relations
         related = ontology.find_related_concepts(
             concept,
-            relation_names=["importsPackage", "implementedBy", "relatedTo", "specializes"]
+            relation_names=["importsPackage", "implementedBy", "specializes"]
         )
         for rel in related:
             recurse(rel, depth + 1, context + [concept])

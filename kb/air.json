@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Air",
   "relations": {
-    "definitions": [
-      {
-        "subject": "air",
-        "verb": "is",
-        "object": "gas",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/chemistry"
-      },
-      {
-        "subject": "air",
-        "verb": "is",
-        "object": "atmosphere",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/atmospheric-science"
-      },
-      {
-        "subject": "air",
-        "verb": "is",
-        "object": "invisible",
-        "confidence": 0.95,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/physics"
-      }
-    ],
     "partOf": [
       {
         "target": "chemistry/oxygen"
@@ -42,6 +13,11 @@
       {
         "target": "physics/energy"
       }
+    ],
+    "isA": [
+      "gas",
+      "atmosphere",
+      "invisible"
     ]
   },
   "keywords": [

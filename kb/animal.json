@@ -2,38 +2,16 @@
   "id": "animal",
   "kind": "FACT",
   "name": "Animal",
-  "parents": [
-    "biology/organism"
-  ],
   "relations": {
-    "definitions": [
+    "hasParent": [
       {
-        "subject": "animal",
-        "verb": "is",
-        "object": "multicellular organism",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      },
-      {
-        "subject": "animal",
-        "verb": "is",
-        "object": "living",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
-      },
-      {
-        "subject": "animal",
-        "verb": "is",
-        "object": "mobile",
-        "confidence": 0.9,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/biology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "multicellular organism",
+      "living",
+      "mobile"
     ]
   },
   "keywords": [

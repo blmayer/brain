@@ -2,7 +2,6 @@
   "id": "recipes/turn_off_stove",
   "kind": "ACTION",
   "name": "Turn Off Stove",
-  "is_a": "action",
   "description": "Finish cooking.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "turn_off_stove"
-  ]
+  ],
+  "relations": {}
 }

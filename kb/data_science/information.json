@@ -3,17 +3,6 @@
   "kind": "FACT",
   "name": "Information",
   "relations": {
-    "definitions": [
-      {
-        "subject": "information",
-        "verb": "is",
-        "object": "processed data",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/information-science"
-      }
-    ],
     "partOf": [
       {
         "target": "computer-science/computer"
@@ -21,6 +10,9 @@
       {
         "target": "programming"
       }
+    ],
+    "isA": [
+      "processed data"
     ]
   },
   "keywords": [

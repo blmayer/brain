@@ -3,23 +3,17 @@
   "kind": "ANSWER_TYPE",
   "name": "Definition",
   "description": "A statement that explains the meaning, nature, or identity of something.",
-  "parents": [
-    "linguistics/answer"
-  ],
   "relations": {
-    "definitions": [
-      {
-        "subject": "definition",
-        "verb": "is",
-        "object": "statement of the meaning of a word or the nature of a thing",
-        "confidence": 0.99,
-        "source": "linguistics",
-        "date": "2024-01-01",
-        "context": "semantics"
-      }
-    ],
     "producedBy": [
       "linguistics/interrogative/what"
+    ],
+    "hasParent": [
+      {
+        "target": "linguistics/answer"
+      }
+    ],
+    "isA": [
+      "statement of the meaning of a word or the nature of a thing"
     ]
   },
   "keywords": [

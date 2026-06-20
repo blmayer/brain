@@ -4,18 +4,12 @@
   "name": "Hydrogen",
   "relations": {
     "partOf": [
-      {"target": "chemistry/chemistry"}
-    ],
-    "definitions": [
       {
-        "subject": "hydrogen",
-        "verb": "is",
-        "object": "the lightest chemical element",
-        "confidence": 0.99,
-        "source": "chemistry",
-        "date": "2024-01-01",
-        "context": "chemistry/periodic-table"
+        "target": "chemistry/chemistry"
       }
+    ],
+    "isA": [
+      "the lightest chemical element"
     ]
   },
   "keywords": [

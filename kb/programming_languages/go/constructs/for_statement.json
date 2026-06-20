@@ -2,10 +2,6 @@
   "id": "programming_languages/go/constructs/for_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "For Statement",
-  "parents": [
-    "Statement",
-    "ControlFlowStatement"
-  ],
   "keywords": [
     "for",
     "loop",
@@ -34,6 +30,14 @@
       {
         "target": "programming_languages/go/constructs/block",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
       }
     ]
   },

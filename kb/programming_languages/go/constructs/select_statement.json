@@ -2,10 +2,6 @@
   "id": "programming_languages/go/constructs/select_statement",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Select Statement",
-  "parents": [
-    "Statement",
-    "ControlFlowStatement"
-  ],
   "description": "Go's concurrency select statement for channel operations.",
   "keywords": [
     "select",
@@ -25,6 +21,14 @@
       },
       {
         "target": "programming_languages/go/concurrency/goroutines"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
       }
     ]
   },

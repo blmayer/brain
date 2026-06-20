@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Time",
   "relations": {
-    "definitions": [
-      {
-        "subject": "time",
-        "verb": "is",
-        "object": "dimension",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "physics/relativity"
-      },
-      {
-        "subject": "time",
-        "verb": "is",
-        "object": "measured",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/physics"
-      },
-      {
-        "subject": "time",
-        "verb": "is",
-        "object": "relative",
-        "confidence": 0.85,
-        "source": "physics",
-        "date": "2024-01-01",
-        "context": "physics/relativity"
-      }
-    ],
     "partOf": [
       {
         "target": "physics/gravity"
@@ -39,6 +10,11 @@
       {
         "target": "astronomy/planet"
       }
+    ],
+    "isA": [
+      "dimension",
+      "measured",
+      "relative"
     ]
   },
   "keywords": [

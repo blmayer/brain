@@ -2,9 +2,6 @@
   "id": "programming_languages/go/constructs/var_declaration",
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Variable Declaration",
-  "parents": [
-    "DeclarationStatement"
-  ],
   "keywords": [
     "declare",
     "variable",
@@ -20,6 +17,11 @@
       {
         "name": "type",
         "type": "programming_languages/go/constructs/type"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "DeclarationStatement"
       }
     ]
   },

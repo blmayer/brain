@@ -4,18 +4,12 @@
   "name": "Cell",
   "relations": {
     "partOf": [
-      {"target": "biology/organism"}
-    ],
-    "definitions": [
       {
-        "subject": "cell",
-        "verb": "is",
-        "object": "basic structural unit of life",
-        "confidence": 0.99,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/cell-biology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "basic structural unit of life"
     ]
   },
   "keywords": [

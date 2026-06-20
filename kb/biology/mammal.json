@@ -2,38 +2,20 @@
   "id": "biology/mammal",
   "kind": "FACT",
   "name": "Mammal",
-  "parents": [
-    "biology/organism"
-  ],
   "relations": {
-    "definitions": [
+    "hasParent": [
       {
-        "subject": "mammal",
-        "verb": "is",
-        "object": "vertebrate animal",
-        "confidence": 0.99,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/zoology"
-      },
-      {
-        "subject": "mammal",
-        "verb": "has",
-        "object": "hair or fur",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/zoology"
-      },
-      {
-        "subject": "mammal",
-        "verb": "produces",
-        "object": "milk",
-        "confidence": 0.98,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/zoology"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "vertebrate animal"
+    ],
+    "has": [
+      "hair or fur"
+    ],
+    "produces": [
+      "milk"
     ]
   },
   "keywords": [

@@ -2,11 +2,15 @@
   "id": "botany/banana",
   "kind": "FACT",
   "name": "Banana",
-  "isA": "botany/fruit",
-  "parents": [
-    "botany/fruit"
-  ],
   "keywords": [
     "banana"
-  ]
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "botany/fruit"
+      }
+    ],
+    "isA": "botany/fruit"
+  }
 }

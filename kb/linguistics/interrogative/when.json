@@ -3,9 +3,6 @@
   "kind": "INTERROGATIVE",
   "name": "When",
   "description": "Interrogative used to request information about time, occasion, condition, or moment at which something occurs or is appropriate.",
-  "parents": [
-    "linguistics/interrogative"
-  ],
   "relations": {
     "needs": [
       {
@@ -21,12 +18,9 @@
         "target": "linguistics/answer"
       }
     ],
-    "relatedTo": [
+    "hasParent": [
       {
-        "target": "time"
-      },
-      {
-        "target": "physics/time"
+        "target": "linguistics/interrogative"
       }
     ]
   },

@@ -4,36 +4,14 @@
   "name": "Data",
   "relations": {
     "partOf": [
-      {"target": "data_science/information"}
-    ],
-    "definitions": [
       {
-        "subject": "data",
-        "verb": "is",
-        "object": "information",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/data"
-      },
-      {
-        "subject": "data",
-        "verb": "is",
-        "object": "stored",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/data"
-      },
-      {
-        "subject": "data",
-        "verb": "is",
-        "object": "processed",
-        "confidence": 0.96,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/data"
+        "target": "data_science/information"
       }
+    ],
+    "isA": [
+      "information",
+      "stored",
+      "processed"
     ]
   },
   "keywords": [

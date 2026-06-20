@@ -3,21 +3,13 @@
   "kind": "FACT",
   "name": "Chemistry",
   "relations": {
-    "definitions": [
-      {
-        "subject": "chemistry",
-        "verb": "is",
-        "object": "study of matter",
-        "confidence": 0.99,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "science/chemistry"
-      }
-    ],
     "partOf": [
       {
         "target": "chemistry/atom"
       }
+    ],
+    "isA": [
+      "study of matter"
     ]
   },
   "keywords": [

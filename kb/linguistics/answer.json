@@ -3,20 +3,14 @@
   "kind": "CLASS",
   "name": "Answer",
   "description": "A response or piece of information that satisfies an interrogative request.",
-  "parents": [
-    "data/information"
-  ],
   "relations": {
-    "definitions": [
+    "hasParent": [
       {
-        "subject": "answer",
-        "verb": "is",
-        "object": "information provided in response to a question",
-        "confidence": 0.99,
-        "source": "linguistics",
-        "date": "2024-01-01",
-        "context": "communication"
+        "target": "data/information"
       }
+    ],
+    "isA": [
+      "information provided in response to a question"
     ]
   },
   "keywords": [

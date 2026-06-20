@@ -3,17 +3,6 @@
   "kind": "FACT",
   "name": "Atom",
   "relations": {
-    "definitions": [
-      {
-        "subject": "atom",
-        "verb": "is",
-        "object": "smallest unit of matter",
-        "confidence": 0.98,
-        "source": "chemistry",
-        "date": "2024-01-01",
-        "context": "chemistry/atomic-theory"
-      }
-    ],
     "partOf": [
       {
         "target": "physics/energy"
@@ -21,6 +10,9 @@
       {
         "target": "chemistry/molecule"
       }
+    ],
+    "isA": [
+      "smallest unit of matter"
     ]
   },
   "keywords": [

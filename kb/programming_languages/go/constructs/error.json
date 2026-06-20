@@ -3,14 +3,16 @@
   "kind": "TYPE",
   "name": "error",
   "description": "Built-in error interface type.",
-  "parents": [
-    "programming_languages/go/constructs/type"
-  ],
   "keywords": [
     "error",
     "err"
   ],
   "relations": {
-    "isError": true
+    "isError": true,
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/type"
+      }
+    ]
   }
 }

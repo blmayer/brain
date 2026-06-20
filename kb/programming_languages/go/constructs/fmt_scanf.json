@@ -3,9 +3,6 @@
   "kind": "BUILTIN",
   "name": "fmt.Scanf",
   "description": "Standard library function to read formatted input from stdin.",
-  "parents": [
-    "CallExpression"
-  ],
   "keywords": [
     "read",
     "reads",
@@ -38,6 +35,11 @@
       {
         "name": "err",
         "type": "programming_languages/go/constructs/error"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "CallExpression"
       }
     ]
   },

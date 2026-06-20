@@ -4,18 +4,12 @@
   "name": "Data",
   "relations": {
     "partOf": [
-      {"target": "data_science/information"}
-    ],
-    "definitions": [
       {
-        "subject": "data",
-        "verb": "is",
-        "object": "information or facts",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/information-science"
+        "target": "data_science/information"
       }
+    ],
+    "isA": [
+      "information or facts"
     ]
   },
   "keywords": [

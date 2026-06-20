@@ -3,17 +3,6 @@
   "kind": "FACT",
   "name": "Mind",
   "relations": {
-    "definitions": [
-      {
-        "subject": "mind",
-        "verb": "is",
-        "object": "set of faculties for perception and thought",
-        "confidence": 0.96,
-        "source": "psychology",
-        "date": "2024-01-01",
-        "context": "psychology/cognitive-science"
-      }
-    ],
     "partOf": [
       {
         "target": "biology/brain"
@@ -21,6 +10,9 @@
       {
         "target": "biology/neuron"
       }
+    ],
+    "isA": [
+      "set of faculties for perception and thought"
     ]
   },
   "keywords": [

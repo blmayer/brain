@@ -3,9 +3,6 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Callable",
   "description": "Abstract concept representing anything that can be invoked (called).",
-  "parents": [
-    "Construct"
-  ],
   "abstract": true,
   "keywords": [
     "call",
@@ -24,6 +21,11 @@
       {
         "target": "programming_languages/go/constructs/function_type",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Construct"
       }
     ]
   }

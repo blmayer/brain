@@ -121,7 +121,7 @@ class Ontology:
         """
         logger.debug("find_related_concepts called on %s", concept.id)
         if relation_names is None:
-            relation_names = ["needs", "hasParameter", "importsPackage", "relatedTo", "implementedBy"]
+            relation_names = ["needs", "hasParameter", "importsPackage", "implementedBy"]
 
         related = []
         rels = concept.relations or {}
@@ -230,14 +230,32 @@ class Ontology:
             if not c:
                 continue
 
-            parents = c.parents or []
+            parents = list(c.parents or [])
             if isinstance(c.raw, dict):
-                # Support explicit isA as well as parents list
-                explicit = c.raw.get("isA")
-                if isinstance(explicit, str):
-                    parents = parents + [explicit]
-                elif isinstance(explicit, list):
-                    parents = parents + explicit
+                # Legacy top-level isA only if it was explicitly used for hierarchy (rare now)
+                for k in ("isA", "is_a", "isa"):
+                    explicit = c.raw.get(k)
+                    if explicit:
+                        # Only add if it looks like a concept reference (contains / or short known id)
+                        vals = explicit if isinstance(explicit, list) else [explicit]
+                        for v in vals:
+                            if isinstance(v, str) and ("/" in v or len(v) < 30):
+                                parents.append(v)
+
+            # Harvest hierarchy ONLY from hasParent (the canonical place)
+            rels = getattr(c, "relations", {}) or {}
+            for rel_key in ("hasParent", "has_parent"):
+                hp = rels.get(rel_key)
+                if hp:
+                    if not isinstance(hp, list):
+                        hp = [hp]
+                    for p in hp:
+                        if isinstance(p, dict):
+                            tgt = p.get("target") or p.get("id")
+                            if tgt:
+                                parents.append(tgt)
+                        elif isinstance(p, str):
+                            parents.append(p)
 
             for p in parents:
                 if isinstance(p, str) and p not in visited:
@@ -306,35 +324,28 @@ class Ontology:
         if not isinstance(data, dict):
             return
 
-        # Support legacy triplet/definition style files that don't have a top-level "id"
-        # but have "subject" + "definitions". Turn the subject into an id so that
-        # get_ontology() truly ingests everything under kb/.
-        if "id" not in data and "subject" in data:
-            data = dict(data)  # don't mutate original
-            data["id"] = data["subject"]
-            if "kind" not in data:
-                data["kind"] = "FACT"
-            if "name" not in data:
-                data["name"] = data["subject"]
-            # Put the definitions into relations/raw for later use
-            if "definitions" in data and "relations" not in data:
-                data.setdefault("relations", {})["definitions"] = data["definitions"]
-
         if "id" not in data:
             return
 
-        parents = data.get("parents", []) or []
-        # Support "is_a" / "isA" (shallow for now, as alias for interface / kind membership)
-        for k in ("is_a", "isA", "isa"):
-            val = data.get(k)
-            if val:
-                if isinstance(val, str):
-                    if val not in parents:
-                        parents = list(parents) + [val]
-                elif isinstance(val, (list, tuple)):
-                    for v in val:
-                        if isinstance(v, str) and v not in parents:
-                            parents = list(parents) + [v]
+        parents = list(data.get("parents", []) or [])
+
+        # New canonical location for hierarchy parents: relations.hasParent
+        rels = data.get("relations") or {}
+        for rel_key in ("hasParent", "has_parent"):
+            hp = rels.get(rel_key)
+            if hp:
+                if not isinstance(hp, list):
+                    hp = [hp]
+                for p in hp:
+                    if isinstance(p, dict):
+                        tgt = p.get("target") or p.get("id")
+                        if tgt and tgt not in parents:
+                            parents.append(tgt)
+                    elif isinstance(p, str) and p not in parents:
+                        parents.append(p)
+
+        # Note: relations.isA (or top-level isA) may contain descriptive strings or parent refs.
+        # Only hasParent drives the formal ancestor chain for is_a(). isA is available in raw/rels for other uses.
 
         concept = Concept(
             id=data["id"],

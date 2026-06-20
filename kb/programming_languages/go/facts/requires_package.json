@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/go/requires_package",
+  "kind": "FACT",
+  "name": "Go requires package declaration",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "programming_languages/go"
+      }
+    ],
+    "requires": [
+      "package declaration"
+    ],
+    "isA": "requires package declaration"
+  },
+  "keywords": [
+    "package declaration",
+    "go package"
+  ]
+}

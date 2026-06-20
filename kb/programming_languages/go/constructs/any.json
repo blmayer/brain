@@ -3,9 +3,6 @@
   "kind": "TYPE",
   "name": "any",
   "description": "The universal / wildcard type (corresponds to interface{}). Matches any value.",
-  "parents": [
-    "programming_languages/go/constructs/type"
-  ],
   "keywords": [
     "any",
     "interface{}",
@@ -15,6 +12,11 @@
   ],
   "relations": {
     "isUniversal": true,
-    "isWildcard": true
+    "isWildcard": true,
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/type"
+      }
+    ]
   }
 }

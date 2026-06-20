@@ -4,18 +4,12 @@
   "name": "Gene",
   "relations": {
     "partOf": [
-      {"target": "biology/organism"}
-    ],
-    "definitions": [
       {
-        "subject": "gene",
-        "verb": "is",
-        "object": "unit of heredity",
-        "confidence": 0.99,
-        "source": "biology",
-        "date": "2024-01-01",
-        "context": "biology/genetics"
+        "target": "biology/organism"
       }
+    ],
+    "isA": [
+      "unit of heredity"
     ]
   },
   "keywords": [

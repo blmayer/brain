@@ -3,9 +3,6 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Addition (+)",
   "description": "Binary addition expression.",
-  "parents": [
-    "BinaryExpression"
-  ],
   "keywords": [
     "sum",
     "add",
@@ -28,6 +25,11 @@
     "produces": [
       {
         "type": "programming_languages/go/constructs/any"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "BinaryExpression"
       }
     ]
   },

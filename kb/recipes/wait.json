@@ -2,7 +2,6 @@
   "id": "recipes/wait",
   "kind": "ACTION",
   "name": "Wait",
-  "is_a": "action",
   "description": "Wait for cooking.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "wait"
-  ]
+  ],
+  "relations": {}
 }

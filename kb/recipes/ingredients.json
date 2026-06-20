@@ -8,58 +8,46 @@
     "id": "recipes/spice",
     "kind": "CLASS",
     "name": "Spice",
-    "parents": [
-      "recipes/ingredient"
-    ]
+    "relations": {}
   },
   {
     "id": "recipes/butter",
     "kind": "INGREDIENT",
     "name": "Butter",
-    "parents": [
-      "recipes/ingredient"
-    ],
     "keywords": [
       "butter"
-    ]
+    ],
+    "relations": {}
   },
   {
     "id": "recipes/egg",
     "kind": "INGREDIENT",
     "name": "Egg",
-    "parents": [
-      "recipes/ingredient"
-    ],
     "keywords": [
       "egg",
       "eggs"
-    ]
+    ],
+    "relations": {}
   },
   {
     "id": "recipes/salt",
     "kind": "INGREDIENT",
     "name": "Salt",
-    "parents": [
-      "recipes/spice",
-      "recipes/ingredient"
-    ],
     "keywords": [
       "salt",
       "salts"
-    ]
+    ],
+    "relations": {}
   },
   {
     "id": "recipes/pepper",
     "kind": "INGREDIENT",
     "name": "Pepper",
-    "parents": [
-      "recipes/spice",
-      "recipes/ingredient"
-    ],
     "keywords": [
       "pepper",
       "peppers",
       "peper"
-    ]
+    ],
+    "relations": {}
   }
 ]

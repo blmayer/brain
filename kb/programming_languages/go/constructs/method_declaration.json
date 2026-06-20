@@ -3,9 +3,6 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "Method Declaration",
   "description": "A function declaration attached to a type via a receiver.",
-  "parents": [
-    "programming_languages/go/constructs/function_declaration"
-  ],
   "keywords": [
     "method",
     "receiver"
@@ -15,6 +12,11 @@
       {
         "target": "Receiver",
         "cardinality": "1"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/function_declaration"
       }
     ]
   },

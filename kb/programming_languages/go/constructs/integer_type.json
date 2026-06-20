@@ -3,9 +3,6 @@
   "kind": "TYPE",
   "name": "Integer Type",
   "description": "Abstract concept representing any integer numeric type (signed or unsigned).",
-  "parents": [
-    "programming_languages/go/constructs/type"
-  ],
   "keywords": [
     "integer",
     "integers",
@@ -16,6 +13,11 @@
   ],
   "relations": {
     "isNumeric": true,
-    "signed": "optional"
+    "signed": "optional",
+    "hasParent": [
+      {
+        "target": "programming_languages/go/constructs/type"
+      }
+    ]
   }
 }

@@ -3,35 +3,6 @@
   "kind": "FACT",
   "name": "Code",
   "relations": {
-    "definitions": [
-      {
-        "subject": "code",
-        "verb": "is",
-        "object": "instructions",
-        "confidence": 0.98,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/programming"
-      },
-      {
-        "subject": "code",
-        "verb": "is",
-        "object": "text",
-        "confidence": 0.97,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/programming"
-      },
-      {
-        "subject": "code",
-        "verb": "is",
-        "object": "executable",
-        "confidence": 0.95,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "computer-science/programming"
-      }
-    ],
     "partOf": [
       {
         "target": "programming"
@@ -39,6 +10,11 @@
       {
         "target": "computer-science/software"
       }
+    ],
+    "isA": [
+      "instructions",
+      "text",
+      "executable"
     ]
   },
   "keywords": [

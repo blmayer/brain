@@ -3,9 +3,6 @@
   "kind": "TYPE",
   "name": "string",
   "description": "Built-in string type.",
-  "parents": [
-    "programming_languages/go/constructs/type"
-  ],
   "keywords": [
     "string",
     "str"

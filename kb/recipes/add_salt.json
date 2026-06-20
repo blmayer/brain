@@ -2,7 +2,6 @@
   "id": "recipes/add_salt",
   "kind": "ACTION",
   "name": "Add Salt",
-  "is_a": "action",
   "description": "Add salt (a spice instance).",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "add_salt"
-  ]
+  ],
+  "relations": {}
 }

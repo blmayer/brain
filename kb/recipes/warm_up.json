@@ -2,7 +2,6 @@
   "id": "recipes/warm_up",
   "kind": "ACTION",
   "name": "Warm Up",
-  "is_a": "action",
   "description": "Let the pan warm.",
   "emitters": [
     {
@@ -11,5 +10,6 @@
   ],
   "keywords": [
     "warm_up"
-  ]
+  ],
+  "relations": {}
 }

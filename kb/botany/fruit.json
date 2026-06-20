@@ -4,27 +4,13 @@
   "name": "Fruit",
   "relations": {
     "partOf": [
-      {"target": "botany/plant"}
-    ],
-    "definitions": [
       {
-        "subject": "fruit",
-        "verb": "is",
-        "object": "seed-bearing part of a plant",
-        "confidence": 0.98,
-        "source": "botany",
-        "date": "2024-01-01",
-        "context": "biology/botany"
-      },
-      {
-        "subject": "fruit",
-        "verb": "is",
-        "object": "edible part of a plant",
-        "confidence": 0.95,
-        "source": "general knowledge",
-        "date": "2024-01-01",
-        "context": "general/food"
+        "target": "botany/plant"
       }
+    ],
+    "isA": [
+      "seed-bearing part of a plant",
+      "edible part of a plant"
     ]
   },
   "keywords": [
