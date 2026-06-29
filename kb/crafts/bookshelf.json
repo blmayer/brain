@@ -1,0 +1,31 @@
+{
+  "id": "crafts/bookshelf",
+  "kind": "PROJECT",
+  "name": "Bookshelf",
+  "description": "A simple wooden bookshelf made from planks and screws.",
+  "relations": {
+    "hasMaterials": [
+      {"target": "crafts/plank", "type": "Material"},
+      {"target": "crafts/screw", "type": "Material"},
+      {"target": "crafts/sandpaper", "type": "Material"},
+      {"target": "crafts/paint", "type": "Material"}
+    ],
+    "hasSteps": [
+      "crafts/measure_and_mark",
+      "crafts/cut_wood",
+      "crafts/sand_surface",
+      "crafts/drill_holes",
+      "crafts/join_pieces",
+      "crafts/apply_paint"
+    ],
+    "hasParent": [
+      {"target": "crafts/project"}
+    ],
+    "isA": "woodworking project"
+  },
+  "keywords": [
+    "bookshelf",
+    "book shelf",
+    "shelf"
+  ]
+}

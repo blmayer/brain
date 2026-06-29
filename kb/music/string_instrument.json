@@ -1,0 +1,20 @@
+{
+  "id": "music/string_instrument",
+  "kind": "CLASS",
+  "name": "String Instrument",
+  "keywords": [
+    "string instrument"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/instrument"
+      }
+    ],
+    "isA": "music/instrument",
+    "has": [
+      "strings",
+      "resonating body"
+    ]
+  }
+}

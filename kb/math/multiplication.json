@@ -1,0 +1,35 @@
+{
+  "id": "math/multiplication",
+  "kind": "FACT",
+  "name": "Multiplication",
+  "description": "The mathematical operation of repeated addition.",
+  "keywords": [
+    "multiplication",
+    "multiply",
+    "times",
+    "product"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/arithmetic"
+      }
+    ],
+    "isA": "arithmetic operation",
+    "produces": [
+      {
+        "type": "number"
+      }
+    ],
+    "needs": [
+      {
+        "name": "factor_a",
+        "type": "number"
+      },
+      {
+        "name": "factor_b",
+        "type": "number"
+      }
+    ]
+  }
+}

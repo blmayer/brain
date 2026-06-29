@@ -1,0 +1,23 @@
+{
+  "id": "math/arithmetic",
+  "kind": "FACT",
+  "name": "Arithmetic",
+  "description": "The branch of mathematics dealing with numbers and basic operations.",
+  "keywords": [
+    "arithmetic"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/mathematics"
+      }
+    ],
+    "isA": "branch of mathematics",
+    "hasParts": [
+      "math/addition",
+      "math/subtraction",
+      "math/multiplication",
+      "math/division"
+    ]
+  }
+}

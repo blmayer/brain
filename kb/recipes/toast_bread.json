@@ -1,0 +1,16 @@
+{
+  "id": "recipes/toast_bread",
+  "kind": "ACTION",
+  "name": "Toast Bread",
+  "description": "Toast the bread slices in a pan or toaster.",
+  "emitters": [
+    {
+      "template": "toast the bread slices"
+    }
+  ],
+  "keywords": ["toast_bread", "toast"],
+  "relations": {
+    "needs": [{"name": "bread", "type": "recipes/bread"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

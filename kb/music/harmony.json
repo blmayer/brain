@@ -1,0 +1,24 @@
+{
+  "id": "music/harmony",
+  "kind": "FACT",
+  "name": "Harmony",
+  "description": "The combination of simultaneously sounded musical notes to produce chords.",
+  "keywords": [
+    "harmony",
+    "chord",
+    "chords"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ],
+    "isA": "musical element",
+    "has": [
+      "chord progression",
+      "consonance",
+      "dissonance"
+    ]
+  }
+}

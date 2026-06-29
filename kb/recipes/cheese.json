@@ -1,0 +1,16 @@
+{
+  "id": "recipes/cheese",
+  "kind": "INGREDIENT",
+  "name": "Cheese",
+  "keywords": [
+    "cheese"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/dairy"
+      }
+    ],
+    "isA": "recipes/dairy"
+  }
+}

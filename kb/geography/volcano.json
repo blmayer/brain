@@ -1,0 +1,31 @@
+{
+  "id": "geography/volcano",
+  "kind": "FACT",
+  "name": "Volcano",
+  "description": "An opening in the earth's crust through which lava erupts.",
+  "keywords": [
+    "volcano",
+    "volcanoes"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/mountain"
+      },
+      {
+        "target": "geography/landform"
+      }
+    ],
+    "isA": "geography/landform",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "has": [
+      "crater",
+      "magma chamber",
+      "lava"
+    ]
+  }
+}

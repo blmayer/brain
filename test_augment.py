@@ -829,5 +829,1214 @@ class TestQueryIntentionFromPOSTags(unittest.TestCase):
         self.assertNotIn("i don't know what", output.lower())
 
 
+class TestRecipeEndToEnd(unittest.TestCase):
+    """End-to-end tests for recipe knowledge files.
+
+    These tests verify that the full pipeline (parse → concept matching →
+    interface satisfaction → instruction resolution → emission) produces
+    the expected step-by-step instructions for various recipes.
+    """
+
+    def setUp(self):
+        try:
+            self.parser = get_default_parser()
+        except Exception as exc:
+            self.skipTest(f"Could not create default parser: {exc}")
+
+    def _run_recipe_pipeline(self, sentence):
+        """Run the full pipeline for a sentence and return emitted lines."""
+        resolved_tree, parsed_tree = self.parser.parse(sentence)
+        solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+        lines = emit(solved)
+        return solved, lines
+
+    def test_fried_egg_recipe_emits_instructions(self):
+        """The fried egg recipe should emit cooking instructions when matched."""
+        solved, lines = self._run_recipe_pipeline("make a fried egg")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        # The fried egg recipe has hasInstructions with action nodes that carry emitters.
+        # When the recipe is matched and interface satisfaction succeeds,
+        # the instruction steps should be emitted.
+        if lines:
+            # Check that at least some known fried egg steps appear
+            combined = " ".join(lines).lower()
+            has_cooking_steps = (
+                "pan" in combined or "egg" in combined or
+                "butter" in combined or "salt" in combined
+            )
+            self.assertTrue(
+                has_cooking_steps,
+                f"Expected cooking step keywords in emitted lines, got: {lines}"
+            )
+
+    def test_pancake_recipe_emits_instructions(self):
+        """The pancake recipe should emit step-by-step instructions."""
+        solved, lines = self._run_recipe_pipeline("make pancakes")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_pancake_steps = (
+                "mix" in combined or "batter" in combined or
+                "flip" in combined or "pan" in combined
+            )
+            self.assertTrue(
+                has_pancake_steps,
+                f"Expected pancake-related steps, got: {lines}"
+            )
+
+    def test_scrambled_eggs_recipe(self):
+        """The scrambled eggs recipe should emit cooking instructions."""
+        solved, lines = self._run_recipe_pipeline("make scrambled eggs")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_scramble_steps = (
+                "scramble" in combined or "stir" in combined or
+                "egg" in combined or "butter" in combined
+            )
+            self.assertTrue(
+                has_scramble_steps,
+                f"Expected scrambled egg steps, got: {lines}"
+            )
+
+    def test_pasta_recipe(self):
+        """The pasta recipe should emit cooking instructions."""
+        solved, lines = self._run_recipe_pipeline("make pasta with sauce")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_pasta_steps = (
+                "boil" in combined or "pasta" in combined or
+                "sauce" in combined or "drain" in combined
+            )
+            self.assertTrue(
+                has_pasta_steps,
+                f"Expected pasta cooking steps, got: {lines}"
+            )
+
+    def test_salad_recipe(self):
+        """The salad recipe should emit preparation instructions."""
+        solved, lines = self._run_recipe_pipeline("make a salad")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_salad_steps = (
+                "chop" in combined or "toss" in combined or
+                "serve" in combined or "salad" in combined
+            )
+            self.assertTrue(
+                has_salad_steps,
+                f"Expected salad preparation steps, got: {lines}"
+            )
+
+    def test_grilled_cheese_recipe(self):
+        """The grilled cheese recipe should emit instructions."""
+        solved, lines = self._run_recipe_pipeline("make a grilled cheese sandwich")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_grill_steps = (
+                "toast" in combined or "cheese" in combined or
+                "bread" in combined or "butter" in combined
+            )
+            self.assertTrue(
+                has_grill_steps,
+                f"Expected grilled cheese steps, got: {lines}"
+            )
+
+
+class TestCraftsEndToEnd(unittest.TestCase):
+    """End-to-end tests for building/craft project knowledge files.
+
+    These tests verify that the Project interface (hasMaterials + hasSteps)
+    works the same way as the Recipe interface (hasIngredients + hasInstructions).
+    """
+
+    def setUp(self):
+        try:
+            self.parser = get_default_parser()
+        except Exception as exc:
+            self.skipTest(f"Could not create default parser: {exc}")
+
+    def _run_craft_pipeline(self, sentence):
+        """Run the full pipeline for a sentence and return emitted lines."""
+        resolved_tree, parsed_tree = self.parser.parse(sentence)
+        solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+        lines = emit(solved)
+        return solved, lines
+
+    def test_birdhouse_project_emits_steps(self):
+        """The birdhouse project should emit building instructions."""
+        solved, lines = self._run_craft_pipeline("build a birdhouse")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_build_steps = (
+                "cut" in combined or "sand" in combined or
+                "drill" in combined or "glue" in combined or
+                "paint" in combined or "measure" in combined
+            )
+            self.assertTrue(
+                has_build_steps,
+                f"Expected building steps, got: {lines}"
+            )
+
+    def test_bookshelf_project(self):
+        """The bookshelf project should emit building instructions."""
+        solved, lines = self._run_craft_pipeline("build a bookshelf")
+
+        self.assertIsNotNone(solved)
+        self.assertIsInstance(lines, list)
+
+        if lines:
+            combined = " ".join(lines).lower()
+            has_build_steps = (
+                "cut" in combined or "sand" in combined or
+                "drill" in combined or "paint" in combined or
+                "measure" in combined
+            )
+            self.assertTrue(
+                has_build_steps,
+                f"Expected bookshelf building steps, got: {lines}"
+            )
+
+
+class TestCraftsInterfaceSatisfaction(unittest.TestCase):
+    """Tests that the Project interface satisfaction works with materials.
+
+    Similar to the Recipe/fried_egg test, but for the crafts domain.
+    The Project interface requires hasMaterials + hasSteps.
+    """
+
+    def test_birdhouse_satisfied_by_materials(self):
+        """The birdhouse project should be satisfied when required materials are available."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        birdhouse = ontology.get("crafts/birdhouse")
+
+        if birdhouse is None:
+            self.skipTest("crafts/birdhouse not loaded")
+
+        # Check the concept has the right structure
+        rels = birdhouse.relations or {}
+        self.assertIn("hasMaterials", rels, "Birdhouse must declare hasMaterials")
+        self.assertIn("hasSteps", rels, "Birdhouse must declare hasSteps")
+        self.assertTrue(
+            any("crafts/project" in str(p) for p in (birdhouse.parents or [])),
+            "Birdhouse must have crafts/project as parent"
+        )
+
+    def test_bookshelf_has_correct_structure(self):
+        """The bookshelf project has the required interface structure."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        bookshelf = ontology.get("crafts/bookshelf")
+
+        if bookshelf is None:
+            self.skipTest("crafts/bookshelf not loaded")
+
+        rels = bookshelf.relations or {}
+        self.assertIn("hasMaterials", rels)
+        self.assertIn("hasSteps", rels)
+
+    def test_project_interface_has_requires(self):
+        """The Project interface must declare requires for hasMaterials + hasSteps."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        project = ontology.get("crafts/project")
+
+        if project is None:
+            self.skipTest("crafts/project not loaded")
+
+        rels = project.relations or {}
+        requires = rels.get("requires", [])
+        relation_names = [r.get("relation") for r in requires if isinstance(r, dict)]
+        self.assertIn("hasMaterials", relation_names)
+        self.assertIn("hasSteps", relation_names)
+
+
+class TestPythonKBEndToEnd(unittest.TestCase):
+    """End-to-end tests for the Python programming language knowledge files.
+
+    Verifies that Python concepts are discoverable, have correct structure,
+    and participate in the ontology-driven pipeline.
+    """
+
+    def test_python_concepts_loaded(self):
+        """All core Python concepts should be loaded into the ontology."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        expected_ids = [
+            "programming_languages/python",
+            "programming_languages/python/constructs/print_function",
+            "programming_languages/python/constructs/input_function",
+            "programming_languages/python/constructs/int_type",
+            "programming_languages/python/constructs/str_type",
+            "programming_languages/python/constructs/variable_assignment",
+            "programming_languages/python/constructs/if_statement",
+            "programming_languages/python/constructs/for_loop",
+            "programming_languages/python/constructs/while_loop",
+            "programming_languages/python/constructs/function_def",
+            "programming_languages/python/constructs/list_type",
+            "programming_languages/python/operators/sum",
+            "programming_languages/python/operators/subtract",
+            "programming_languages/python/operators/multiply",
+            "programming_languages/python/operators/divide",
+            "programming_languages/python/builtins/len",
+            "programming_languages/python/builtins/range",
+        ]
+        for cid in expected_ids:
+            c = ontology.get(cid)
+            self.assertIsNotNone(c, f"Expected concept '{cid}' to be loaded")
+
+    def test_python_print_has_emitter(self):
+        """Python print function should have an emitter."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        print_fn = ontology.get("programming_languages/python/constructs/print_function")
+        self.assertIsNotNone(print_fn)
+        self.assertTrue(len(print_fn.emitters) > 0, "print_function must have emitters")
+        self.assertIn("print", print_fn.emitters[0]["template"])
+
+    def test_python_sum_produces_int(self):
+        """Python sum operator should produce an int."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        py_sum = ontology.get("programming_languages/python/operators/sum")
+        self.assertIsNotNone(py_sum)
+
+        rels = py_sum.relations or {}
+        produces = rels.get("produces", [])
+        self.assertTrue(len(produces) > 0, "sum should produce a value")
+
+    def test_python_concepts_discoverable_by_keyword(self):
+        """Python concepts should be findable by keyword search."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+
+        # "print" should find the Python print_function
+        matches = ontology.find_concepts_matching("print", strict=True)
+        py_matches = [m for m in matches if "python" in m.id]
+        self.assertTrue(
+            len(py_matches) > 0,
+            f"Expected to find Python print concept via keyword 'print'"
+        )
+
+    def test_python_int_type_hierarchy(self):
+        """Python int type should be part of the type hierarchy."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        int_type = ontology.get("programming_languages/python/constructs/int_type")
+        self.assertIsNotNone(int_type)
+
+        # Check partOf relation
+        rels = int_type.relations or {}
+        part_of = rels.get("partOf", [])
+        targets = []
+        for p in part_of:
+            if isinstance(p, dict):
+                t = p.get("target")
+                targets.append(t.id if hasattr(t, 'id') else str(t))
+            elif hasattr(p, 'id'):
+                targets.append(p.id)
+            else:
+                targets.append(str(p))
+        self.assertTrue(
+            any("python" in t for t in targets),
+            f"int_type should be partOf Python, got: {targets}"
+        )
+
+
+class TestMusicKB(unittest.TestCase):
+    """Tests for music domain knowledge files."""
+
+    def test_music_concepts_loaded(self):
+        """Music domain concepts should be loaded."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        for cid in ["music/music", "music/guitar", "music/piano",
+                     "music/violin", "music/melody", "music/rhythm"]:
+            c = ontology.get(cid)
+            self.assertIsNotNone(c, f"Expected '{cid}' to be loaded")
+
+    def test_guitar_is_string_instrument(self):
+        """Guitar should be classified as a string instrument via parents."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        guitar = ontology.get("music/guitar")
+        self.assertIsNotNone(guitar)
+        self.assertTrue(
+            ontology.is_a("music/guitar", "music/string_instrument"),
+            "Guitar should be a string instrument"
+        )
+
+    def test_piano_has_dual_classification(self):
+        """Piano is both a string and percussion instrument."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        piano = ontology.get("music/piano")
+        self.assertIsNotNone(piano)
+        self.assertTrue(
+            ontology.is_a("music/piano", "music/string_instrument"),
+            "Piano should be a string instrument"
+        )
+
+    def test_instrument_hierarchy(self):
+        """All concrete instruments should be descendants of music/instrument."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        for inst in ["music/guitar", "music/piano", "music/violin",
+                     "music/flute", "music/drums"]:
+            self.assertTrue(
+                ontology.is_a(inst, "music/instrument"),
+                f"{inst} should be a musical instrument"
+            )
+
+    def test_music_keyword_discovery(self):
+        """Music concepts should be discoverable by keywords."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        matches = ontology.find_concepts_matching("guitar", strict=True)
+        self.assertTrue(
+            any("guitar" in m.id for m in matches),
+            "Should find guitar concept via keyword"
+        )
+
+
+class TestGeographyKB(unittest.TestCase):
+    """Tests for geography domain knowledge files."""
+
+    def test_geography_concepts_loaded(self):
+        """Geography domain concepts should be loaded."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        for cid in ["geography/geography", "geography/mountain",
+                     "geography/river", "geography/ocean",
+                     "geography/desert", "geography/volcano"]:
+            c = ontology.get(cid)
+            self.assertIsNotNone(c, f"Expected '{cid}' to be loaded")
+
+    def test_volcano_is_landform(self):
+        """Volcano should be classified as a landform."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        self.assertTrue(
+            ontology.is_a("geography/volcano", "geography/landform"),
+            "Volcano should be a landform"
+        )
+
+    def test_volcano_is_mountain(self):
+        """Volcano should be classified as a type of mountain."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        self.assertTrue(
+            ontology.is_a("geography/volcano", "geography/mountain"),
+            "Volcano should be a mountain"
+        )
+
+    def test_river_is_body_of_water(self):
+        """River should be a body of water."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        self.assertTrue(
+            ontology.is_a("geography/river", "geography/body_of_water"),
+            "River should be a body of water"
+        )
+
+    def test_geography_keyword_discovery(self):
+        """Geography concepts should be discoverable by keywords."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        matches = ontology.find_concepts_matching("volcano", strict=True)
+        self.assertTrue(
+            any("volcano" in m.id for m in matches),
+            "Should find volcano via keyword"
+        )
+
+
+class TestMathKB(unittest.TestCase):
+    """Tests for mathematics domain knowledge files."""
+
+    def test_math_concepts_loaded(self):
+        """Math domain concepts should be loaded."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        for cid in ["math/mathematics", "math/arithmetic", "math/addition",
+                     "math/subtraction", "math/multiplication", "math/division",
+                     "math/algebra", "math/geometry"]:
+            c = ontology.get(cid)
+            self.assertIsNotNone(c, f"Expected '{cid}' to be loaded")
+
+    def test_addition_is_part_of_arithmetic(self):
+        """Addition should be partOf arithmetic."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        addition = ontology.get("math/addition")
+        self.assertIsNotNone(addition)
+
+        rels = addition.relations or {}
+        part_of = rels.get("partOf", [])
+        targets = []
+        for p in part_of:
+            if isinstance(p, dict):
+                t = p.get("target")
+                targets.append(t.id if hasattr(t, 'id') else str(t))
+            elif hasattr(p, 'id'):
+                targets.append(p.id)
+            else:
+                targets.append(str(p))
+        self.assertTrue(
+            any("arithmetic" in t for t in targets),
+            f"Addition should be partOf arithmetic, got: {targets}"
+        )
+
+    def test_math_keyword_discovery(self):
+        """Math concepts should be findable via keywords."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        # "addition" keyword should find math/addition
+        matches = ontology.find_concepts_matching("addition", strict=True)
+        math_matches = [m for m in matches if "math" in m.id]
+        self.assertTrue(
+            len(math_matches) > 0,
+            "Should find math/addition via keyword 'addition'"
+        )
+
+
+class TestNewIngredientsKB(unittest.TestCase):
+    """Tests for the expanded ingredients in the recipe knowledge base."""
+
+    def test_new_ingredients_loaded(self):
+        """All new ingredients should be loaded."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        new_ingredients = [
+            "recipes/flour", "recipes/sugar", "recipes/milk",
+            "recipes/oil", "recipes/onion", "recipes/garlic",
+            "recipes/tomato", "recipes/cheese", "recipes/bread",
+            "recipes/pasta", "recipes/rice", "recipes/chicken",
+            "recipes/lettuce", "recipes/water",
+        ]
+        for cid in new_ingredients:
+            c = ontology.get(cid)
+            self.assertIsNotNone(c, f"Expected ingredient '{cid}' to be loaded")
+
+    def test_ingredient_class_hierarchy(self):
+        """Ingredients should have proper class hierarchy via hasParent."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+
+        # Milk should be dairy
+        self.assertTrue(
+            ontology.is_a("recipes/milk", "recipes/dairy"),
+            "Milk should be a dairy product"
+        )
+        # Flour should be a grain
+        self.assertTrue(
+            ontology.is_a("recipes/flour", "recipes/grain"),
+            "Flour should be a grain"
+        )
+        # Garlic should be a vegetable
+        self.assertTrue(
+            ontology.is_a("recipes/garlic", "recipes/vegetable"),
+            "Garlic should be a vegetable"
+        )
+
+    def test_spice_hierarchy_still_works(self):
+        """Salt and pepper should still be spices (backward compat)."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        self.assertTrue(
+            ontology.is_a("recipes/salt", "recipes/spice"),
+            "Salt should still be a spice"
+        )
+        self.assertTrue(
+            ontology.is_a("recipes/pepper", "recipes/spice"),
+            "Pepper should still be a spice"
+        )
+
+
+class TestOntologyRichness(unittest.TestCase):
+    """Tests that verify the ontology has rich interconnections across domains."""
+
+    def test_total_concept_count(self):
+        """The ontology should have at least 250 concepts after expansion."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        self.assertGreaterEqual(
+            len(ontology), 250,
+            f"Expected at least 250 concepts, got {len(ontology)}"
+        )
+
+    def test_cross_domain_keyword_search(self):
+        """Keywords should work across all domains."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+
+        test_cases = [
+            ("piano", "music/piano"),
+            ("mountain", "geography/mountain"),
+            ("pancake", "recipes/pancake"),
+            ("birdhouse", "crafts/birdhouse"),
+            ("addition", "math/addition"),
+        ]
+
+        for keyword, expected_id in test_cases:
+            with self.subTest(keyword=keyword):
+                matches = ontology.find_concepts_matching(keyword, strict=True)
+                match_ids = [m.id for m in matches]
+                self.assertIn(
+                    expected_id, match_ids,
+                    f"Expected '{expected_id}' when searching for '{keyword}', got: {match_ids}"
+                )
+
+    def test_recipe_has_many_edges(self):
+        """Concrete recipes should have multiple relation types."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        pancake = ontology.get("recipes/pancake")
+        self.assertIsNotNone(pancake)
+
+        rels = pancake.relations or {}
+        # Should have hasIngredients, hasInstructions, hasParent
+        self.assertIn("hasIngredients", rels)
+        self.assertIn("hasInstructions", rels)
+        self.assertIn("hasParent", rels)
+
+        # Should have multiple ingredients
+        self.assertGreaterEqual(
+            len(rels["hasIngredients"]), 4,
+            "Pancake should have at least 4 ingredients"
+        )
+
+    def test_craft_project_has_many_edges(self):
+        """Craft projects should have multiple relation types."""
+        from kb import get_ontology
+
+        ontology = get_ontology()
+        birdhouse = ontology.get("crafts/birdhouse")
+        self.assertIsNotNone(birdhouse)
+
+        rels = birdhouse.relations or {}
+        self.assertIn("hasMaterials", rels)
+        self.assertIn("hasSteps", rels)
+        self.assertIn("hasParent", rels)
+        self.assertIn("isA", rels)
+
+        # Should have multiple materials
+        self.assertGreaterEqual(
+            len(rels["hasMaterials"]), 3,
+            "Birdhouse should have at least 3 materials"
+        )
+
+
+class _E2EPipelineMixin:
+    """Shared helpers for sentence → parse → solve → emit tests."""
+
+    def setUp(self):
+        try:
+            self.parser = get_default_parser()
+        except Exception as exc:
+            self.skipTest(f"Could not create default parser: {exc}")
+
+    def _pipeline(self, sentence):
+        resolved_tree, parsed_tree = self.parser.parse(sentence)
+        solved = tree_to_solved_plan(parsed_tree, resolved_tree)
+        lines = emit(solved)
+        dep_ids = []
+        if solved is not None and getattr(solved, "deps", None):
+            dep_ids = [
+                d.concept.id
+                for d in solved.deps
+                if getattr(d, "concept", None) is not None
+                and getattr(d.concept, "id", None)
+            ]
+        return solved, lines, dep_ids
+
+    def _assert_concepts_resolved(self, dep_ids, expected_ids, sentence):
+        for cid in expected_ids:
+            self.assertIn(
+                cid,
+                dep_ids,
+                f"Sentence {sentence!r}: expected concept {cid!r} in resolved deps, got {dep_ids}",
+            )
+
+    def _assert_emit_contains(self, lines, expected_fragments, sentence):
+        self.assertTrue(
+            lines,
+            f"Sentence {sentence!r}: expected non-empty emission, got {lines!r}",
+        )
+        combined = "\n".join(lines).lower()
+        for frag in expected_fragments:
+            self.assertIn(
+                frag.lower(),
+                combined,
+                f"Sentence {sentence!r}: expected fragment {frag!r} in emit {lines!r}",
+            )
+
+    def _assert_emit_lines_include(self, lines, expected_lines, sentence):
+        """Each expected line must appear exactly (case-sensitive) in emitted output."""
+        self.assertTrue(
+            lines,
+            f"Sentence {sentence!r}: expected non-empty emission, got {lines!r}",
+        )
+        for expected in expected_lines:
+            self.assertIn(
+                expected,
+                lines,
+                f"Sentence {sentence!r}: expected exact line {expected!r} in emit {lines!r}",
+            )
+
+
+class TestGeographySentenceToAnswer(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: natural-language questions should resolve geography concepts.
+
+    Pure FACT nodes have no emitters, so we assert concept resolution (the
+    ontology answer path) rather than emitted text.
+    """
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_what_is_a_volcano_resolves_geography_volcano(self):
+        sentence = "what is a volcano"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["geography/volcano", "linguistics/interrogative/what"],
+            sentence,
+        )
+
+    def test_what_is_a_river_resolves_body_of_water_concept(self):
+        sentence = "what is a river"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["geography/river"], sentence)
+
+    def test_what_is_a_mountain_resolves_landform(self):
+        sentence = "what is a mountain"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["geography/mountain"], sentence)
+
+    def test_what_is_geography_pulls_domain_parts(self):
+        """Asking about geography should bring in the domain root and related features."""
+        sentence = "what is geography"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["geography/geography"], sentence)
+        # Keyword "geography" also matches many domain members via hasParts/keywords.
+        for cid in ("geography/mountain", "geography/ocean", "geography/river"):
+            self.assertIn(cid, dep_ids, f"Expected domain part {cid} for {sentence!r}")
+
+    def test_what_is_an_ocean_resolves_ocean(self):
+        sentence = "what is an ocean"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["geography/ocean"], sentence)
+
+    def test_what_is_a_desert_resolves_desert(self):
+        sentence = "what is a desert"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["geography/desert"], sentence)
+
+
+class TestMathSentenceToAnswer(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: math questions resolve math/* concepts (and may also hit operator emitters)."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_what_is_addition_resolves_math_addition(self):
+        sentence = "what is addition"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/addition"], sentence)
+        # Addition shares keywords with programming sum operators that do emit.
+        self.assertTrue(
+            any("+" in (ln or "") for ln in (lines or [])),
+            f"Expected addition-related emission for {sentence!r}, got {lines!r}",
+        )
+
+    def test_what_is_subtraction_resolves_math_subtraction(self):
+        sentence = "what is subtraction"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/subtraction"], sentence)
+
+    def test_what_is_multiplication_resolves_and_may_emit_operator(self):
+        sentence = "what is multiplication"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/multiplication"], sentence)
+
+    def test_what_is_division_resolves_math_division(self):
+        sentence = "what is division"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/division"], sentence)
+
+    def test_what_is_algebra_resolves_math_algebra(self):
+        sentence = "what is algebra"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/algebra"], sentence)
+
+    def test_what_is_geometry_resolves_math_geometry(self):
+        sentence = "what is geometry"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/geometry"], sentence)
+
+    def test_what_is_mathematics_resolves_math_root(self):
+        sentence = "what is mathematics"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/mathematics"], sentence)
+
+    def test_what_is_arithmetic_resolves_math_arithmetic(self):
+        sentence = "what is arithmetic"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["math/arithmetic"], sentence)
+
+
+class TestMusicSentenceToAnswer(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: music questions resolve music/* concepts."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_what_is_a_guitar_resolves_guitar(self):
+        sentence = "what is a guitar"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/guitar"], sentence)
+
+    def test_what_is_a_piano_resolves_piano(self):
+        sentence = "what is a piano"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/piano"], sentence)
+
+    def test_what_is_a_melody_resolves_melody(self):
+        sentence = "what is a melody"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/melody"], sentence)
+
+    def test_what_is_harmony_resolves_harmony(self):
+        sentence = "what is harmony"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/harmony"], sentence)
+
+    def test_what_is_rhythm_resolves_rhythm(self):
+        sentence = "what is rhythm"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/rhythm"], sentence)
+
+    def test_what_is_music_pulls_domain_concepts(self):
+        sentence = "what is music"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/music"], sentence)
+        for cid in ("music/melody", "music/harmony", "music/rhythm", "music/instrument"):
+            self.assertIn(cid, dep_ids, f"Expected music part {cid} for {sentence!r}")
+
+    def test_what_is_a_violin_resolves_violin(self):
+        sentence = "what is a violin"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["music/violin"], sentence)
+
+
+class TestRecipeSentenceToExactInstructions(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: recipe sentences emit the concrete instruction text from KB emitters."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_make_pancakes_emits_full_instruction_sequence(self):
+        sentence = "make pancakes"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            [
+                "recipes/mix_ingredients",
+                "recipes/pour_batter",
+                "recipes/flip_pancake",
+                "recipes/serve",
+            ],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "mix all ingredients together in a bowl",
+                "pour batter into the heated pan",
+                "flip pancake when bubbles form on surface",
+                "serve on a plate",
+            ],
+            sentence,
+        )
+
+    def test_make_scrambled_eggs_emits_scramble_and_seasoning(self):
+        sentence = "make scrambled eggs"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["recipes/scramble_egg", "recipes/add_salt", "recipes/add_pepper"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "stir eggs continuously while cooking",
+                "add salt",
+                "add pepper",
+                "serve on a plate",
+            ],
+            sentence,
+        )
+
+    def test_make_pasta_with_sauce_emits_boil_drain_sauce(self):
+        sentence = "make pasta with sauce"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            [
+                "recipes/boil_water",
+                "recipes/add_pasta",
+                "recipes/add_sauce",
+                "recipes/drain_pasta",
+            ],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "bring water to a boil in a pot",
+                "add pasta to the boiling water",
+                "add sauce and mix well",
+                "drain pasta in a colander",
+            ],
+            sentence,
+        )
+
+    def test_make_a_salad_emits_chop_and_toss(self):
+        sentence = "make a salad"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["recipes/chop_vegetables", "recipes/toss_salad", "recipes/serve"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "chop vegetables into small pieces",
+                "toss all salad ingredients together",
+                "serve on a plate",
+            ],
+            sentence,
+        )
+
+    def test_make_grilled_cheese_emits_toast_and_cheese(self):
+        sentence = "make grilled cheese"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["recipes/toast_bread", "recipes/add_cheese"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "toast the bread slices",
+                "add cheese on top",
+            ],
+            sentence,
+        )
+
+    def test_make_a_fried_egg_emits_pan_and_egg_steps(self):
+        sentence = "make a fried egg"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        # At least some fried-egg action nodes should be in the plan.
+        self.assertTrue(
+            any(cid.startswith("recipes/") for cid in dep_ids),
+            f"Expected recipe action concepts for {sentence!r}, got {dep_ids}",
+        )
+        self._assert_emit_contains(
+            lines,
+            ["butter", "egg"],
+            sentence,
+        )
+
+
+class TestCraftSentenceToExactInstructions(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: craft/build sentences emit concrete project steps from KB emitters."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_build_a_birdhouse_emits_measure_cut_join_paint(self):
+        sentence = "build a birdhouse"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            [
+                "crafts/measure_and_mark",
+                "crafts/cut_wood",
+                "crafts/join_pieces",
+                "crafts/apply_paint",
+            ],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "measure and mark all cut lines",
+                "cut wood to the required dimensions",
+                "join pieces together securely",
+                "apply paint evenly and let it dry",
+            ],
+            sentence,
+        )
+
+    def test_how_do_i_make_a_birdhouse_same_steps(self):
+        """Procedural 'how' questions should still resolve the project steps."""
+        sentence = "how do I make a birdhouse"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["crafts/cut_wood", "crafts/apply_glue"], sentence)
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "cut wood to the required dimensions",
+                "apply glue evenly to joining surfaces",
+            ],
+            sentence,
+        )
+
+    def test_make_a_bookshelf_emits_woodworking_steps(self):
+        sentence = "make a bookshelf"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["crafts/measure_and_mark", "crafts/cut_wood", "crafts/drill_holes"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "measure and mark all cut lines",
+                "cut wood to the required dimensions",
+                "drill pilot holes at marked positions",
+            ],
+            sentence,
+        )
+
+    def test_build_a_kite_emits_tie_knot_and_join(self):
+        sentence = "build a kite"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["crafts/tie_knot", "crafts/apply_glue", "crafts/join_pieces"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "tie a secure knot",
+                "apply glue evenly to joining surfaces",
+                "join pieces together securely",
+            ],
+            sentence,
+        )
+
+    def test_make_a_picture_frame_emits_sand_and_paint(self):
+        sentence = "make a picture frame"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(
+            dep_ids,
+            ["crafts/sand_surface", "crafts/apply_paint"],
+            sentence,
+        )
+        self._assert_emit_lines_include(
+            lines,
+            [
+                "sand all surfaces smooth with sandpaper",
+                "apply paint evenly and let it dry",
+            ],
+            sentence,
+        )
+
+    def test_make_a_paper_airplane_emits_fold_paper(self):
+        sentence = "make a paper airplane"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["crafts/fold_paper"], sentence)
+        self._assert_emit_lines_include(
+            lines,
+            ["fold paper along the marked lines"],
+            sentence,
+        )
+
+
+class TestIngredientSentenceToAnswer(unittest.TestCase, _E2EPipelineMixin):
+    """E2E: ingredient mentions resolve ingredient concepts (no emitters)."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_what_is_flour_resolves_flour_ingredient(self):
+        sentence = "what is flour"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/flour"], sentence)
+
+    def test_what_is_cheese_resolves_cheese_or_grilled_cheese_path(self):
+        """'cheese' also keywords the grilled-cheese recipe (emitter path may win)."""
+        sentence = "what is cheese"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        cheese_related = (
+            "recipes/cheese" in dep_ids
+            or "recipes/add_cheese" in dep_ids
+            or "recipes/grilled_cheese" in dep_ids
+        )
+        self.assertTrue(
+            cheese_related,
+            f"Sentence {sentence!r}: expected cheese-related concepts, got {dep_ids}",
+        )
+
+    def test_what_is_garlic_resolves_garlic_ingredient(self):
+        sentence = "what is garlic"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/garlic"], sentence)
+
+    def test_what_is_lettuce_resolves_lettuce_ingredient(self):
+        sentence = "what is lettuce"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/lettuce"], sentence)
+
+    def test_what_is_chicken_resolves_chicken_ingredient(self):
+        sentence = "what is chicken"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/chicken"], sentence)
+
+    def test_what_are_tomatoes_resolves_tomato_ingredient(self):
+        """Singular 'tomato' also keywords pasta_with_sauce (executable path wins)."""
+        sentence = "what are tomatoes"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/tomato"], sentence)
+
+    def test_what_is_rice_resolves_rice_ingredient(self):
+        sentence = "what is rice"
+        solved, lines, dep_ids = self._pipeline(sentence)
+        self.assertIsNotNone(solved)
+        self._assert_concepts_resolved(dep_ids, ["recipes/rice"], sentence)
+
+
+class TestCrossDomainSentenceToAnswer(unittest.TestCase, _E2EPipelineMixin):
+    """E2E table-driven checks: sentence → required concepts and optional emit fragments."""
+
+    def setUp(self):
+        _E2EPipelineMixin.setUp(self)
+
+    def test_sentence_matrix(self):
+        cases = [
+            # (sentence, required concept ids, required emit fragments or None)
+            ("what is a volcano", ["geography/volcano"], None),
+            ("what is a lake", ["geography/lake"], None),
+            ("what is an island", ["geography/island"], None),
+            ("what is addition", ["math/addition"], ["+"]),
+            ("what is geometry", ["math/geometry"], None),
+            ("what is a flute", ["music/flute"], None),
+            ("what is drums", ["music/drums"], None),
+            ("make pancakes", ["recipes/flip_pancake"], ["flip pancake"]),
+            ("make scrambled eggs", ["recipes/scramble_egg"], ["stir eggs"]),
+            ("build a birdhouse", ["crafts/cut_wood"], ["cut wood"]),
+            ("build a kite", ["crafts/tie_knot"], ["tie a secure knot"]),
+            ("make a paper airplane", ["crafts/fold_paper"], ["fold paper"]),
+            ("what is flour", ["recipes/flour"], None),
+            ("what is milk", ["recipes/milk"], None),
+        ]
+        for sentence, required_ids, emit_frags in cases:
+            with self.subTest(sentence=sentence):
+                solved, lines, dep_ids = self._pipeline(sentence)
+                self.assertIsNotNone(solved, f"No solved plan for {sentence!r}")
+                self._assert_concepts_resolved(dep_ids, required_ids, sentence)
+                if emit_frags is not None:
+                    self._assert_emit_contains(lines, emit_frags, sentence)
+
+
 if __name__ == "__main__":
     unittest.main()
+

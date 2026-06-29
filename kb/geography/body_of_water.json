@@ -1,0 +1,16 @@
+{
+  "id": "geography/body_of_water",
+  "kind": "CLASS",
+  "name": "Body of Water",
+  "keywords": [
+    "body of water"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "isA": "geographical feature"
+  }
+}

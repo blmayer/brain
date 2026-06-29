@@ -1,0 +1,20 @@
+{
+  "id": "music/percussion_instrument",
+  "kind": "CLASS",
+  "name": "Percussion Instrument",
+  "keywords": [
+    "percussion instrument",
+    "percussion"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/instrument"
+      }
+    ],
+    "isA": "music/instrument",
+    "has": [
+      "striking surface"
+    ]
+  }
+}

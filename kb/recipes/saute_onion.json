@@ -1,0 +1,16 @@
+{
+  "id": "recipes/saute_onion",
+  "kind": "ACTION",
+  "name": "Saute Onion",
+  "description": "Saute the onion until translucent.",
+  "emitters": [
+    {
+      "template": "saute onion until translucent"
+    }
+  ],
+  "keywords": ["saute_onion", "saute"],
+  "relations": {
+    "needs": [{"name": "onion", "type": "recipes/onion"}, {"name": "oil", "type": "recipes/oil"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

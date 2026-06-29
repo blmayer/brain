@@ -1,0 +1,25 @@
+{
+  "id": "programming_languages/python/constructs/print_function",
+  "kind": "BUILTIN",
+  "name": "print()",
+  "description": "Python built-in function that outputs text to stdout.",
+  "keywords": ["print", "prints", "output", "outputs", "display", "show"],
+  "relations": {
+    "hasParameter": [
+      {"name": "value", "type": "programming_languages/python/constructs/any_type", "variadic": true}
+    ],
+    "produces": [
+      {"type": "none"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}],
+    "specializes": ["PrintOperation"],
+    "hasParent": [{"target": "programming_languages/python/constructs/builtin_function"}]
+  },
+  "emitters": [
+    {
+      "id": "py-print",
+      "target": "python",
+      "template": "print({{value}})"
+    }
+  ]
+}

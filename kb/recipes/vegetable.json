@@ -1,0 +1,13 @@
+{
+  "id": "recipes/vegetable",
+  "kind": "CLASS",
+  "name": "Vegetable",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "vegetable"
+  }
+}

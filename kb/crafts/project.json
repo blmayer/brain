@@ -1,0 +1,27 @@
+{
+  "id": "crafts/project",
+  "kind": "INTERFACE",
+  "name": "Project",
+  "description": "An interface for any building/craft project: must declare materials and assembly steps.",
+  "relations": {
+    "requires": [
+      {
+        "relation": "hasMaterials",
+        "type": "list",
+        "matchFromAvailable": true
+      },
+      {
+        "relation": "hasSteps",
+        "type": "list",
+        "matchFromAvailable": false
+      }
+    ]
+  },
+  "keywords": [
+    "project",
+    "build",
+    "construct",
+    "assemble",
+    "make"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "recipes/flip_pancake",
+  "kind": "ACTION",
+  "name": "Flip Pancake",
+  "description": "Flip the pancake when bubbles form on the surface.",
+  "emitters": [
+    {
+      "template": "flip pancake when bubbles form on surface"
+    }
+  ],
+  "keywords": ["flip_pancake"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

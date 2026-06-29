@@ -1,0 +1,16 @@
+{
+  "id": "recipes/butter",
+  "kind": "INGREDIENT",
+  "name": "Butter",
+  "keywords": [
+    "butter"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/dairy"
+      }
+    ],
+    "isA": "recipes/dairy"
+  }
+}

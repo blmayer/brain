@@ -1,0 +1,27 @@
+{
+  "id": "geography/desert",
+  "kind": "FACT",
+  "name": "Desert",
+  "description": "A dry barren area of land with little precipitation.",
+  "keywords": [
+    "desert",
+    "deserts"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/landform"
+      }
+    ],
+    "isA": "geography/landform",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "has": [
+      "sand dunes",
+      "arid climate"
+    ]
+  }
+}

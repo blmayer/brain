@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python/operators/multiply",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Multiply two numbers (Python)",
+  "keywords": ["multiply", "times", "product", "*", "multiplication"],
+  "relations": {
+    "needs": [
+      {"name": "a", "type": "programming_languages/python/constructs/int_type"},
+      {"name": "b", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}]
+  },
+  "emitters": [
+    {
+      "id": "py-multiply",
+      "target": "python",
+      "template": "{{result}} = {{a}} * {{b}}"
+    }
+  ]
+}

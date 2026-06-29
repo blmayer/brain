@@ -1,0 +1,17 @@
+{
+  "id": "crafts/dowel",
+  "kind": "MATERIAL",
+  "name": "Wooden Dowel",
+  "keywords": [
+    "dowel",
+    "dowels"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/wood"
+      }
+    ],
+    "isA": "crafts/wood"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "recipes/add_sauce",
+  "kind": "ACTION",
+  "name": "Add Sauce",
+  "description": "Add sauce to the dish.",
+  "emitters": [
+    {
+      "template": "add sauce and mix well"
+    }
+  ],
+  "keywords": ["add_sauce"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

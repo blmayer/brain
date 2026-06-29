@@ -1,0 +1,13 @@
+{
+  "id": "recipes/grain",
+  "kind": "CLASS",
+  "name": "Grain",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "grain product"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "crafts/sandpaper",
+  "kind": "MATERIAL",
+  "name": "Sandpaper",
+  "keywords": [
+    "sandpaper"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

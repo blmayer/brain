@@ -1,0 +1,16 @@
+{
+  "id": "crafts/fastener",
+  "kind": "CLASS",
+  "name": "Fastener",
+  "keywords": [
+    "fastener"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

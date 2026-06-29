@@ -1,0 +1,17 @@
+{
+  "id": "recipes/tomato",
+  "kind": "INGREDIENT",
+  "name": "Tomato",
+  "keywords": [
+    "tomato",
+    "tomatoes"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/vegetable"
+      }
+    ],
+    "isA": "recipes/vegetable"
+  }
+}

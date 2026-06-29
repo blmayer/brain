@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python/operators/subtract",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Subtract two integers (Python)",
+  "keywords": ["subtract", "minus", "difference", "-"],
+  "relations": {
+    "needs": [
+      {"name": "a", "type": "programming_languages/python/constructs/int_type"},
+      {"name": "b", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}]
+  },
+  "emitters": [
+    {
+      "id": "py-subtract",
+      "target": "python",
+      "template": "{{result}} = {{a}} - {{b}}"
+    }
+  ]
+}

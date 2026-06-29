@@ -1,0 +1,18 @@
+{
+  "id": "geography/geography",
+  "kind": "FACT",
+  "name": "Geography",
+  "description": "The study of the earth's surface, landforms, climate, and human activity.",
+  "keywords": [
+    "geography"
+  ],
+  "relations": {
+    "isA": "science",
+    "hasParts": [
+      "geography/continent",
+      "geography/ocean",
+      "geography/mountain",
+      "geography/river"
+    ]
+  }
+}

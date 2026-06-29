@@ -1,0 +1,19 @@
+{
+  "id": "math/mathematics",
+  "kind": "FACT",
+  "name": "Mathematics",
+  "description": "The abstract science of number, quantity, and space.",
+  "keywords": [
+    "mathematics",
+    "math",
+    "maths"
+  ],
+  "relations": {
+    "isA": "science",
+    "hasParts": [
+      "math/arithmetic",
+      "math/algebra",
+      "math/geometry"
+    ]
+  }
+}

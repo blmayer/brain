@@ -1,0 +1,17 @@
+{
+  "id": "recipes/egg",
+  "kind": "INGREDIENT",
+  "name": "Egg",
+  "keywords": [
+    "egg",
+    "eggs"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/protein"
+      }
+    ],
+    "isA": "recipes/protein"
+  }
+}

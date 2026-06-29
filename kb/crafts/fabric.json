@@ -1,0 +1,18 @@
+{
+  "id": "crafts/fabric",
+  "kind": "MATERIAL",
+  "name": "Fabric",
+  "keywords": [
+    "fabric",
+    "cloth",
+    "canvas"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

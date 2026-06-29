@@ -1,0 +1,18 @@
+{
+  "id": "crafts/glue",
+  "kind": "MATERIAL",
+  "name": "Glue",
+  "keywords": [
+    "glue",
+    "adhesive",
+    "wood glue"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "recipes/scramble_egg",
+  "kind": "ACTION",
+  "name": "Scramble Egg",
+  "description": "Stir the eggs continuously to scramble them.",
+  "emitters": [
+    {
+      "template": "stir eggs continuously while cooking"
+    }
+  ],
+  "keywords": ["scramble_egg", "scramble"],
+  "relations": {
+    "needs": [{"name": "egg", "type": "recipes/egg"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

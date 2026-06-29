@@ -1,0 +1,12 @@
+{
+  "id": "crafts/sand_surface",
+  "kind": "ACTION",
+  "name": "Sand Surface",
+  "description": "Sand the surfaces smooth with sandpaper.",
+  "emitters": [{"template": "sand all surfaces smooth with sandpaper"}],
+  "keywords": ["sand_surface", "sand"],
+  "relations": {
+    "needs": [{"name": "sandpaper", "type": "crafts/sandpaper"}],
+    "partOf": [{"target": "crafts/project"}]
+  }
+}

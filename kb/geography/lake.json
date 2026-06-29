@@ -1,0 +1,23 @@
+{
+  "id": "geography/lake",
+  "kind": "FACT",
+  "name": "Lake",
+  "description": "An inland body of standing water.",
+  "keywords": [
+    "lake",
+    "lakes"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/body_of_water"
+      }
+    ],
+    "isA": "geography/body_of_water",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ]
+  }
+}

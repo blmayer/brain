@@ -1,0 +1,16 @@
+{
+  "id": "recipes/chicken",
+  "kind": "INGREDIENT",
+  "name": "Chicken",
+  "keywords": [
+    "chicken"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/protein"
+      }
+    ],
+    "isA": "recipes/protein"
+  }
+}

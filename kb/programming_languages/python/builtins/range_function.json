@@ -1,0 +1,24 @@
+{
+  "id": "programming_languages/python/builtins/range",
+  "kind": "BUILTIN",
+  "name": "range()",
+  "description": "Python built-in function that generates a sequence of numbers.",
+  "keywords": ["range"],
+  "relations": {
+    "hasParameter": [
+      {"name": "stop", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/any_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}],
+    "hasParent": [{"target": "programming_languages/python/constructs/builtin_function"}]
+  },
+  "emitters": [
+    {
+      "id": "py-range",
+      "target": "python",
+      "template": "range({{stop}})"
+    }
+  ]
+}

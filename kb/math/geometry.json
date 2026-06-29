@@ -1,0 +1,23 @@
+{
+  "id": "math/geometry",
+  "kind": "FACT",
+  "name": "Geometry",
+  "description": "The branch of mathematics dealing with shapes, sizes, and properties of space.",
+  "keywords": [
+    "geometry"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/mathematics"
+      }
+    ],
+    "isA": "branch of mathematics",
+    "has": [
+      "points",
+      "lines",
+      "angles",
+      "surfaces"
+    ]
+  }
+}

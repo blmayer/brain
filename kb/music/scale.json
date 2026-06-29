@@ -1,0 +1,23 @@
+{
+  "id": "music/scale",
+  "kind": "FACT",
+  "name": "Musical Scale",
+  "description": "An ordered set of notes typically used as the basis for compositions.",
+  "keywords": [
+    "scale",
+    "scales"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ],
+    "isA": "pitch collection",
+    "has": [
+      "tonic",
+      "intervals",
+      "degrees"
+    ]
+  }
+}

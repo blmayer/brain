@@ -1,0 +1,31 @@
+{
+  "id": "recipes/scrambled_eggs",
+  "kind": "RECIPE",
+  "name": "Scrambled Eggs",
+  "description": "Simple scrambled eggs with butter and seasoning.",
+  "relations": {
+    "hasIngredients": [
+      {"target": "recipes/egg", "type": "Ingredient"},
+      {"target": "recipes/butter", "type": "Ingredient"},
+      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+    ],
+    "hasInstructions": [
+      "recipes/heat_pan",
+      "recipes/add_butter",
+      "recipes/spread_butter",
+      "recipes/add_egg",
+      "recipes/scramble_egg",
+      "recipes/add_salt",
+      "recipes/add_pepper",
+      "recipes/serve"
+    ],
+    "hasParent": [
+      {"target": "recipes/recipe"}
+    ]
+  },
+  "keywords": [
+    "scrambled eggs",
+    "scrambled egg",
+    "scramble"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "music/melody",
+  "kind": "FACT",
+  "name": "Melody",
+  "description": "A sequence of musical notes forming a recognizable tune.",
+  "keywords": [
+    "melody",
+    "tune"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ],
+    "isA": "musical element",
+    "has": [
+      "pitch sequence",
+      "rhythm pattern"
+    ]
+  }
+}

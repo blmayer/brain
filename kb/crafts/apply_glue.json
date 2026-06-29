@@ -1,0 +1,12 @@
+{
+  "id": "crafts/apply_glue",
+  "kind": "ACTION",
+  "name": "Apply Glue",
+  "description": "Apply glue to surfaces before joining.",
+  "emitters": [{"template": "apply glue evenly to joining surfaces"}],
+  "keywords": ["apply_glue"],
+  "relations": {
+    "needs": [{"name": "glue", "type": "crafts/glue"}],
+    "partOf": [{"target": "crafts/project"}]
+  }
+}

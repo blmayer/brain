@@ -1,0 +1,25 @@
+{
+  "id": "programming_languages/python/constructs/dict_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "dict",
+  "description": "Python dictionary type \u2014 key-value mapping.",
+  "keywords": [
+    "dict",
+    "dictionary",
+    "map",
+    "hashmap"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ],
+    "isA": "mapping type",
+    "hasParent": [
+      {
+        "target": "programming_languages/python/constructs/type"
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "geography/river",
+  "kind": "FACT",
+  "name": "River",
+  "description": "A large natural stream of water flowing to the sea.",
+  "keywords": [
+    "river",
+    "rivers"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/body_of_water"
+      }
+    ],
+    "isA": "geography/body_of_water",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "has": [
+      "source",
+      "mouth",
+      "tributaries"
+    ]
+  }
+}

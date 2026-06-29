@@ -1,0 +1,30 @@
+{
+  "id": "music/piano",
+  "kind": "FACT",
+  "name": "Piano",
+  "keywords": [
+    "piano"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/string_instrument"
+      },
+      {
+        "target": "music/percussion_instrument"
+      }
+    ],
+    "isA": "music/string_instrument",
+    "has": [
+      "keys",
+      "hammers",
+      "strings",
+      "pedals"
+    ],
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ]
+  }
+}

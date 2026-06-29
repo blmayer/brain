@@ -1,0 +1,24 @@
+{
+  "id": "geography/ocean",
+  "kind": "FACT",
+  "name": "Ocean",
+  "description": "A vast body of salt water covering most of the Earth's surface.",
+  "keywords": [
+    "ocean",
+    "oceans",
+    "sea"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/body_of_water"
+      }
+    ],
+    "isA": "geography/body_of_water",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ]
+  }
+}

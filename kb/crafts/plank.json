@@ -1,0 +1,19 @@
+{
+  "id": "crafts/plank",
+  "kind": "MATERIAL",
+  "name": "Wood Plank",
+  "keywords": [
+    "plank",
+    "planks",
+    "board",
+    "boards"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/wood"
+      }
+    ],
+    "isA": "crafts/wood"
+  }
+}

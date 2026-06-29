@@ -1,0 +1,34 @@
+{
+  "id": "math/division",
+  "kind": "FACT",
+  "name": "Division",
+  "description": "The mathematical operation of splitting into equal parts.",
+  "keywords": [
+    "division",
+    "divide",
+    "quotient"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/arithmetic"
+      }
+    ],
+    "isA": "arithmetic operation",
+    "produces": [
+      {
+        "type": "number"
+      }
+    ],
+    "needs": [
+      {
+        "name": "dividend",
+        "type": "number"
+      },
+      {
+        "name": "divisor",
+        "type": "number"
+      }
+    ]
+  }
+}

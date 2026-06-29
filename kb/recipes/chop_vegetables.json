@@ -1,0 +1,16 @@
+{
+  "id": "recipes/chop_vegetables",
+  "kind": "ACTION",
+  "name": "Chop Vegetables",
+  "description": "Chop the vegetables into small pieces.",
+  "emitters": [
+    {
+      "template": "chop vegetables into small pieces"
+    }
+  ],
+  "keywords": ["chop_vegetables", "chop", "dice"],
+  "relations": {
+    "needs": [{"name": "vegetables", "type": "recipes/vegetable"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

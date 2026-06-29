@@ -1,0 +1,35 @@
+{
+  "id": "math/addition",
+  "kind": "FACT",
+  "name": "Addition",
+  "description": "The mathematical operation of combining two or more numbers.",
+  "keywords": [
+    "addition",
+    "add",
+    "sum",
+    "plus"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/arithmetic"
+      }
+    ],
+    "isA": "arithmetic operation",
+    "produces": [
+      {
+        "type": "number"
+      }
+    ],
+    "needs": [
+      {
+        "name": "addend_a",
+        "type": "number"
+      },
+      {
+        "name": "addend_b",
+        "type": "number"
+      }
+    ]
+  }
+}

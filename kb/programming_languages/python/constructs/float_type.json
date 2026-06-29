@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python/constructs/float_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "float",
+  "description": "Python floating point type.",
+  "keywords": [
+    "float",
+    "decimal"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ],
+    "isA": "numeric type",
+    "hasParent": [
+      {
+        "target": "programming_languages/python/constructs/type"
+      }
+    ]
+  }
+}

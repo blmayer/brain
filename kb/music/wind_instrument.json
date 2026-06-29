@@ -1,0 +1,20 @@
+{
+  "id": "music/wind_instrument",
+  "kind": "CLASS",
+  "name": "Wind Instrument",
+  "keywords": [
+    "wind instrument"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/instrument"
+      }
+    ],
+    "isA": "music/instrument",
+    "has": [
+      "mouthpiece",
+      "air column"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "programming_languages/python/constructs/type",
+  "kind": "CLASS",
+  "name": "Type",
+  "description": "Base class for Python types.",
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ]
+  }
+}

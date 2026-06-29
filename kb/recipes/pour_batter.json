@@ -1,0 +1,16 @@
+{
+  "id": "recipes/pour_batter",
+  "kind": "ACTION",
+  "name": "Pour Batter",
+  "description": "Pour the batter into the pan.",
+  "emitters": [
+    {
+      "template": "pour batter into the heated pan"
+    }
+  ],
+  "keywords": ["pour_batter", "pour"],
+  "relations": {
+    "needs": [{"name": "batter", "type": "recipes/liquid"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

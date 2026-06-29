@@ -1,0 +1,19 @@
+{
+  "id": "programming_languages/python/constructs/int_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "int",
+  "description": "Python integer type.",
+  "keywords": ["integer", "integers", "int", "number"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/python"}],
+    "isA": "numeric type",
+    "hasParent": [{"target": "programming_languages/python/constructs/type"}]
+  },
+  "emitters": [
+    {
+      "id": "py-int",
+      "target": "python",
+      "template": "int"
+    }
+  ]
+}

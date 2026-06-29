@@ -1,0 +1,13 @@
+{
+  "id": "programming_languages/python/constructs/identifier",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Identifier",
+  "description": "A Python identifier / variable name.",
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ]
+  }
+}

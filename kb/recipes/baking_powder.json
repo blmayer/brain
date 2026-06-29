@@ -1,0 +1,16 @@
+{
+  "id": "recipes/baking_powder",
+  "kind": "INGREDIENT",
+  "name": "Baking Powder",
+  "keywords": [
+    "baking powder"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "leavening agent"
+  }
+}

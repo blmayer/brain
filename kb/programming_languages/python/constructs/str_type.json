@@ -1,0 +1,19 @@
+{
+  "id": "programming_languages/python/constructs/str_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "str",
+  "description": "Python string type.",
+  "keywords": ["string", "str", "text"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/python"}],
+    "isA": "sequence type",
+    "hasParent": [{"target": "programming_languages/python/constructs/type"}]
+  },
+  "emitters": [
+    {
+      "id": "py-str",
+      "target": "python",
+      "template": "str"
+    }
+  ]
+}

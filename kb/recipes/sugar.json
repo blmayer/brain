@@ -1,0 +1,16 @@
+{
+  "id": "recipes/sugar",
+  "kind": "INGREDIENT",
+  "name": "Sugar",
+  "keywords": [
+    "sugar"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "sweetener"
+  }
+}

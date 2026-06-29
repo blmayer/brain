@@ -1,0 +1,16 @@
+{
+  "id": "recipes/rice",
+  "kind": "INGREDIENT",
+  "name": "Rice",
+  "keywords": [
+    "rice"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/grain"
+      }
+    ],
+    "isA": "recipes/grain"
+  }
+}

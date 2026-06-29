@@ -1,0 +1,16 @@
+{
+  "id": "crafts/paint",
+  "kind": "MATERIAL",
+  "name": "Paint",
+  "keywords": [
+    "paint"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

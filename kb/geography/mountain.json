@@ -1,0 +1,28 @@
+{
+  "id": "geography/mountain",
+  "kind": "FACT",
+  "name": "Mountain",
+  "description": "A large natural elevation of the Earth's surface.",
+  "keywords": [
+    "mountain",
+    "mountains"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/landform"
+      }
+    ],
+    "isA": "geography/landform",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "has": [
+      "peak",
+      "slope",
+      "base"
+    ]
+  }
+}

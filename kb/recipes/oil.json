@@ -1,0 +1,18 @@
+{
+  "id": "recipes/oil",
+  "kind": "INGREDIENT",
+  "name": "Oil",
+  "keywords": [
+    "oil",
+    "cooking oil",
+    "olive oil"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/liquid"
+      }
+    ],
+    "isA": "recipes/liquid"
+  }
+}

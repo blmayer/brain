@@ -1,0 +1,18 @@
+{
+  "id": "music/instrument",
+  "kind": "CLASS",
+  "name": "Musical Instrument",
+  "description": "A device used to produce musical sounds.",
+  "keywords": [
+    "instrument",
+    "instruments"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ],
+    "isA": "sound-producing device"
+  }
+}

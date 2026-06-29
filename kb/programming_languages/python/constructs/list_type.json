@@ -1,0 +1,19 @@
+{
+  "id": "programming_languages/python/constructs/list_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "List",
+  "description": "Python list type — ordered mutable sequence.",
+  "keywords": ["list", "array"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/python"}],
+    "isA": "sequence type",
+    "hasParent": [{"target": "programming_languages/python/constructs/type"}]
+  },
+  "emitters": [
+    {
+      "id": "py-list",
+      "target": "python",
+      "template": "list"
+    }
+  ]
+}

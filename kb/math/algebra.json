@@ -1,0 +1,22 @@
+{
+  "id": "math/algebra",
+  "kind": "FACT",
+  "name": "Algebra",
+  "description": "The branch of mathematics using symbols and letters to represent numbers.",
+  "keywords": [
+    "algebra"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/mathematics"
+      }
+    ],
+    "isA": "branch of mathematics",
+    "has": [
+      "equations",
+      "variables",
+      "expressions"
+    ]
+  }
+}

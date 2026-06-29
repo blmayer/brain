@@ -1,0 +1,27 @@
+{
+  "id": "music/guitar",
+  "kind": "FACT",
+  "name": "Guitar",
+  "keywords": [
+    "guitar"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/string_instrument"
+      }
+    ],
+    "isA": "music/string_instrument",
+    "has": [
+      "six strings",
+      "frets",
+      "body",
+      "neck"
+    ],
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ]
+  }
+}

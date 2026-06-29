@@ -1,0 +1,12 @@
+{
+  "id": "crafts/fold_paper",
+  "kind": "ACTION",
+  "name": "Fold Paper",
+  "description": "Fold the paper along the marked lines.",
+  "emitters": [{"template": "fold paper along the marked lines"}],
+  "keywords": ["fold_paper", "fold"],
+  "relations": {
+    "needs": [{"name": "paper", "type": "crafts/paper"}],
+    "partOf": [{"target": "crafts/project"}]
+  }
+}

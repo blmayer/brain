@@ -1,0 +1,23 @@
+{
+  "id": "geography/continent",
+  "kind": "CLASS",
+  "name": "Continent",
+  "description": "One of the large landmasses of the Earth.",
+  "keywords": [
+    "continent",
+    "continents"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/landform"
+      }
+    ],
+    "isA": "geography/landform",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ]
+  }
+}

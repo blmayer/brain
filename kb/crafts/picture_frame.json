@@ -1,0 +1,31 @@
+{
+  "id": "crafts/picture_frame",
+  "kind": "PROJECT",
+  "name": "Picture Frame",
+  "description": "A wooden picture frame made from dowels, glue, and paint.",
+  "relations": {
+    "hasMaterials": [
+      {"target": "crafts/dowel", "type": "Material"},
+      {"target": "crafts/glue", "type": "Material"},
+      {"target": "crafts/sandpaper", "type": "Material"},
+      {"target": "crafts/paint", "type": "Material"}
+    ],
+    "hasSteps": [
+      "crafts/measure_and_mark",
+      "crafts/cut_wood",
+      "crafts/sand_surface",
+      "crafts/apply_glue",
+      "crafts/join_pieces",
+      "crafts/apply_paint"
+    ],
+    "hasParent": [
+      {"target": "crafts/project"}
+    ],
+    "isA": "woodworking project"
+  },
+  "keywords": [
+    "picture frame",
+    "frame",
+    "photo frame"
+  ]
+}

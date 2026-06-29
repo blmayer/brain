@@ -1,0 +1,11 @@
+{
+  "id": "crafts/drill_holes",
+  "kind": "ACTION",
+  "name": "Drill Holes",
+  "description": "Drill pilot holes for screws or dowels.",
+  "emitters": [{"template": "drill pilot holes at marked positions"}],
+  "keywords": ["drill_holes", "drill"],
+  "relations": {
+    "partOf": [{"target": "crafts/project"}]
+  }
+}

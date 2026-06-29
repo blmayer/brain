@@ -1,0 +1,19 @@
+{
+  "id": "programming_languages/python/constructs/while_loop",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "While Loop",
+  "description": "Python while loop with a condition.",
+  "keywords": ["while", "loop", "repeat"],
+  "relations": {
+    "hasCondition": [{"type": "programming_languages/python/constructs/bool_type"}],
+    "partOf": [{"target": "programming_languages/python"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {
+      "id": "py-while",
+      "target": "python",
+      "template": "while {{condition}}:\n    {{body}}"
+    }
+  ]
+}

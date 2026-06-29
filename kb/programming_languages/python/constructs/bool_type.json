@@ -1,0 +1,24 @@
+{
+  "id": "programming_languages/python/constructs/bool_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "bool",
+  "description": "Python boolean type.",
+  "keywords": [
+    "bool",
+    "boolean",
+    "true",
+    "false"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "programming_languages/python/constructs/type"
+      }
+    ]
+  }
+}

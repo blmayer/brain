@@ -1,0 +1,15 @@
+{
+  "id": "recipes/toss_salad",
+  "kind": "ACTION",
+  "name": "Toss Salad",
+  "description": "Toss the salad ingredients together.",
+  "emitters": [
+    {
+      "template": "toss all salad ingredients together"
+    }
+  ],
+  "keywords": ["toss_salad", "toss"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "recipes/add_pasta",
+  "kind": "ACTION",
+  "name": "Add Pasta",
+  "description": "Add pasta to the boiling water.",
+  "emitters": [
+    {
+      "template": "add pasta to the boiling water"
+    }
+  ],
+  "keywords": ["add_pasta"],
+  "relations": {
+    "needs": [{"name": "pasta", "type": "recipes/pasta"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "geography/island",
+  "kind": "FACT",
+  "name": "Island",
+  "description": "A piece of land surrounded by water.",
+  "keywords": [
+    "island",
+    "islands"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "geography/landform"
+      }
+    ],
+    "isA": "geography/landform",
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ]
+  }
+}

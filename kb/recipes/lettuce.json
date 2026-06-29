@@ -1,0 +1,16 @@
+{
+  "id": "recipes/lettuce",
+  "kind": "INGREDIENT",
+  "name": "Lettuce",
+  "keywords": [
+    "lettuce"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/vegetable"
+      }
+    ],
+    "isA": "recipes/vegetable"
+  }
+}

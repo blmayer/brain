@@ -1,0 +1,16 @@
+{
+  "id": "recipes/add_cheese",
+  "kind": "ACTION",
+  "name": "Add Cheese",
+  "description": "Add cheese on top.",
+  "emitters": [
+    {
+      "template": "add cheese on top"
+    }
+  ],
+  "keywords": ["add_cheese"],
+  "relations": {
+    "needs": [{"name": "cheese", "type": "recipes/cheese"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

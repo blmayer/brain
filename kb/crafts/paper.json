@@ -1,0 +1,17 @@
+{
+  "id": "crafts/paper",
+  "kind": "MATERIAL",
+  "name": "Paper",
+  "keywords": [
+    "paper",
+    "cardstock"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "recipes/drain_pasta",
+  "kind": "ACTION",
+  "name": "Drain Pasta",
+  "description": "Drain the cooked pasta in a colander.",
+  "emitters": [
+    {
+      "template": "drain pasta in a colander"
+    }
+  ],
+  "keywords": ["drain_pasta", "drain"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

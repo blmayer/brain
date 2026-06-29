@@ -1,0 +1,19 @@
+{
+  "id": "recipes/milk",
+  "kind": "INGREDIENT",
+  "name": "Milk",
+  "keywords": [
+    "milk"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/dairy"
+      },
+      {
+        "target": "recipes/liquid"
+      }
+    ],
+    "isA": "recipes/dairy"
+  }
+}

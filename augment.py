@@ -628,6 +628,55 @@ def _features_to_plan(tree) -> dict:
     for ex in satisfied_executables:
         executable_steps.extend(resolve_dependencies(ex, ontology=get_ontology()))
 
+    # If interface satisfaction didn't produce executable steps, check if any
+    # resolved concept directly declares instruction-list relations (as defined
+    # by the interfaces they claim). This handles the case where a user says
+    # "make pancakes" — the recipe is matched by keywords but the pool may not
+    # have explicit ingredient mentions. The interface definition (not hardcoded
+    # names) tells us which relations carry executable content.
+    if not executable_steps:
+        ontology = get_ontology()
+        for concept in resolved_concepts:
+            if not isinstance(concept, Concept):
+                continue
+            claimed = _get_claimed_interface_ids(concept)
+            for iface_id in claimed:
+                iface = ontology.get(iface_id)
+                if not iface:
+                    continue
+                for decl in (iface.relations or {}).get("requires", []):
+                    if isinstance(decl, dict):
+                        rname = decl.get("relation") or decl.get("name")
+                        if rname:
+                            items = (concept.relations or {}).get(rname, [])
+                            if isinstance(items, (str, dict)):
+                                items = [items]
+                            # Check if any of the items point to concepts with emitters
+                            for item in items:
+                                target = None
+                                if isinstance(item, Concept):
+                                    target = item
+                                elif isinstance(item, str):
+                                    target = ontology.get(item)
+                                elif isinstance(item, dict):
+                                    t = item.get("target") or item.get("id")
+                                    if isinstance(t, Concept):
+                                        target = t
+                                    elif isinstance(t, str):
+                                        target = ontology.get(t)
+                                if target and getattr(target, "emitters", None):
+                                    # This concept has executable instruction content
+                                    executable_steps.extend(
+                                        resolve_dependencies(concept, ontology=ontology)
+                                    )
+                                    break
+                            if executable_steps:
+                                break
+                    if executable_steps:
+                        break
+                if executable_steps:
+                    break
+
     # If we resolved any executable steps (the general "follow instructions
     # once requirements satisfied" path), prefer them for emission.
     # Otherwise fall back to the classic construct dependency resolution
@@ -1134,14 +1183,29 @@ def apply_interface_satisfaction(
         result = check_interface_satisfaction(obj, pool, ontology=ontology)
         if result.get("satisfied"):
             # Does this satisfied node declare executable instructions/steps?
-            # (generic: look for hasInstructions or similar; the concrete values
-            # are node ids of action concepts that have emitters)
+            # Check all relations that the claimed interfaces declare in "requires"
+            # (KB-driven, not hardcoded to "hasInstructions").
             has_exec_list = False
+            claimed = _get_claimed_interface_ids(obj)
+            obj_rels = {}
             if isinstance(obj, Concept):
-                has_exec_list = bool((obj.relations or {}).get("hasInstructions"))
+                obj_rels = obj.relations or {}
             elif isinstance(obj, dict):
-                rels = obj.get("relations", {}) or obj.get("requires", {}) or {}
-                has_exec_list = bool(rels.get("hasInstructions"))
+                obj_rels = obj.get("relations", {}) or obj.get("requires", {}) or {}
+
+            for iface_id in claimed:
+                iface = ontology.get(iface_id)
+                if not iface:
+                    continue
+                for decl in (iface.relations or {}).get("requires", []):
+                    if isinstance(decl, dict):
+                        rname = decl.get("relation") or decl.get("name")
+                        if rname and obj_rels.get(rname):
+                            has_exec_list = True
+                            break
+                if has_exec_list:
+                    break
+
             if has_exec_list:
                 satisfied_executables.append(obj)
 

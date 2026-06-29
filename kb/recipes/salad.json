@@ -1,0 +1,30 @@
+{
+  "id": "recipes/salad",
+  "kind": "RECIPE",
+  "name": "Simple Salad",
+  "description": "A basic garden salad with lettuce, tomato, and onion.",
+  "relations": {
+    "hasIngredients": [
+      {"target": "recipes/lettuce", "type": "Ingredient"},
+      {"target": "recipes/tomato", "type": "Ingredient"},
+      {"target": "recipes/onion", "type": "Ingredient"},
+      {"target": "recipes/oil", "type": "Ingredient"},
+      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+    ],
+    "hasInstructions": [
+      "recipes/chop_vegetables",
+      "recipes/toss_salad",
+      "recipes/add_salt",
+      "recipes/add_pepper",
+      "recipes/serve"
+    ],
+    "hasParent": [
+      {"target": "recipes/recipe"}
+    ]
+  },
+  "keywords": [
+    "salad",
+    "garden salad",
+    "simple salad"
+  ]
+}

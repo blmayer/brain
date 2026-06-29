@@ -1,0 +1,32 @@
+{
+  "id": "crafts/birdhouse",
+  "kind": "PROJECT",
+  "name": "Birdhouse",
+  "description": "A simple wooden birdhouse made from planks, nails, and paint.",
+  "relations": {
+    "hasMaterials": [
+      {"target": "crafts/plank", "type": "Material"},
+      {"target": "crafts/nail", "type": "Material"},
+      {"target": "crafts/sandpaper", "type": "Material"},
+      {"target": "crafts/paint", "type": "Material"},
+      {"target": "crafts/glue", "type": "Material"}
+    ],
+    "hasSteps": [
+      "crafts/measure_and_mark",
+      "crafts/cut_wood",
+      "crafts/sand_surface",
+      "crafts/drill_holes",
+      "crafts/apply_glue",
+      "crafts/join_pieces",
+      "crafts/apply_paint"
+    ],
+    "hasParent": [
+      {"target": "crafts/project"}
+    ],
+    "isA": "woodworking project"
+  },
+  "keywords": [
+    "birdhouse",
+    "bird house"
+  ]
+}

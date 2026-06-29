@@ -1,0 +1,16 @@
+{
+  "id": "recipes/water",
+  "kind": "INGREDIENT",
+  "name": "Water",
+  "keywords": [
+    "water"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/liquid"
+      }
+    ],
+    "isA": "recipes/liquid"
+  }
+}

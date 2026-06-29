@@ -1,0 +1,13 @@
+{
+  "id": "programming_languages/python/constructs/builtin_function",
+  "kind": "CLASS",
+  "name": "Built-in Function",
+  "description": "Base class for Python built-in functions.",
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ]
+  }
+}

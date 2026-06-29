@@ -1,0 +1,19 @@
+{
+  "id": "crafts/wood",
+  "kind": "CLASS",
+  "name": "Wood",
+  "keywords": [
+    "wood",
+    "lumber",
+    "timber",
+    "plywood"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

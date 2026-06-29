@@ -1,0 +1,13 @@
+{
+  "id": "recipes/dairy",
+  "kind": "CLASS",
+  "name": "Dairy",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "dairy product"
+  }
+}

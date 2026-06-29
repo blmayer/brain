@@ -1,0 +1,15 @@
+{
+  "id": "recipes/serve",
+  "kind": "ACTION",
+  "name": "Serve",
+  "description": "Serve the dish on a plate.",
+  "emitters": [
+    {
+      "template": "serve on a plate"
+    }
+  ],
+  "keywords": ["serve"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

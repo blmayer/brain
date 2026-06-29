@@ -1,0 +1,26 @@
+{
+  "id": "music/violin",
+  "kind": "FACT",
+  "name": "Violin",
+  "keywords": [
+    "violin"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/string_instrument"
+      }
+    ],
+    "isA": "music/string_instrument",
+    "has": [
+      "four strings",
+      "bow",
+      "chin rest"
+    ],
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ]
+  }
+}

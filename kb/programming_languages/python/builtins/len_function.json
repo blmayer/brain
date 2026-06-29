@@ -1,0 +1,24 @@
+{
+  "id": "programming_languages/python/builtins/len",
+  "kind": "BUILTIN",
+  "name": "len()",
+  "description": "Python built-in function that returns the length of a sequence.",
+  "keywords": ["len", "length", "size", "count"],
+  "relations": {
+    "hasParameter": [
+      {"name": "obj", "type": "programming_languages/python/constructs/any_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}],
+    "hasParent": [{"target": "programming_languages/python/constructs/builtin_function"}]
+  },
+  "emitters": [
+    {
+      "id": "py-len",
+      "target": "python",
+      "template": "len({{obj}})"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "math/subtraction",
+  "kind": "FACT",
+  "name": "Subtraction",
+  "description": "The mathematical operation of finding the difference between numbers.",
+  "keywords": [
+    "subtraction",
+    "subtract",
+    "minus",
+    "difference"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "math/arithmetic"
+      }
+    ],
+    "isA": "arithmetic operation",
+    "produces": [
+      {
+        "type": "number"
+      }
+    ],
+    "needs": [
+      {
+        "name": "minuend",
+        "type": "number"
+      },
+      {
+        "name": "subtrahend",
+        "type": "number"
+      }
+    ]
+  }
+}

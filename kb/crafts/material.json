@@ -1,0 +1,6 @@
+{
+  "id": "crafts/material",
+  "kind": "CLASS",
+  "name": "Material",
+  "description": "Base class for all building/craft materials."
+}

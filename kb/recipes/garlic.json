@@ -1,0 +1,19 @@
+{
+  "id": "recipes/garlic",
+  "kind": "INGREDIENT",
+  "name": "Garlic",
+  "keywords": [
+    "garlic"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/vegetable"
+      },
+      {
+        "target": "recipes/spice"
+      }
+    ],
+    "isA": "recipes/vegetable"
+  }
+}

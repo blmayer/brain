@@ -1,0 +1,18 @@
+{
+  "id": "programming_languages/python/constructs/any_type",
+  "kind": "CLASS",
+  "name": "Any",
+  "description": "Represents any Python type.",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "programming_languages/python/constructs/type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ]
+  }
+}

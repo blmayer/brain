@@ -1,0 +1,23 @@
+{
+  "id": "music/note",
+  "kind": "FACT",
+  "name": "Musical Note",
+  "description": "A single sound with a specific pitch and duration.",
+  "keywords": [
+    "note",
+    "notes"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "music/melody"
+      }
+    ],
+    "isA": "musical unit",
+    "has": [
+      "pitch",
+      "duration",
+      "intensity"
+    ]
+  }
+}

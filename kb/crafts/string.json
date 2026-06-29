@@ -1,0 +1,19 @@
+{
+  "id": "crafts/string",
+  "kind": "MATERIAL",
+  "name": "String",
+  "keywords": [
+    "string",
+    "twine",
+    "cord",
+    "rope"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/material"
+      }
+    ],
+    "isA": "crafts/material"
+  }
+}

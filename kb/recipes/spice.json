@@ -1,0 +1,13 @@
+{
+  "id": "recipes/spice",
+  "kind": "CLASS",
+  "name": "Spice",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "seasoning"
+  }
+}

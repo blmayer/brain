@@ -1,0 +1,26 @@
+{
+  "id": "music/flute",
+  "kind": "FACT",
+  "name": "Flute",
+  "keywords": [
+    "flute"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/wind_instrument"
+      }
+    ],
+    "isA": "music/wind_instrument",
+    "has": [
+      "keys",
+      "tone holes",
+      "embouchure hole"
+    ],
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ]
+  }
+}

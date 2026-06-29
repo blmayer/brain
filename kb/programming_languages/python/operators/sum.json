@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python/operators/sum",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Sum two integers (Python)",
+  "keywords": ["sum", "add", "plus", "+", "addition"],
+  "relations": {
+    "needs": [
+      {"name": "a", "type": "programming_languages/python/constructs/int_type"},
+      {"name": "b", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}]
+  },
+  "emitters": [
+    {
+      "id": "py-sum",
+      "target": "python",
+      "template": "{{result}} = {{a}} + {{b}}"
+    }
+  ]
+}

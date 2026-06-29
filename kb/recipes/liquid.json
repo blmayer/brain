@@ -1,0 +1,13 @@
+{
+  "id": "recipes/liquid",
+  "kind": "CLASS",
+  "name": "Liquid",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "liquid ingredient"
+  }
+}

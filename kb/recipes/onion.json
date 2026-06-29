@@ -1,0 +1,17 @@
+{
+  "id": "recipes/onion",
+  "kind": "INGREDIENT",
+  "name": "Onion",
+  "keywords": [
+    "onion",
+    "onions"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/vegetable"
+      }
+    ],
+    "isA": "recipes/vegetable"
+  }
+}

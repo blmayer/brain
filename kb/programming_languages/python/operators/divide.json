@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python/operators/divide",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Divide two numbers (Python)",
+  "keywords": ["divide", "division", "quotient", "/"],
+  "relations": {
+    "needs": [
+      {"name": "a", "type": "programming_languages/python/constructs/int_type"},
+      {"name": "b", "type": "programming_languages/python/constructs/int_type"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/python/constructs/float_type"}
+    ],
+    "partOf": [{"target": "programming_languages/python"}]
+  },
+  "emitters": [
+    {
+      "id": "py-divide",
+      "target": "python",
+      "template": "{{result}} = {{a}} / {{b}}"
+    }
+  ]
+}

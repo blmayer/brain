@@ -1,0 +1,32 @@
+{
+  "id": "recipes/grilled_cheese",
+  "kind": "RECIPE",
+  "name": "Grilled Cheese Sandwich",
+  "description": "A classic grilled cheese sandwich with bread, cheese, and butter.",
+  "relations": {
+    "hasIngredients": [
+      {"target": "recipes/bread", "type": "Ingredient"},
+      {"target": "recipes/cheese", "type": "Ingredient"},
+      {"target": "recipes/butter", "type": "Ingredient"}
+    ],
+    "hasInstructions": [
+      "recipes/heat_pan",
+      "recipes/add_butter",
+      "recipes/spread_butter",
+      "recipes/toast_bread",
+      "recipes/add_cheese",
+      "recipes/toast_bread",
+      "recipes/flip_egg",
+      "recipes/wait",
+      "recipes/serve"
+    ],
+    "hasParent": [
+      {"target": "recipes/recipe"}
+    ]
+  },
+  "keywords": [
+    "grilled cheese",
+    "cheese sandwich",
+    "grilled cheese sandwich"
+  ]
+}

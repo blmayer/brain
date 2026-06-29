@@ -1,0 +1,38 @@
+{
+  "id": "recipes/pasta_with_sauce",
+  "kind": "RECIPE",
+  "name": "Pasta with Tomato Sauce",
+  "description": "Simple pasta with a tomato and garlic sauce.",
+  "relations": {
+    "hasIngredients": [
+      {"target": "recipes/pasta", "type": "Ingredient"},
+      {"target": "recipes/tomato", "type": "Ingredient"},
+      {"target": "recipes/garlic", "type": "Ingredient"},
+      {"target": "recipes/onion", "type": "Ingredient"},
+      {"target": "recipes/oil", "type": "Ingredient"},
+      {"target": "recipes/water", "type": "Ingredient"},
+      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+    ],
+    "hasInstructions": [
+      "recipes/boil_water",
+      "recipes/add_pasta",
+      "recipes/heat_pan",
+      "recipes/saute_onion",
+      "recipes/chop_vegetables",
+      "recipes/add_sauce",
+      "recipes/add_salt",
+      "recipes/add_pepper",
+      "recipes/drain_pasta",
+      "recipes/serve"
+    ],
+    "hasParent": [
+      {"target": "recipes/recipe"}
+    ]
+  },
+  "keywords": [
+    "pasta",
+    "spaghetti",
+    "pasta with sauce",
+    "tomato pasta"
+  ]
+}

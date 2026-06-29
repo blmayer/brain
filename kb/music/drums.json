@@ -1,0 +1,27 @@
+{
+  "id": "music/drums",
+  "kind": "FACT",
+  "name": "Drums",
+  "keywords": [
+    "drums",
+    "drum"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "music/percussion_instrument"
+      }
+    ],
+    "isA": "music/percussion_instrument",
+    "has": [
+      "drumhead",
+      "shell",
+      "drumsticks"
+    ],
+    "partOf": [
+      {
+        "target": "music/music"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "recipes/protein",
+  "kind": "CLASS",
+  "name": "Protein",
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "protein source"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "music/music",
+  "kind": "FACT",
+  "name": "Music",
+  "description": "The art of organizing sound in time through melody, harmony, and rhythm.",
+  "keywords": ["music"],
+  "relations": {
+    "isA": "art form",
+    "hasParts": [
+      "music/melody",
+      "music/harmony",
+      "music/rhythm",
+      "music/instrument"
+    ],
+    "has": ["pitch", "tempo", "dynamics", "timbre"]
+  }
+}

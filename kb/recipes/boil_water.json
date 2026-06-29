@@ -1,0 +1,16 @@
+{
+  "id": "recipes/boil_water",
+  "kind": "ACTION",
+  "name": "Boil Water",
+  "description": "Bring water to a boil in a pot.",
+  "emitters": [
+    {
+      "template": "bring water to a boil in a pot"
+    }
+  ],
+  "keywords": ["boil_water", "boil"],
+  "relations": {
+    "needs": [{"name": "water", "type": "recipes/water"}],
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

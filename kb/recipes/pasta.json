@@ -1,0 +1,18 @@
+{
+  "id": "recipes/pasta",
+  "kind": "INGREDIENT",
+  "name": "Pasta",
+  "keywords": [
+    "pasta",
+    "spaghetti",
+    "noodles"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/grain"
+      }
+    ],
+    "isA": "recipes/grain"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "recipes/mix_ingredients",
+  "kind": "ACTION",
+  "name": "Mix Ingredients",
+  "description": "Combine all ingredients together in a bowl.",
+  "emitters": [
+    {
+      "template": "mix all ingredients together in a bowl"
+    }
+  ],
+  "keywords": ["mix_ingredients", "mix", "combine"],
+  "relations": {
+    "partOf": [{"target": "recipes/recipe"}]
+  }
+}

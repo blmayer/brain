@@ -1,0 +1,21 @@
+{
+  "id": "recipes/pepper",
+  "kind": "INGREDIENT",
+  "name": "Pepper",
+  "keywords": [
+    "pepper",
+    "peppers",
+    "peper"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/spice"
+      },
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "recipes/spice"
+  }
+}

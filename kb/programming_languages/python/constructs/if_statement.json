@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/python/constructs/if_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "If Statement",
+  "description": "Python conditional if statement.",
+  "keywords": ["if", "conditional", "condition"],
+  "relations": {
+    "hasCondition": [{"type": "programming_languages/python/constructs/bool_type"}],
+    "hasThenBranch": [{"type": "programming_languages/python/constructs/block"}],
+    "partOf": [{"target": "programming_languages/python"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {
+      "id": "py-if",
+      "target": "python",
+      "template": "if {{condition}}:\n    {{body}}"
+    }
+  ]
+}

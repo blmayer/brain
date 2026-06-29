@@ -1,0 +1,17 @@
+{
+  "id": "crafts/nail",
+  "kind": "MATERIAL",
+  "name": "Nail",
+  "keywords": [
+    "nail",
+    "nails"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "crafts/fastener"
+      }
+    ],
+    "isA": "crafts/fastener"
+  }
+}

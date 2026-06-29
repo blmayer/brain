@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/python",
+  "kind": "FACT",
+  "name": "Python",
+  "description": "Python programming language.",
+  "keywords": ["python"],
+  "relations": {
+    "hasParent": [{"target": "programming"}],
+    "isA": "programming language",
+    "has": ["dynamic typing", "garbage collection", "interpreted"],
+    "hasParts": [
+      "programming_languages/python/constructs/print_function",
+      "programming_languages/python/constructs/input_function",
+      "programming_languages/python/constructs/variable_assignment",
+      "programming_languages/python/constructs/if_statement",
+      "programming_languages/python/constructs/for_loop",
+      "programming_languages/python/constructs/while_loop",
+      "programming_languages/python/constructs/function_def",
+      "programming_languages/python/constructs/list_type",
+      "programming_languages/python/constructs/int_type"
+    ]
+  }
+}

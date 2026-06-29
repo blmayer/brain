@@ -1,0 +1,13 @@
+{
+  "id": "programming_languages/python/constructs/block",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Block",
+  "description": "An indented block of Python statements.",
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ]
+  }
+}

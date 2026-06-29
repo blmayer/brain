@@ -1,0 +1,16 @@
+{
+  "id": "geography/landform",
+  "kind": "CLASS",
+  "name": "Landform",
+  "keywords": [
+    "landform"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "geography/geography"
+      }
+    ],
+    "isA": "geographical feature"
+  }
+}

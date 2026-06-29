@@ -1,0 +1,30 @@
+{
+  "id": "crafts/kite",
+  "kind": "PROJECT",
+  "name": "Kite",
+  "description": "A simple diamond kite made from dowels, fabric, and string.",
+  "relations": {
+    "hasMaterials": [
+      {"target": "crafts/dowel", "type": "Material"},
+      {"target": "crafts/fabric", "type": "Material"},
+      {"target": "crafts/string", "type": "Material"},
+      {"target": "crafts/glue", "type": "Material"}
+    ],
+    "hasSteps": [
+      "crafts/measure_and_mark",
+      "crafts/cut_wood",
+      "crafts/tie_knot",
+      "crafts/apply_glue",
+      "crafts/join_pieces",
+      "crafts/tie_knot"
+    ],
+    "hasParent": [
+      {"target": "crafts/project"}
+    ],
+    "isA": "outdoor craft"
+  },
+  "keywords": [
+    "kite",
+    "diamond kite"
+  ]
+}

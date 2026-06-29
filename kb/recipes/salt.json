@@ -1,0 +1,20 @@
+{
+  "id": "recipes/salt",
+  "kind": "INGREDIENT",
+  "name": "Salt",
+  "keywords": [
+    "salt",
+    "salts"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "recipes/spice"
+      },
+      {
+        "target": "recipes/ingredient"
+      }
+    ],
+    "isA": "recipes/spice"
+  }
+}
