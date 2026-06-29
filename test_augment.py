@@ -465,7 +465,8 @@ class TestQueryIdealTree(unittest.TestCase):
     The ideal tree is the desired "parsed result" for the sentence "what is a banana?".
     We validate that this ideal parsed tree leads to banana (and related) concepts
     being collected in the normal ontology-driven plan via relations (hasParent/isA).
-    Pure facts are included in the plan but do not auto-emit (no emitters, no definitions field).
+    Definition answers are emitted via linguistics/answer/definition emitters,
+    bound from the subject's hasParent / isA relations (e.g. "banana is a fruit").
     """
 
     # This string documents the ideal parsed tree shape (the "gold" output we
@@ -615,14 +616,20 @@ class TestQueryIdealTree(unittest.TestCase):
 
         lines = emit(solved)
         self.assertIsInstance(lines, list)
-        # With definitions removed and no emitters on banana, expect no emitted lines
-        # from the fact itself. The important thing is that the ontology matched
-        # the interrogative + banana via keywords and relations.
+        # Interrogative "what" produces linguistics/answer/definition; solver binds
+        # subject=banana and class from hasParent → fruit.
         starting = [c.lower() for c in plan.get("starting_concepts", [])]
         self.assertTrue(
             any("banana" in s for s in starting),
             f"Expected 'banana' among starting_concepts, got: {starting}"
         )
+        resolved = [c.lower() for c in plan.get("resolved_dependencies", [])]
+        self.assertTrue(
+            any("definition" in r for r in resolved),
+            f"Expected definition answer among resolved deps, got: {resolved}"
+        )
+        joined = "\n".join(lines).lower()
+        self.assertIn("banana is a fruit", joined)
 
 
 # ------------------------------------------------------------------
@@ -793,8 +800,8 @@ class TestInterfaceSatisfaction(unittest.TestCase):
 class TestQueryIntentionFromPOSTags(unittest.TestCase):
     """Integration tests for questions such as 'what is a banana?'.
     The normal ontology-driven plan + concept resolution using relations
-    (hasParent, isA, etc.) pulls the relevant FACTs. Pure facts do not
-    auto-emit text after removal of the definitions mechanism.
+    (hasParent, isA, produces) pulls the relevant FACTs and definition answer.
+    Definition emitter renders classification from hasParent/isA.
     """
 
     def setUp(self):
@@ -808,13 +815,25 @@ class TestQueryIntentionFromPOSTags(unittest.TestCase):
         resolved_tree, parsed_tree = self.parser.parse(task)
 
         # The pipeline should match the interrogative "what" + the "banana" FACT
-        # via keywords and bring them into the resolved plan using relations
-        # (hasParent / isA). Pure facts do not emit text without emitters.
+        # via keywords, follow produces → definition answer, and emit
+        # "banana is a fruit" from hasParent on banana.
         solved = tree_to_solved_plan(parsed_tree, resolved_tree)
         lines = emit(solved)
 
         self.assertIsInstance(lines, list)
         self.assertIsNotNone(solved)
+        joined = "\n".join(lines).lower()
+        self.assertIn("banana is a fruit", joined)
+        # Ensure definition answer node is in the solved plan deps
+        dep_ids = [getattr(d.concept, "id", "") for d in (solved.deps or [])]
+        self.assertTrue(
+            any("banana" in i for i in dep_ids),
+            f"Expected banana concept in solved deps, got: {dep_ids}",
+        )
+        self.assertTrue(
+            any("definition" in i for i in dep_ids),
+            f"Expected definition answer in solved deps, got: {dep_ids}",
+        )
 
     def test_program_sentence_does_not_trigger_query(self):
         # A normal synthesis sentence should still produce program-related output.

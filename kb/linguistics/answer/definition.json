@@ -7,6 +7,12 @@
     "producedBy": [
       "linguistics/interrogative/what"
     ],
+    "needs": [
+      {
+        "name": "subject",
+        "description": "The entity, concept, or phenomenon being defined"
+      }
+    ],
     "hasParent": [
       {
         "target": "linguistics/answer"
@@ -20,5 +26,10 @@
     "definition",
     "meaning",
     "explanation of meaning"
+  ],
+  "emitters": [
+    {
+      "template": "{{subject}} is a {{class}}"
+    }
   ]
 }

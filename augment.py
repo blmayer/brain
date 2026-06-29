@@ -31,6 +31,142 @@ class ExecNode:
 # _is_leaf_plan removed - no longer needed in ontology-native flow
 
 
+def _concept_display_name(concept: Concept) -> str:
+    """Human-readable lowercase label for a concept (name, else id leaf)."""
+    name = (getattr(concept, "name", None) or "").strip()
+    if name:
+        return name.lower()
+    cid = getattr(concept, "id", "") or ""
+    leaf = cid.rsplit("/", 1)[-1]
+    return leaf.replace("_", " ").lower()
+
+
+def _classification_label(concept: Concept) -> Optional[str]:
+    """
+    Classification label for definition answers, driven by ontology relations.
+
+    Preference order (canonical hierarchy first):
+      1. relations.hasParent / concept.parents → parent concept name
+      2. relations.isA when it references a concept id
+      3. relations.isA descriptive string(s)
+    """
+    ontology = get_ontology()
+
+    # 1. Formal parents (hasParent → parents list on Concept)
+    for p in (concept.parents or []):
+        if isinstance(p, Concept):
+            return _concept_display_name(p)
+        if isinstance(p, str) and p.strip():
+            linked = ontology.get(p)
+            if linked is not None:
+                return _concept_display_name(linked)
+            # id-like path without a loaded concept
+            if "/" in p:
+                return p.rsplit("/", 1)[-1].replace("_", " ").lower()
+            return p.lower()
+
+    rels = concept.relations or {}
+
+    # Explicit hasParent entries (in case parents was empty but relations remain)
+    for key in ("hasParent", "has_parent"):
+        hp = rels.get(key)
+        if not hp:
+            continue
+        items = hp if isinstance(hp, list) else [hp]
+        for item in items:
+            target = None
+            if isinstance(item, Concept):
+                target = item
+            elif isinstance(item, dict):
+                t = item.get("target") or item.get("id")
+                if isinstance(t, Concept):
+                    target = t
+                elif isinstance(t, str):
+                    target = ontology.get(t) or t
+            elif isinstance(item, str):
+                target = ontology.get(item) or item
+            if isinstance(target, Concept):
+                return _concept_display_name(target)
+            if isinstance(target, str) and target.strip():
+                if "/" in target:
+                    return target.rsplit("/", 1)[-1].replace("_", " ").lower()
+                return target.lower()
+
+    # 2–3. isA: concept refs first, then descriptive strings
+    isa = rels.get("isA") or rels.get("is_a") or rels.get("isa")
+    if isa is None and isinstance(concept.raw, dict):
+        isa = concept.raw.get("isA") or concept.raw.get("is_a") or concept.raw.get("isa")
+    if isa is None:
+        return None
+    items = isa if isinstance(isa, list) else [isa]
+    # Prefer concept-id style entries
+    for item in items:
+        if isinstance(item, Concept):
+            return _concept_display_name(item)
+        if isinstance(item, str) and "/" in item:
+            linked = ontology.get(item)
+            if linked is not None:
+                return _concept_display_name(linked)
+            return item.rsplit("/", 1)[-1].replace("_", " ").lower()
+    for item in items:
+        if isinstance(item, str) and item.strip():
+            return item.strip().lower()
+    return None
+
+
+def _is_definition_answer(concept: Concept) -> bool:
+    """True if this concept is (or specializes) a definition-style answer type."""
+    if not concept:
+        return False
+    cid = getattr(concept, "id", "") or ""
+    if cid == "linguistics/answer/definition" or cid.endswith("/answer/definition"):
+        return True
+    if getattr(concept, "kind", "") == "ANSWER_TYPE" and "definition" in cid.lower():
+        return True
+    # Ontology link: producedBy what, or parent under answer with definition emitter
+    if getattr(concept, "kind", "") == "ANSWER_TYPE" and getattr(concept, "emitters", None):
+        return True
+    return False
+
+
+def _bind_definition_answer(answer: Concept, pool: List[Concept]) -> Dict[str, str]:
+    """
+    Bind {{subject}} / {{class}} for a definition answer from FACT subjects in the plan.
+
+    The subject is a non-answer, non-interrogative concept in the resolved pool
+    (typically a FACT matched from the question NP). Classification comes from
+    hasParent / isA on that subject — not from hard-coded query logic.
+    """
+    bindings: Dict[str, str] = {}
+    subjects = [
+        c for c in pool
+        if isinstance(c, Concept)
+        and getattr(c, "kind", "") not in ("INTERROGATIVE", "ANSWER_TYPE", "EXEC", "CLASS", "INTERFACE")
+        and not (getattr(c, "id", "") or "").startswith("linguistics/")
+    ]
+    # Prefer explicit FACT kind when present
+    facts = [c for c in subjects if getattr(c, "kind", "") == "FACT"]
+    subject = (facts or subjects or [None])[0]
+    if subject is None:
+        logger.info("Definition answer %s has no subject FACT in plan pool", answer.id)
+        return bindings
+
+    bindings["subject"] = _concept_display_name(subject)
+    cls = _classification_label(subject)
+    if cls:
+        bindings["class"] = cls
+        logger.info(
+            "Definition binding: subject=%r class=%r (from %s via hasParent/isA)",
+            bindings["subject"], bindings["class"], subject.id,
+        )
+    else:
+        logger.info(
+            "Definition binding: subject=%r but no hasParent/isA class on %s",
+            bindings["subject"], subject.id,
+        )
+    return bindings
+
+
 def solve_plan(plan: Any) -> ExecNode:
     """
     Ontology-native solver.
@@ -40,6 +176,12 @@ def solve_plan(plan: Any) -> ExecNode:
 
     if isinstance(plan, dict):
         plan_type = plan.get("type")
+        logger.info(
+            "Solving plan type=%s starting=%s resolved=%s",
+            plan_type,
+            plan.get("starting_concepts"),
+            plan.get("resolved_dependencies"),
+        )
 
         resolved = plan.get("all_concepts", [])
         # If we are emitting a list of executable steps (from satisfied interface
@@ -70,10 +212,19 @@ def solve_plan(plan: Any) -> ExecNode:
                 program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
         root = ExecNode(concept=program_concept)
 
-        for concept in resolved:
-            if isinstance(concept, Concept):
-                root.deps.append(ExecNode(concept=concept))
+        concept_pool = [c for c in resolved if isinstance(c, Concept)]
+        for concept in concept_pool:
+            node = ExecNode(concept=concept)
+            if _is_definition_answer(concept) and concept.emitters:
+                node.bindings.update(_bind_definition_answer(concept, concept_pool))
+            root.deps.append(node)
 
+        logger.info(
+            "solve_plan built ExecNode root=%s with %d deps: %s",
+            root.concept.id,
+            len(root.deps),
+            [d.concept.id for d in root.deps],
+        )
         return root
 
 
@@ -102,6 +253,11 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
 
     if visited is None:
         visited = {}
+        logger.info(
+            "Emit start from root=%s deps=%s",
+            getattr(exec_n.concept, "id", "unknown"),
+            [getattr(d.concept, "id", "?") for d in (exec_n.deps or [])],
+        )
     if out is None:
         out = []
 
@@ -115,8 +271,19 @@ def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optio
 
     line = render(exec_n.concept, exec_n.bindings)
     if line:
-        logger.debug("Emitting line: %s", line)
-        out.append(line)
+        # Skip incomplete definition templates (missing subject/class bindings)
+        if "{{" in line and "}}" in line:
+            logger.debug("Skipping incomplete emitter template for %s: %s",
+                         getattr(exec_n.concept, "id", "?"), line)
+        else:
+            logger.info("Emitting line from %s: %s", getattr(exec_n.concept, "id", "?"), line)
+            out.append(line)
+    elif getattr(exec_n.concept, "emitters", None):
+        logger.debug(
+            "Concept %s has emitters but render produced empty (bindings=%s)",
+            getattr(exec_n.concept, "id", "?"),
+            exec_n.bindings,
+        )
 
     return out
 
@@ -177,6 +344,15 @@ def _normalize_to_concept_id(word: str) -> str:
     return w
 
 
+# Function / closed-class words that should not seed concepts on their own.
+# Interrogatives (WP/WRB/WDT) are exempt so "what"/"when" still match.
+_STOP_MATCH_WORDS = frozenset({
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "am", "do", "does", "did", "to", "of", "in", "on", "for", "and", "or",
+    "but", "with", "as", "by", "at", "from", "that", "this", "it", "its",
+})
+
+
 def add_concepts(tree) -> None:
     """Modify the tree **in place** by attaching matching ontology Concepts to its nodes.
 
@@ -189,15 +365,30 @@ def add_concepts(tree) -> None:
     """
     ontology = get_ontology()
 
-    def attach_to_leaf(leaf_dict: dict, word: str):
+    def attach_to_leaf(leaf_dict: dict, word: str, pos: str = ""):
         """Normalize and attach concepts to a single leaf dict."""
         if not isinstance(word, str) or not word.strip():
             leaf_dict['concepts'] = []
             return
 
+        # Avoid matching multi-word keywords on closed-class words like "is"
+        # (e.g. keyword "what is" / "when is" falsely matching the verb "is").
+        # Still allow interrogative POS tags (WP/WRB/WDT) to match.
+        wlow = word.lower().strip()
+        pos_u = (pos or leaf_dict.get("pos") or "").upper()
+        if wlow in _STOP_MATCH_WORDS and not pos_u.startswith(("WP", "WRB", "WDT")):
+            leaf_dict['concepts'] = []
+            logger.debug("Skipping concept match for stop-word %r (pos=%s)", word, pos_u)
+            return
+
         normalized = _normalize_to_concept_id(word)
         matches = ontology.find_concepts_matching(normalized, strict=True)
         leaf_dict['concepts'] = matches or []
+        if matches:
+            logger.debug(
+                "Leaf %r (pos=%s) matched concepts: %s",
+                word, pos_u, [c.id for c in matches],
+            )
 
     def process(node: Any):
         if node is None:
@@ -206,7 +397,7 @@ def add_concepts(tree) -> None:
         # Already a dict leaf (common after resolve_pronouns)
         if isinstance(node, dict):
             w = node.get('word', '')
-            attach_to_leaf(node, w)
+            attach_to_leaf(node, w, node.get('pos', ''))
             return
 
         # nltk.Tree (or anything with children)
@@ -219,19 +410,18 @@ def add_concepts(tree) -> None:
                     # Leaf: either tuple (word, pos) or already a dict
                     if isinstance(child, dict):
                         w = child.get('word', '')
-                        attach_to_leaf(child, w)
+                        attach_to_leaf(child, w, child.get('pos', ''))
                     elif isinstance(child, (list, tuple)) and len(child) >= 2:
                         word = str(child[0])
                         pos = str(child[1])
-                        normalized = _normalize_to_concept_id(word)
-                        matches = ontology.find_concepts_matching(normalized, strict=True)
                         # Replace the raw leaf with a rich dict so we can carry ontology nodes
                         node[i] = {
                             'word': word,
                             'pos': pos,
                             'reference': None,
-                            'concepts': matches or []
+                            'concepts': []
                         }
+                        attach_to_leaf(node[i], word, pos)
                     else:
                         # Unexpected leaf form — wrap it
                         w = str(child)
@@ -542,6 +732,28 @@ def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) 
                         if cand.id not in seen:
                             recurse(cand, depth + 1, context + [concept])
 
+        # Follow produces targets when they reference concepts (e.g. interrogative
+        # "what" produces linguistics/answer/definition). Type-only produces
+        # entries ({"type": "void"}) are ignored here — they are for can_produce.
+        for prod in (concept.relations or {}).get("produces", []) or []:
+            target = None
+            if isinstance(prod, Concept):
+                target = prod
+            elif isinstance(prod, dict):
+                t = prod.get("target") or prod.get("id")
+                if isinstance(t, Concept):
+                    target = t
+                elif isinstance(t, str):
+                    target = ontology.get(t)
+            elif isinstance(prod, str):
+                target = ontology.get(prod)
+            if target is not None and getattr(target, "id", None) not in seen:
+                logger.info(
+                    "  [%d] %s produces → following %s",
+                    depth, concept.id, target.id,
+                )
+                recurse(target, depth + 1, context + [concept])
+
         # Follow structural + implementation relations
         related = ontology.find_related_concepts(
             concept,
@@ -690,6 +902,26 @@ def _features_to_plan(tree) -> dict:
         "Plan built with %d starting concepts and %d resolved dependencies",
         len(initial_concepts), len(resolved_concepts)
     )
+    logger.info(
+        "Plan graph: starting=%s resolved=%s final_for_emit=%s",
+        [c.id for c in initial_concepts],
+        [c.id for c in resolved_concepts],
+        [c.id for c in final_concepts],
+    )
+    # Surface definition-seeking intent when interrogative produced an answer type
+    if any(getattr(c, "kind", "") == "INTERROGATIVE" for c in initial_concepts):
+        answer_ids = [
+            c.id for c in resolved_concepts
+            if getattr(c, "kind", "") == "ANSWER_TYPE"
+        ]
+        fact_ids = [
+            c.id for c in resolved_concepts
+            if getattr(c, "kind", "") == "FACT"
+        ]
+        logger.info(
+            "Interrogative plan seeks answers=%s for subjects/facts=%s",
+            answer_ids, fact_ids,
+        )
     logger.debug("_features_to_plan completed")
 
     return {
