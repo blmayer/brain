@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/gosub",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "GOSUB",
+  "description": "GOSUB keyword",
+  "keywords": ["gosub", "GOSUB"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

@@ -11,5 +11,7 @@
   "keywords": [
     "add_egg"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 40
+  }
 }

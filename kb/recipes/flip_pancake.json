@@ -8,8 +8,15 @@
       "template": "flip pancake when bubbles form on surface"
     }
   ],
-  "keywords": ["flip_pancake"],
+  "keywords": [
+    "flip_pancake"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 70
   }
 }

@@ -3,7 +3,7 @@
   "kind": "BUILTIN",
   "name": "input()",
   "description": "Python built-in function that reads user input from stdin.",
-  "keywords": ["input", "read", "reads"],
+  "keywords": ["input", "inputs", "read", "reads"],
   "relations": {
     "hasParameter": [
       {"name": "prompt", "type": "programming_languages/python/constructs/str_type"}

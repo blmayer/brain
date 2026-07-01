@@ -1,0 +1,33 @@
+{
+  "id": "programming_languages/basic/constructs/program",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Program",
+  "description": "A BASIC program: ordered sequence of numbered statements.",
+  "keywords": [
+    "program",
+    "programs"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "needs": [
+      {
+        "name": "statements",
+        "type": "Statement"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Program"
+      }
+    ],
+    "produces": [
+      {
+        "target": "programming_languages/basic/constructs/end_statement"
+      }
+    ]
+  }
+}

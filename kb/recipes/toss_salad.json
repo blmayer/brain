@@ -8,8 +8,16 @@
       "template": "toss all salad ingredients together"
     }
   ],
-  "keywords": ["toss_salad", "toss"],
+  "keywords": [
+    "toss_salad",
+    "toss"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 20
   }
 }

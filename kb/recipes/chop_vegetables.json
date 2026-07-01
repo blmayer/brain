@@ -8,9 +8,23 @@
       "template": "chop vegetables into small pieces"
     }
   ],
-  "keywords": ["chop_vegetables", "chop", "dice"],
+  "keywords": [
+    "chop_vegetables",
+    "chop",
+    "dice"
+  ],
   "relations": {
-    "needs": [{"name": "vegetables", "type": "recipes/vegetable"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "vegetables",
+        "type": "recipes/vegetable"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 10
   }
 }

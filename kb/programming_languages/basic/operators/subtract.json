@@ -1,0 +1,43 @@
+{
+  "id": "programming_languages/basic/operators/subtract",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Subtract two numbers (BASIC)",
+  "keywords": [
+    "subtract",
+    "minus",
+    "-",
+    "subtraction",
+    "difference"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "a",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "b",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "produces": [
+      {
+        "name": "result",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "emitOrder": 20
+  },
+  "emitters": [
+    {
+      "id": "basic-sub",
+      "target": "basic",
+      "template": "LET S = A - B"
+    }
+  ]
+}

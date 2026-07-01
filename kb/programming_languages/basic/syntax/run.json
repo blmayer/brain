@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/run",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "RUN",
+  "description": "RUN command to execute the program",
+  "keywords": ["run", "RUN"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

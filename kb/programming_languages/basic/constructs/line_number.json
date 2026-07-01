@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/constructs/line_number",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Line Number",
+  "description": "Numeric line label that orders and addresses statements in classic BASIC.",
+  "keywords": ["line", "line number", "lineno"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "isA": "statement address"
+  }
+}

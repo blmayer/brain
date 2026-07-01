@@ -2,8 +2,25 @@
   "id": "linguistics/answer",
   "kind": "CLASS",
   "name": "Answer",
-  "description": "A response or piece of information that satisfies an interrogative request.",
+  "description": "Response to an interrogative. Needs a subject, verb connector, and object from the available graph; those nodes organize themselves via KB relations.",
   "relations": {
+    "needs": [
+      {
+        "name": "subject",
+        "type": "FACT",
+        "description": "Entity the answer is about"
+      },
+      {
+        "name": "verb",
+        "type": "VERB",
+        "description": "Connector verb (isA, has, partOf, …) from the KB"
+      },
+      {
+        "name": "object",
+        "type": "FACT",
+        "description": "Target of the connector edge on the subject"
+      }
+    ],
     "hasParent": [
       {
         "target": "data/information"
@@ -17,5 +34,10 @@
     "answer",
     "response",
     "reply"
+  ],
+  "emitters": [
+    {
+      "template": "{{subject}} {{verb}} {{object}}"
+    }
   ]
 }

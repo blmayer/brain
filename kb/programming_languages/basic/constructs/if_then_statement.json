@@ -1,0 +1,21 @@
+{
+  "id": "programming_languages/basic/constructs/if_then_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "IF…THEN Statement",
+  "description": "Conditional. Classic one-line: IF A > 0 THEN PRINT A. Multi-line dialects use IF/THEN/ELSE/ENDIF.",
+  "keywords": ["if", "then", "else", "conditional", "condition"],
+  "relations": {
+    "hasParameter": [
+      {"name": "condition", "type": "programming_languages/basic/constructs/any_type"},
+      {"name": "body", "type": "programming_languages/basic/constructs/block"}
+    ],
+    "needs": [
+      {"name": "condition", "type": "programming_languages/basic/constructs/any_type"}
+    ],
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {"id": "basic-if", "target": "basic", "template": "IF {{condition}} THEN {{body}}"}
+  ]
+}

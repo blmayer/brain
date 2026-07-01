@@ -11,5 +11,7 @@
   "keywords": [
     "wait"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 60
+  }
 }

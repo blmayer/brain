@@ -3,9 +3,21 @@
   "kind": "ACTION",
   "name": "Measure and Mark",
   "description": "Measure and mark cut lines on the material.",
-  "emitters": [{"template": "measure and mark all cut lines"}],
-  "keywords": ["measure_and_mark", "measure"],
+  "emitters": [
+    {
+      "template": "measure and mark all cut lines"
+    }
+  ],
+  "keywords": [
+    "measure_and_mark",
+    "measure"
+  ],
   "relations": {
-    "partOf": [{"target": "crafts/project"}]
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 10
   }
 }

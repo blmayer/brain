@@ -8,9 +8,22 @@
       "template": "stir eggs continuously while cooking"
     }
   ],
-  "keywords": ["scramble_egg", "scramble"],
+  "keywords": [
+    "scramble_egg",
+    "scramble"
+  ],
   "relations": {
-    "needs": [{"name": "egg", "type": "recipes/egg"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "egg",
+        "type": "recipes/egg"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 50
   }
 }

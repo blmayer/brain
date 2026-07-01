@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/print",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "PRINT",
+  "description": "PRINT statement keyword",
+  "keywords": ["print", "PRINT"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

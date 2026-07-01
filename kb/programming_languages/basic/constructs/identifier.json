@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/constructs/identifier",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Identifier",
+  "description": "BASIC variable or line label name (short names in classic dialects).",
+  "keywords": ["identifier", "variable", "name"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Identifier"}]
+  }
+}

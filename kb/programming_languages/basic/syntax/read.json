@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/read",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "READ",
+  "description": "READ keyword",
+  "keywords": ["read", "READ"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

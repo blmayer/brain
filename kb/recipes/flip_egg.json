@@ -11,5 +11,7 @@
   "keywords": [
     "flip_egg"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 70
+  }
 }

@@ -1,0 +1,31 @@
+{
+  "id": "programming_languages/basic/constructs/end_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "END Statement",
+  "description": "Stop program execution.",
+  "keywords": [
+    "end",
+    "stop",
+    "halt"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      }
+    ],
+    "emitOrder": 100
+  },
+  "emitters": [
+    {
+      "id": "basic-end",
+      "target": "basic",
+      "template": "END"
+    }
+  ]
+}

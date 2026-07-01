@@ -8,8 +8,15 @@
       "template": "serve on a plate"
     }
   ],
-  "keywords": ["serve"],
+  "keywords": [
+    "serve"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 90
   }
 }

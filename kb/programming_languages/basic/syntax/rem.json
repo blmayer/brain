@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/rem",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "REM",
+  "description": "REM comment keyword",
+  "keywords": ["rem", "REM"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

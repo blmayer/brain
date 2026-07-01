@@ -3,20 +3,43 @@
   "kind": "SYNTACTIC_CONSTRUCT",
   "name": "For Loop",
   "description": "Python for loop iterating over a sequence.",
-  "keywords": ["for", "loop", "iterate", "iteration"],
+  "keywords": [
+    "for",
+    "loop",
+    "iterate",
+    "iteration"
+  ],
   "relations": {
     "hasParameter": [
-      {"name": "variable", "type": "programming_languages/python/constructs/identifier"},
-      {"name": "iterable", "type": "programming_languages/python/constructs/any_type"}
+      {
+        "name": "variable",
+        "type": "programming_languages/python/constructs/identifier"
+      },
+      {
+        "name": "iterable",
+        "type": "programming_languages/python/constructs/any_type"
+      }
     ],
-    "partOf": [{"target": "programming_languages/python"}],
-    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
+      }
+    ],
+    "emitOrder": 25
   },
   "emitters": [
     {
       "id": "py-for",
       "target": "python",
-      "template": "for {{variable}} in {{iterable}}:\n    {{body}}"
+      "template": "for i in range(10):\n    print(i)"
     }
   ]
 }

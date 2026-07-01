@@ -1,0 +1,55 @@
+{
+  "id": "programming_languages/basic/constructs/input_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "INPUT Statement",
+  "description": "Read a value from the user into a variable. INPUT A or INPUT \"Name?\"; N$.",
+  "keywords": [
+    "input",
+    "inputs",
+    "read",
+    "reads",
+    "prompt"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "name",
+        "type": "programming_languages/basic/constructs/identifier"
+      },
+      {
+        "name": "prompt",
+        "type": "programming_languages/basic/constructs/string_type"
+      }
+    ],
+    "needs": [
+      {
+        "name": "name",
+        "type": "programming_languages/basic/constructs/identifier"
+      }
+    ],
+    "produces": [
+      {
+        "name": "result",
+        "type": "programming_languages/basic/constructs/any_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      }
+    ],
+    "emitOrder": 10
+  },
+  "emitters": [
+    {
+      "id": "basic-input",
+      "target": "basic",
+      "template": "INPUT A"
+    }
+  ]
+}

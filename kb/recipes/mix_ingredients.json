@@ -8,8 +8,17 @@
       "template": "mix all ingredients together in a bowl"
     }
   ],
-  "keywords": ["mix_ingredients", "mix", "combine"],
+  "keywords": [
+    "mix_ingredients",
+    "mix",
+    "combine"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 10
   }
 }

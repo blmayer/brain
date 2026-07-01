@@ -1,0 +1,53 @@
+{
+  "id": "programming_languages/basic/constructs/let_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "LET Statement",
+  "description": "Assign a value to a variable. Classic form: LET A = 1 (LET optional in many dialects).",
+  "keywords": [
+    "let",
+    "assign",
+    "assignment",
+    "set",
+    "variable"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "name",
+        "type": "programming_languages/basic/constructs/identifier"
+      },
+      {
+        "name": "value",
+        "type": "programming_languages/basic/constructs/any_type"
+      }
+    ],
+    "needs": [
+      {
+        "name": "name",
+        "type": "programming_languages/basic/constructs/identifier"
+      },
+      {
+        "name": "value",
+        "type": "programming_languages/basic/constructs/any_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      }
+    ],
+    "emitOrder": 15
+  },
+  "emitters": [
+    {
+      "id": "basic-let",
+      "target": "basic",
+      "template": "LET A = 0"
+    }
+  ]
+}

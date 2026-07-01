@@ -3,10 +3,27 @@
   "kind": "ACTION",
   "name": "Fold Paper",
   "description": "Fold the paper along the marked lines.",
-  "emitters": [{"template": "fold paper along the marked lines"}],
-  "keywords": ["fold_paper", "fold"],
+  "emitters": [
+    {
+      "template": "fold paper along the marked lines"
+    }
+  ],
+  "keywords": [
+    "fold_paper",
+    "fold"
+  ],
   "relations": {
-    "needs": [{"name": "paper", "type": "crafts/paper"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "paper",
+        "type": "crafts/paper"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 10
   }
 }

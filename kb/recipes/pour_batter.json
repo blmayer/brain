@@ -8,9 +8,22 @@
       "template": "pour batter into the heated pan"
     }
   ],
-  "keywords": ["pour_batter", "pour"],
+  "keywords": [
+    "pour_batter",
+    "pour"
+  ],
   "relations": {
-    "needs": [{"name": "batter", "type": "recipes/liquid"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "batter",
+        "type": "recipes/liquid"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 50
   }
 }

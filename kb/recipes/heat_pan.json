@@ -11,5 +11,7 @@
   "keywords": [
     "heat_pan"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 20
+  }
 }

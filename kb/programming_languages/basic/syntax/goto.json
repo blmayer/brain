@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/goto",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "GOTO",
+  "description": "GOTO keyword",
+  "keywords": ["goto", "GOTO"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

@@ -2,16 +2,10 @@
   "id": "linguistics/answer/definition",
   "kind": "ANSWER_TYPE",
   "name": "Definition",
-  "description": "A statement that explains the meaning, nature, or identity of something.",
+  "description": "Definition-style answer. The root linguistics/answer node is seeded after planning so subject/verb/object organize from the graph (e.g. banana --isA--> fruit).",
   "relations": {
     "producedBy": [
       "linguistics/interrogative/what"
-    ],
-    "needs": [
-      {
-        "name": "subject",
-        "description": "The entity, concept, or phenomenon being defined"
-      }
     ],
     "hasParent": [
       {
@@ -26,10 +20,5 @@
     "definition",
     "meaning",
     "explanation of meaning"
-  ],
-  "emitters": [
-    {
-      "template": "{{subject}} is a {{class}}"
-    }
   ]
 }

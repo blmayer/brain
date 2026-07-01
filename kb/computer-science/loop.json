@@ -1,0 +1,32 @@
+{
+  "id": "computer-science/loop",
+  "kind": "FACT",
+  "name": "Loop",
+  "description": "Control-flow construct that repeats a body of statements while a condition holds or over a range of values.",
+  "keywords": [
+    "loop",
+    "loops",
+    "iteration",
+    "iterate",
+    "repeating"
+  ],
+  "relations": {
+    "hasParent": [
+      {
+        "target": "computer-science/algorithm"
+      }
+    ],
+    "isA": [
+      "control flow construct",
+      "repetition"
+    ],
+    "hasParts": [
+      "programming_languages/basic/constructs/for_next_statement",
+      "programming_languages/basic/constructs/while_wend_statement",
+      "programming_languages/python/constructs/for_loop",
+      "programming_languages/python/constructs/while_loop",
+      "programming_languages/basic/programs/range_total_loop",
+      "programming_languages/python/programs/range_total_loop"
+    ]
+  }
+}

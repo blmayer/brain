@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/restore",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "RESTORE",
+  "description": "RESTORE keyword",
+  "keywords": ["restore", "RESTORE"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

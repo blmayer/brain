@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/dim",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "DIM",
+  "description": "DIM keyword",
+  "keywords": ["dim", "DIM"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

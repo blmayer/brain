@@ -5,13 +5,35 @@
   "description": "Simple pasta with a tomato and garlic sauce.",
   "relations": {
     "hasIngredients": [
-      {"target": "recipes/pasta", "type": "Ingredient"},
-      {"target": "recipes/tomato", "type": "Ingredient"},
-      {"target": "recipes/garlic", "type": "Ingredient"},
-      {"target": "recipes/onion", "type": "Ingredient"},
-      {"target": "recipes/oil", "type": "Ingredient"},
-      {"target": "recipes/water", "type": "Ingredient"},
-      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+      {
+        "target": "recipes/pasta",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/tomato",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/garlic",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/onion",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/oil",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/water",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/spice",
+        "type": "Spice",
+        "isClass": true
+      }
     ],
     "hasInstructions": [
       "recipes/boil_water",
@@ -26,7 +48,41 @@
       "recipes/serve"
     ],
     "hasParent": [
-      {"target": "recipes/recipe"}
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "produces": [
+      {
+        "target": "recipes/boil_water"
+      },
+      {
+        "target": "recipes/add_pasta"
+      },
+      {
+        "target": "recipes/heat_pan"
+      },
+      {
+        "target": "recipes/saute_onion"
+      },
+      {
+        "target": "recipes/chop_vegetables"
+      },
+      {
+        "target": "recipes/add_sauce"
+      },
+      {
+        "target": "recipes/add_salt"
+      },
+      {
+        "target": "recipes/add_pepper"
+      },
+      {
+        "target": "recipes/drain_pasta"
+      },
+      {
+        "target": "recipes/serve"
+      }
     ]
   },
   "keywords": [

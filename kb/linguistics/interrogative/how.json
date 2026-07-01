@@ -13,9 +13,6 @@
     "produces": [
       {
         "target": "linguistics/answer/procedure"
-      },
-      {
-        "target": "linguistics/answer"
       }
     ],
     "hasParent": [

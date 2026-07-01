@@ -8,8 +8,15 @@
       "template": "add sauce and mix well"
     }
   ],
-  "keywords": ["add_sauce"],
+  "keywords": [
+    "add_sauce"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 60
   }
 }

@@ -11,5 +11,7 @@
   "keywords": [
     "add_salt"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 30
+  }
 }

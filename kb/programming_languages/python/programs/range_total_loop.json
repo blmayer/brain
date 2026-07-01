@@ -1,0 +1,42 @@
+{
+  "id": "programming_languages/python/programs/range_total_loop",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Sum numbers in a range with for loop (Python)",
+  "description": "Accumulate the sum of integers from 1 to N using a for loop.",
+  "keywords": [
+    "all numbers from",
+    "numbers from",
+    "from 1 to",
+    "1 to 10",
+    "total of numbers",
+    "add all numbers",
+    "numbers from 1"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/python"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "computer-science/loop"
+      }
+    ],
+    "implementedBy": [
+      "programming_languages/python/constructs/for_loop"
+    ],
+    "isA": [
+      "looping summation",
+      "sum over a range"
+    ],
+    "emitOrder": 20
+  },
+  "emitters": [
+    {
+      "id": "py-sum-range-loop",
+      "target": "python",
+      "template": "s = 0\nfor i in range(1, 11):\n    s = s + i\nprint(s)"
+    }
+  ]
+}

@@ -3,10 +3,27 @@
   "kind": "ACTION",
   "name": "Apply Paint",
   "description": "Apply paint and let it dry.",
-  "emitters": [{"template": "apply paint evenly and let it dry"}],
-  "keywords": ["apply_paint", "paint"],
+  "emitters": [
+    {
+      "template": "apply paint evenly and let it dry"
+    }
+  ],
+  "keywords": [
+    "apply_paint",
+    "paint"
+  ],
   "relations": {
-    "needs": [{"name": "paint", "type": "crafts/paint"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "paint",
+        "type": "crafts/paint"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 60
   }
 }

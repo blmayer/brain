@@ -1,0 +1,14 @@
+{
+  "id": "programming_languages/basic/constructs/restore_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "RESTORE Statement",
+  "description": "Reset the DATA pointer so READ starts over.",
+  "keywords": ["restore"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}]
+  },
+  "emitters": [
+    {"id": "basic-restore", "target": "basic", "template": "RESTORE"}
+  ]
+}

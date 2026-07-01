@@ -1,0 +1,42 @@
+{
+  "id": "programming_languages/basic/programs/range_total_loop",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Sum numbers in a range with FOR loop (BASIC)",
+  "description": "Accumulate the sum of integers from 1 to N using FOR\u2026NEXT (classic looping summation).",
+  "keywords": [
+    "all numbers from",
+    "numbers from",
+    "from 1 to",
+    "1 to 10",
+    "total of numbers",
+    "add all numbers",
+    "numbers from 1"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "computer-science/loop"
+      }
+    ],
+    "implementedBy": [
+      "programming_languages/basic/constructs/for_next_statement"
+    ],
+    "isA": [
+      "looping summation",
+      "sum over a range"
+    ],
+    "emitOrder": 20
+  },
+  "emitters": [
+    {
+      "id": "basic-sum-range-loop",
+      "target": "basic",
+      "template": "LET S = 0\nFOR I = 1 TO 10\n  LET S = S + I\nNEXT I\nPRINT S\nEND"
+    }
+  ]
+}

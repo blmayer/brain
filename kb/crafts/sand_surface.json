@@ -3,10 +3,27 @@
   "kind": "ACTION",
   "name": "Sand Surface",
   "description": "Sand the surfaces smooth with sandpaper.",
-  "emitters": [{"template": "sand all surfaces smooth with sandpaper"}],
-  "keywords": ["sand_surface", "sand"],
+  "emitters": [
+    {
+      "template": "sand all surfaces smooth with sandpaper"
+    }
+  ],
+  "keywords": [
+    "sand_surface",
+    "sand"
+  ],
   "relations": {
-    "needs": [{"name": "sandpaper", "type": "crafts/sandpaper"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "sandpaper",
+        "type": "crafts/sandpaper"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 30
   }
 }

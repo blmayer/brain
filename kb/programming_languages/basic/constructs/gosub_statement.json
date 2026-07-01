@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/basic/constructs/gosub_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "GOSUB Statement",
+  "description": "Call a subroutine at a line number; pair with RETURN.",
+  "keywords": ["gosub", "subroutine", "call"],
+  "relations": {
+    "hasParameter": [
+      {"name": "line", "type": "programming_languages/basic/constructs/line_number"}
+    ],
+    "needs": [
+      {"name": "line", "type": "programming_languages/basic/constructs/line_number"}
+    ],
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {"id": "basic-gosub", "target": "basic", "template": "GOSUB {{line}}"}
+  ]
+}

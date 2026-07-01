@@ -11,5 +11,7 @@
   "keywords": [
     "turn_off_stove"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 100
+  }
 }

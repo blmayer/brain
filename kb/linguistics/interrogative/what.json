@@ -13,9 +13,6 @@
     "produces": [
       {
         "target": "linguistics/answer/definition"
-      },
-      {
-        "target": "linguistics/answer"
       }
     ],
     "hasParent": [

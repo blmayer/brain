@@ -11,5 +11,7 @@
   "keywords": [
     "warm_up"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 20
+  }
 }

@@ -1,0 +1,73 @@
+{
+  "id": "programming_languages/basic/constructs/for_next_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "FOR\u2026NEXT Statement",
+  "description": "Counted loop. FOR I = 1 TO 10 \u2026 NEXT I, optional STEP.",
+  "keywords": [
+    "for",
+    "next",
+    "loop",
+    "iterate",
+    "iteration",
+    "step"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "variable",
+        "type": "programming_languages/basic/constructs/identifier"
+      },
+      {
+        "name": "start",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "end",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "step",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "body",
+        "type": "programming_languages/basic/constructs/block"
+      }
+    ],
+    "needs": [
+      {
+        "name": "variable",
+        "type": "programming_languages/basic/constructs/identifier"
+      },
+      {
+        "name": "start",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "end",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
+      }
+    ],
+    "emitOrder": 25
+  },
+  "emitters": [
+    {
+      "id": "basic-for",
+      "target": "basic",
+      "template": "FOR I = 1 TO 10\n  PRINT I\nNEXT I"
+    }
+  ]
+}

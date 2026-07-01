@@ -1,0 +1,50 @@
+{
+  "id": "programming_languages/basic/constructs/while_wend_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "WHILE\u2026WEND Statement",
+  "description": "Pre-test loop found in many microcomputer BASICs: WHILE condition \u2026 WEND.",
+  "keywords": [
+    "while",
+    "wend",
+    "loop"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "condition",
+        "type": "programming_languages/basic/constructs/any_type"
+      },
+      {
+        "name": "body",
+        "type": "programming_languages/basic/constructs/block"
+      }
+    ],
+    "needs": [
+      {
+        "name": "condition",
+        "type": "programming_languages/basic/constructs/any_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      },
+      {
+        "target": "ControlFlowStatement"
+      }
+    ],
+    "emitOrder": 25
+  },
+  "emitters": [
+    {
+      "id": "basic-while",
+      "target": "basic",
+      "template": "WHILE A > 0\n  PRINT A\nWEND"
+    }
+  ]
+}

@@ -5,13 +5,35 @@
   "description": "Simple pancakes from scratch. Uses flour, eggs, milk, and butter.",
   "relations": {
     "hasIngredients": [
-      {"target": "recipes/flour", "type": "Ingredient"},
-      {"target": "recipes/egg", "type": "Ingredient"},
-      {"target": "recipes/milk", "type": "Ingredient"},
-      {"target": "recipes/butter", "type": "Ingredient"},
-      {"target": "recipes/sugar", "type": "Ingredient"},
-      {"target": "recipes/baking_powder", "type": "Ingredient"},
-      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+      {
+        "target": "recipes/flour",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/egg",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/milk",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/butter",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/sugar",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/baking_powder",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/spice",
+        "type": "Spice",
+        "isClass": true
+      }
     ],
     "hasInstructions": [
       "recipes/mix_ingredients",
@@ -25,7 +47,38 @@
       "recipes/serve"
     ],
     "hasParent": [
-      {"target": "recipes/recipe"}
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "produces": [
+      {
+        "target": "recipes/mix_ingredients"
+      },
+      {
+        "target": "recipes/heat_pan"
+      },
+      {
+        "target": "recipes/add_butter"
+      },
+      {
+        "target": "recipes/spread_butter"
+      },
+      {
+        "target": "recipes/pour_batter"
+      },
+      {
+        "target": "recipes/wait"
+      },
+      {
+        "target": "recipes/flip_pancake"
+      },
+      {
+        "target": "recipes/wait"
+      },
+      {
+        "target": "recipes/serve"
+      }
     ]
   },
   "keywords": [

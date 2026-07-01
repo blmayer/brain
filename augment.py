@@ -1,351 +1,34 @@
-"""Augment parsed natural language into executable plans.
+"""Natural language → KB annotation → needs satisfaction → emission.
 
-Flow:
-1. Parse sentence → tagged tree (via NLTK + coref).
-2. Map words/actions from the tree to Concepts in the KB (loaded from kb/programming_languages/).
-3. Recursively resolve dependencies (e.g. "prints" → Print concept → fmt.Println → its required arguments).
-4. Bind variables and emit code using the resolved Concepts' emitters.
+Public API (four steps):
+  parse(sentence)  → constituency tree (pronouns resolved)
+  augment(tree)    → same tree with KB Concepts attached to leaves
+  solve(tree)      → ExecNode graph with needs satisfied from the pool / KB
+  emit(graph)      → output lines from emitter templates
 """
 
-import logging
+from __future__ import annotations
+
+import re
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
 
 import nltk
 
-from kb import Concept, get_concept, get_ontology, Ontology
+from kb import Concept, get_ontology
 from logging_config import get_logger
-from coreference_resolver import resolve_pronouns
 
 logger = get_logger(__name__)
 
 
 @dataclass
 class ExecNode:
-    """Runtime execution node using the new ontology format."""
+    """A concept in the solved graph, with role bindings and child dependencies."""
     concept: Concept
     bindings: Dict[str, str] = field(default_factory=dict)
     deps: List["ExecNode"] = field(default_factory=list)
 
 
-# _is_leaf_plan removed - no longer needed in ontology-native flow
-
-
-def _concept_display_name(concept: Concept) -> str:
-    """Human-readable lowercase label for a concept (name, else id leaf)."""
-    name = (getattr(concept, "name", None) or "").strip()
-    if name:
-        return name.lower()
-    cid = getattr(concept, "id", "") or ""
-    leaf = cid.rsplit("/", 1)[-1]
-    return leaf.replace("_", " ").lower()
-
-
-def _classification_label(concept: Concept) -> Optional[str]:
-    """
-    Classification label for definition answers, driven by ontology relations.
-
-    Preference order (canonical hierarchy first):
-      1. relations.hasParent / concept.parents → parent concept name
-      2. relations.isA when it references a concept id
-      3. relations.isA descriptive string(s)
-    """
-    ontology = get_ontology()
-
-    # 1. Formal parents (hasParent → parents list on Concept)
-    for p in (concept.parents or []):
-        if isinstance(p, Concept):
-            return _concept_display_name(p)
-        if isinstance(p, str) and p.strip():
-            linked = ontology.get(p)
-            if linked is not None:
-                return _concept_display_name(linked)
-            # id-like path without a loaded concept
-            if "/" in p:
-                return p.rsplit("/", 1)[-1].replace("_", " ").lower()
-            return p.lower()
-
-    rels = concept.relations or {}
-
-    # Explicit hasParent entries (in case parents was empty but relations remain)
-    for key in ("hasParent", "has_parent"):
-        hp = rels.get(key)
-        if not hp:
-            continue
-        items = hp if isinstance(hp, list) else [hp]
-        for item in items:
-            target = None
-            if isinstance(item, Concept):
-                target = item
-            elif isinstance(item, dict):
-                t = item.get("target") or item.get("id")
-                if isinstance(t, Concept):
-                    target = t
-                elif isinstance(t, str):
-                    target = ontology.get(t) or t
-            elif isinstance(item, str):
-                target = ontology.get(item) or item
-            if isinstance(target, Concept):
-                return _concept_display_name(target)
-            if isinstance(target, str) and target.strip():
-                if "/" in target:
-                    return target.rsplit("/", 1)[-1].replace("_", " ").lower()
-                return target.lower()
-
-    # 2–3. isA: concept refs first, then descriptive strings
-    isa = rels.get("isA") or rels.get("is_a") or rels.get("isa")
-    if isa is None and isinstance(concept.raw, dict):
-        isa = concept.raw.get("isA") or concept.raw.get("is_a") or concept.raw.get("isa")
-    if isa is None:
-        return None
-    items = isa if isinstance(isa, list) else [isa]
-    # Prefer concept-id style entries
-    for item in items:
-        if isinstance(item, Concept):
-            return _concept_display_name(item)
-        if isinstance(item, str) and "/" in item:
-            linked = ontology.get(item)
-            if linked is not None:
-                return _concept_display_name(linked)
-            return item.rsplit("/", 1)[-1].replace("_", " ").lower()
-    for item in items:
-        if isinstance(item, str) and item.strip():
-            return item.strip().lower()
-    return None
-
-
-def _is_definition_answer(concept: Concept) -> bool:
-    """True if this concept is (or specializes) a definition-style answer type."""
-    if not concept:
-        return False
-    cid = getattr(concept, "id", "") or ""
-    if cid == "linguistics/answer/definition" or cid.endswith("/answer/definition"):
-        return True
-    if getattr(concept, "kind", "") == "ANSWER_TYPE" and "definition" in cid.lower():
-        return True
-    # Ontology link: producedBy what, or parent under answer with definition emitter
-    if getattr(concept, "kind", "") == "ANSWER_TYPE" and getattr(concept, "emitters", None):
-        return True
-    return False
-
-
-def _bind_definition_answer(answer: Concept, pool: List[Concept]) -> Dict[str, str]:
-    """
-    Bind {{subject}} / {{class}} for a definition answer from FACT subjects in the plan.
-
-    The subject is a non-answer, non-interrogative concept in the resolved pool
-    (typically a FACT matched from the question NP). Classification comes from
-    hasParent / isA on that subject — not from hard-coded query logic.
-    """
-    bindings: Dict[str, str] = {}
-    subjects = [
-        c for c in pool
-        if isinstance(c, Concept)
-        and getattr(c, "kind", "") not in ("INTERROGATIVE", "ANSWER_TYPE", "EXEC", "CLASS", "INTERFACE")
-        and not (getattr(c, "id", "") or "").startswith("linguistics/")
-    ]
-    # Prefer explicit FACT kind when present
-    facts = [c for c in subjects if getattr(c, "kind", "") == "FACT"]
-    subject = (facts or subjects or [None])[0]
-    if subject is None:
-        logger.info("Definition answer %s has no subject FACT in plan pool", answer.id)
-        return bindings
-
-    bindings["subject"] = _concept_display_name(subject)
-    cls = _classification_label(subject)
-    if cls:
-        bindings["class"] = cls
-        logger.info(
-            "Definition binding: subject=%r class=%r (from %s via hasParent/isA)",
-            bindings["subject"], bindings["class"], subject.id,
-        )
-    else:
-        logger.info(
-            "Definition binding: subject=%r but no hasParent/isA class on %s",
-            bindings["subject"], subject.id,
-        )
-    return bindings
-
-
-def solve_plan(plan: Any) -> ExecNode:
-    """
-    Ontology-native solver.
-    Walks plans produced by the new dependency-resolution flow.
-    """
-    logger.debug("Entering solve_plan with plan type: %s", plan.get("type") if isinstance(plan, dict) else type(plan))
-
-    if isinstance(plan, dict):
-        plan_type = plan.get("type")
-        logger.info(
-            "Solving plan type=%s starting=%s resolved=%s",
-            plan_type,
-            plan.get("starting_concepts"),
-            plan.get("resolved_dependencies"),
-        )
-
-        resolved = plan.get("all_concepts", [])
-        # If we are emitting a list of executable steps (from satisfied interface
-        # instructions), use a silent root so we do not emit an extra "func ..."
-        # wrapper line from the codegen-oriented FunctionDeclaration.
-        has_executable_steps = any(
-            (isinstance(c, Concept) and (c.kind == "ACTION" or bool(getattr(c, "emitters", None))))
-            for c in resolved
-        )
-        if has_executable_steps:
-            program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
-            # no emitters => render will produce nothing for the root
-        else:
-            # Avoid hardcoded codegen wrapper for general KB / fact use.
-            # Only pick the Go function declaration root for actual code-synthesis plans.
-            looks_like_code = any(
-                isinstance(c, Concept) and (
-                    "programming_languages/go" in (getattr(c, "id", "") or "") or
-                    getattr(c, "kind", "") in ("SYNTACTIC_CONSTRUCT", "PLAN_TEMPLATE")
-                )
-                for c in resolved
-            )
-            if looks_like_code:
-                program_concept = get_concept("programming_languages/go/constructs/function_declaration") or Concept(
-                    id="Program", kind="Program", name="Main Program"
-                )
-            else:
-                program_concept = Concept(id="ExecutionList", kind="EXEC", name="Execution List")
-        root = ExecNode(concept=program_concept)
-
-        concept_pool = [c for c in resolved if isinstance(c, Concept)]
-        for concept in concept_pool:
-            node = ExecNode(concept=concept)
-            if _is_definition_answer(concept) and concept.emitters:
-                node.bindings.update(_bind_definition_answer(concept, concept_pool))
-            root.deps.append(node)
-
-        logger.info(
-            "solve_plan built ExecNode root=%s with %d deps: %s",
-            root.concept.id,
-            len(root.deps),
-            [d.concept.id for d in root.deps],
-        )
-        return root
-
-
-def render(concept: Concept, bindings: Dict[str, str]) -> str:
-    """Render a Concept using its emitters and the current bindings.
-    Facts contribute to plans via relations (hasParent, isA, has, produces, ...)
-    but only nodes declaring emitters produce textual output.
-    """
-    logger.debug("Rendering concept: %s", getattr(concept, 'id', 'unknown'))
-    if not concept or not concept.emitters:
-        return ""
-
-    template = concept.emitters[0].get("template", "")
-
-    def replacer(match):
-        key = match.group(1).strip()
-        return str(bindings.get(key, key))
-
-    import re
-    return re.sub(r"\{\{([^}]+)\}\}", replacer, template)
-
-
-def emit(exec_n: ExecNode, visited: Optional[Dict[str, bool]] = None, out: Optional[List[str]] = None) -> List[str]:
-    """DFS post-order emit using the new ontology format."""
-    logger.debug("Entering emit for concept: %s", getattr(exec_n.concept, 'id', 'unknown'))
-
-    if visited is None:
-        visited = {}
-        logger.info(
-            "Emit start from root=%s deps=%s",
-            getattr(exec_n.concept, "id", "unknown"),
-            [getattr(d.concept, "id", "?") for d in (exec_n.deps or [])],
-        )
-    if out is None:
-        out = []
-
-    key = getattr(exec_n.concept, 'id', 'unknown') + str(id(exec_n))
-    if visited.get(key):
-        return out
-    visited[key] = True
-
-    for d in exec_n.deps:
-        emit(d, visited, out)
-
-    line = render(exec_n.concept, exec_n.bindings)
-    if line:
-        # Skip incomplete definition templates (missing subject/class bindings)
-        if "{{" in line and "}}" in line:
-            logger.debug("Skipping incomplete emitter template for %s: %s",
-                         getattr(exec_n.concept, "id", "?"), line)
-        else:
-            logger.info("Emitting line from %s: %s", getattr(exec_n.concept, "id", "?"), line)
-            out.append(line)
-    elif getattr(exec_n.concept, "emitters", None):
-        logger.debug(
-            "Concept %s has emitters but render produced empty (bindings=%s)",
-            getattr(exec_n.concept, "id", "?"),
-            exec_n.bindings,
-        )
-
-    return out
-
-
-# ------------------------------------------------------------------
-# Generic bridge: NLTK POS-tagged / NE trees (from any Parser in parsers.py)
-#                       → intent features → Plan → solved ExecNode
-#
-# Detection of actions is now driven by the KB itself:
-#   for every verb (and noun) in the tree we check whether a normalized
-#   form exists as a key in KB.  No hardcoded verb lists anywhere.
-# ------------------------------------------------------------------
-
-def _leaf_to_dict(leaf):
-    """Normalize any leaf (raw (word,pos) tuple or resolved dict) to a uniform dict."""
-    if isinstance(leaf, dict):
-        return leaf
-    if isinstance(leaf, (list, tuple)) and len(leaf) >= 2:
-        return {'word': str(leaf[0]), 'pos': str(leaf[1]), 'reference': None}
-    return {'word': str(leaf), 'pos': 'UNK', 'reference': None}
-
-
-def _walk_leaves(tree):
-    """Yield normalized leaf dicts from an nltk.Tree (or list of subtrees)."""
-    if tree is None:
-        return
-    if isinstance(tree, (list, tuple)):
-        for item in tree:
-            yield from _walk_leaves(item)
-        return
-    if isinstance(tree, dict):
-        yield tree
-        return
-    # nltk.Tree or Tree-like
-    try:
-        for raw in tree.leaves():
-            yield _leaf_to_dict(raw)
-    except Exception:
-        for child in getattr(tree, 'children', getattr(tree, '', [])):
-            yield from _walk_leaves(child)
-
-
-def _normalize_to_concept_id(word: str) -> str:
-    """Light normalization for concept lookup in the new ontology."""
-    w = word.lower().strip()
-    ontology = get_ontology()
-
-    if w in ontology.concepts:
-        return w
-
-    for suffix in ('s', 'es', 'ies'):
-        if w.endswith(suffix):
-            base = w[:-len(suffix)]
-            if base in ontology.concepts:
-                return base
-            if suffix == 'ies' and (base + 'y') in ontology.concepts:
-                return base + 'y'
-    return w
-
-
-# Function / closed-class words that should not seed concepts on their own.
-# Interrogatives (WP/WRB/WDT) are exempt so "what"/"when" still match.
 _STOP_MATCH_WORDS = frozenset({
     "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
     "am", "do", "does", "did", "to", "of", "in", "on", "for", "and", "or",
@@ -353,1231 +36,536 @@ _STOP_MATCH_WORDS = frozenset({
 })
 
 
-def add_concepts(tree) -> None:
-    """Modify the tree **in place** by attaching matching ontology Concepts to its nodes.
+def _leaf_dict(leaf: Any) -> dict:
+    if isinstance(leaf, dict):
+        return leaf
+    if isinstance(leaf, (list, tuple)) and len(leaf) >= 2:
+        return {"word": str(leaf[0]), "pos": str(leaf[1]), "reference": None}
+    return {"word": str(leaf), "pos": "UNK", "reference": None}
 
-    For each leaf we normalize the word and search the ontology.
-    Matching Concept objects are stored directly on the leaf under the key
-    'concepts' (as a list).
 
-    Raw NLTK leaves (word, pos) tuples are converted to dict form so that
-    the annotations can be attached while preserving the overall tree shape.
-    """
+def _walk_leaves(tree: Any):
+    if tree is None:
+        return
+    if isinstance(tree, dict):
+        yield tree
+        return
+    if isinstance(tree, (list, tuple)) and not isinstance(tree, nltk.Tree):
+        for item in tree:
+            yield from _walk_leaves(item)
+        return
+    try:
+        for raw in tree.leaves():
+            yield _leaf_dict(raw)
+    except Exception:
+        for child in getattr(tree, "children", []) or []:
+            yield from _walk_leaves(child)
+
+
+def _display_name(concept: Union[Concept, str, None]) -> str:
+    if concept is None:
+        return ""
+    if isinstance(concept, str):
+        s = concept.strip()
+        if not s:
+            return ""
+        if "/" in s:
+            return s.rsplit("/", 1)[-1].replace("_", " ").lower()
+        return s.lower()
+    name = (getattr(concept, "name", None) or "").strip()
+    if name:
+        return name.lower()
+    cid = getattr(concept, "id", "") or ""
+    return cid.rsplit("/", 1)[-1].replace("_", " ").lower()
+
+
+def _as_list(value: Any) -> list:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def _target_concept(entry: Any) -> Optional[Concept]:
+    ontology = get_ontology()
+    if isinstance(entry, Concept):
+        return entry
+    if isinstance(entry, dict):
+        t = entry.get("target") or entry.get("id")
+        if isinstance(t, Concept):
+            return t
+        if isinstance(t, str):
+            return ontology.get(t)
+    if isinstance(entry, str):
+        return ontology.get(entry)
+    return None
+
+
+def _relation_entries(concept: Concept, *names: str) -> list:
+    rels = concept.relations or {}
+    out: list = []
+    for name in names:
+        out.extend(_as_list(rels.get(name)))
+    return out
+
+
+def _needs_of(concept: Concept) -> List[dict]:
+    needs: List[dict] = []
+    for item in _relation_entries(concept, "needs", "hasParameter"):
+        if isinstance(item, dict):
+            needs.append({
+                "name": item.get("name") or item.get("slot") or "arg",
+                "type": item.get("type") or "any",
+                "raw": item,
+            })
+        elif isinstance(item, Concept):
+            needs.append({"name": item.id, "type": item, "raw": item})
+        elif isinstance(item, str):
+            needs.append({"name": item, "type": item, "raw": item})
+    return needs
+
+
+def _type_key(t: Any) -> str:
+    if isinstance(t, Concept):
+        return (t.id or t.kind or "").lower()
+    if t is None:
+        return "any"
+    return str(t).strip().lower()
+
+
+def _type_leaf(t: Any) -> str:
+    k = _type_key(t)
+    return k.rsplit("/", 1)[-1] if "/" in k else k
+
+
+def _concept_matches_need_type(concept: Concept, need_type: Any) -> bool:
+    if need_type is None or _type_key(need_type) in ("", "any"):
+        return True
+    nt = _type_key(need_type)
+    nl = _type_leaf(need_type)
+    kind = (getattr(concept, "kind", "") or "").lower()
+    cid = (getattr(concept, "id", "") or "").lower()
+    if kind == nt or kind == nl:
+        return True
+    if cid == nt or cid.endswith("/" + nl) or cid.rsplit("/", 1)[-1] == nl:
+        return True
+    ontology = get_ontology()
+    try:
+        if ontology.is_a(concept, nt) or ontology.is_a(concept, nl):
+            return True
+    except Exception:
+        pass
+    for prod in _relation_entries(concept, "produces"):
+        if isinstance(prod, dict):
+            pt = prod.get("type")
+            if pt is None:
+                continue
+            pk = _type_key(pt)
+            pl = _type_leaf(pt)
+            if pk in (nt, nl) or pl in (nt, nl) or pk == "any" or pl == "any":
+                return True
+        elif isinstance(prod, Concept) and (
+            prod.id.lower() in (nt, nl) or (prod.kind or "").lower() in (nt, nl)
+        ):
+            return True
+        elif isinstance(prod, str) and prod.lower() in (nt, nl):
+            return True
+    return False
+
+
+def _verb_expresses_map() -> Dict[str, Concept]:
+    mapping: Dict[str, Concept] = {}
+    for c in get_ontology().concepts.values():
+        if getattr(c, "kind", "") != "VERB":
+            continue
+        for e in _as_list((c.relations or {}).get("expresses")):
+            key = e if isinstance(e, str) else getattr(e, "id", None)
+            if isinstance(key, str) and key and key not in mapping:
+                mapping[key] = c
+    return mapping
+
+
+def _render(concept: Concept, bindings: Dict[str, str]) -> str:
+    if not concept or not concept.emitters:
+        return ""
+    template = concept.emitters[0].get("template", "") or ""
+    return re.sub(
+        r"\{\{([^}]+)\}\}",
+        lambda m: str(bindings.get(m.group(1).strip(), m.group(1).strip())),
+        template,
+    )
+
+
+def _emit_order(concept: Concept) -> int:
+    for entry in _relation_entries(concept, "emitOrder", "emit_order"):
+        if isinstance(entry, (int, float)):
+            return int(entry)
+        if isinstance(entry, dict) and "value" in entry:
+            try:
+                return int(entry["value"])
+            except (TypeError, ValueError):
+                pass
+        if isinstance(entry, str) and entry.strip().lstrip("-").isdigit():
+            return int(entry.strip())
+    return 0
+
+
+def _word_intentionally_matches(concept: Concept, word: str) -> bool:
+    w = (word or "").lower().strip()
+    if not w or not concept:
+        return False
+    for kw in concept.keywords or []:
+        kl = kw.lower().strip()
+        if w == kl or w in kl.split() or kl in w.split():
+            return True
+    name = (concept.name or "").lower().strip()
+    if name and (w == name or w in name.split()):
+        return True
+    leaf = (concept.id or "").rsplit("/", 1)[-1].lower().replace("_", " ")
+    if w == leaf or w == leaf.replace(" ", "") or w in leaf.split():
+        return True
+    cid = (concept.id or "").lower()
+    if cid == w or cid.endswith("/" + w):
+        return True
+    return False
+
+
+def _seed_concepts(tree) -> List[Concept]:
+    seen: set = set()
+    out: List[Concept] = []
+    for leaf in _walk_leaves(tree):
+        for c in leaf.get("concepts") or []:
+            if isinstance(c, Concept) and c.id not in seen:
+                seen.add(c.id)
+                out.append(c)
+    return out
+
+
+def _has_parts_ids(root: Concept) -> set:
+    ids: set = set()
+    for entry in _relation_entries(root, "hasParts", "has_parts"):
+        tgt = _target_concept(entry)
+        if tgt is not None:
+            ids.add(tgt.id)
+        elif isinstance(entry, str):
+            ids.add(entry)
+    return ids
+
+
+def _scope_roots(seeds: List[Concept]) -> List[Concept]:
+    roots = [c for c in seeds if _relation_entries(c, "hasParts", "has_parts")]
+    if not roots:
+        return []
+
+    def _parts_under_prefix(root: Concept) -> bool:
+        rid = root.id or ""
+        parts = _has_parts_ids(root)
+        if not parts:
+            return True
+        return all(p == rid or p.startswith(rid + "/") for p in parts)
+
+    prefix_roots = [r for r in roots if _parts_under_prefix(r)]
+    return prefix_roots if prefix_roots else roots
+
+
+def _under_scope(concept: Concept, root: Concept) -> bool:
+    if concept.id == root.id:
+        return True
+    rid = root.id or ""
+    if (concept.id or "").startswith(rid + "/"):
+        return True
+    if concept.id in _has_parts_ids(root):
+        return True
+    for entry in _relation_entries(concept, "partOf", "part_of"):
+        tgt = _target_concept(entry)
+        if tgt is not None and (tgt.id == rid or (tgt.id or "").startswith(rid + "/")):
+            return True
+        if isinstance(entry, str) and (entry == rid or entry.startswith(rid + "/")):
+            return True
+    return False
+
+
+def parse(sentence: str):
+    from parsers import get_default_parser
+    logger.info("parse: %r", sentence)
+    resolved_tree, _raw = get_default_parser().parse(sentence)
+    return resolved_tree
+
+
+def augment(tree):
     ontology = get_ontology()
 
-    def attach_to_leaf(leaf_dict: dict, word: str, pos: str = ""):
-        """Normalize and attach concepts to a single leaf dict."""
+    def attach(leaf: dict, word: str, pos: str = "") -> None:
         if not isinstance(word, str) or not word.strip():
-            leaf_dict['concepts'] = []
+            leaf["concepts"] = []
             return
-
-        # Avoid matching multi-word keywords on closed-class words like "is"
-        # (e.g. keyword "what is" / "when is" falsely matching the verb "is").
-        # Still allow interrogative POS tags (WP/WRB/WDT) to match.
         wlow = word.lower().strip()
-        pos_u = (pos or leaf_dict.get("pos") or "").upper()
+        pos_u = (pos or leaf.get("pos") or "").upper()
         if wlow in _STOP_MATCH_WORDS and not pos_u.startswith(("WP", "WRB", "WDT")):
-            leaf_dict['concepts'] = []
-            logger.debug("Skipping concept match for stop-word %r (pos=%s)", word, pos_u)
+            leaf["concepts"] = []
             return
-
-        normalized = _normalize_to_concept_id(word)
-        matches = ontology.find_concepts_matching(normalized, strict=True)
-        leaf_dict['concepts'] = matches or []
+        matches = ontology.find_concepts_matching(wlow, strict=True)
+        matches = [c for c in (matches or []) if _word_intentionally_matches(c, wlow)]
+        leaf["concepts"] = matches
         if matches:
-            logger.debug(
-                "Leaf %r (pos=%s) matched concepts: %s",
-                word, pos_u, [c.id for c in matches],
-            )
+            logger.debug("augment leaf %r → %s", word, [c.id for c in matches])
 
-    def process(node: Any):
+    def process(node: Any) -> None:
         if node is None:
             return
-
-        # Already a dict leaf (common after resolve_pronouns)
         if isinstance(node, dict):
-            w = node.get('word', '')
-            attach_to_leaf(node, w, node.get('pos', ''))
+            attach(node, node.get("word", ""), node.get("pos", ""))
             return
-
-        # nltk.Tree (or anything with children)
         if isinstance(node, nltk.Tree):
             for i in range(len(node)):
                 child = node[i]
                 if isinstance(child, nltk.Tree):
                     process(child)
+                elif isinstance(child, dict):
+                    attach(child, child.get("word", ""), child.get("pos", ""))
+                elif isinstance(child, (list, tuple)) and len(child) >= 2:
+                    word, pos = str(child[0]), str(child[1])
+                    node[i] = {
+                        "word": word, "pos": pos, "reference": None, "concepts": [],
+                    }
+                    attach(node[i], word, pos)
                 else:
-                    # Leaf: either tuple (word, pos) or already a dict
-                    if isinstance(child, dict):
-                        w = child.get('word', '')
-                        attach_to_leaf(child, w, child.get('pos', ''))
-                    elif isinstance(child, (list, tuple)) and len(child) >= 2:
-                        word = str(child[0])
-                        pos = str(child[1])
-                        # Replace the raw leaf with a rich dict so we can carry ontology nodes
-                        node[i] = {
-                            'word': word,
-                            'pos': pos,
-                            'reference': None,
-                            'concepts': []
-                        }
-                        attach_to_leaf(node[i], word, pos)
-                    else:
-                        # Unexpected leaf form — wrap it
-                        w = str(child)
-                        node[i] = {
-                            'word': w,
-                            'pos': 'UNK',
-                            'reference': None,
-                            'concepts': []
-                        }
+                    w = str(child)
+                    node[i] = {
+                        "word": w, "pos": "UNK", "reference": None, "concepts": [],
+                    }
+                    attach(node[i], w)
             return
-
-        # Generic sequence (should be rare at top level)
         if isinstance(node, (list, tuple)):
             for item in node:
                 process(item)
 
     process(tree)
+    logger.info("augment: attached concepts %s", [c.id for c in _seed_concepts(tree)])
+    return tree
 
-    logger.debug("add_concepts finished annotating tree with ontology concepts")
 
-
-def bind_tree_arguments(tree):
-    """
-    Structural argument binding (early experiment).
-
-    After concepts have been attached to leaves, this function looks at the
-    tree structure to bind arguments to verb concepts.
-
-    Current heuristics:
-    - For a verb that has concepts with 'hasParameter', look at the following
-      NP sibling(s) inside the same VP/COORD and record them as potential
-      argument values (especially 'content').
-    - For "that" (relative clause), link the preceding NP to the following
-      clause (COORD or VP) so the dependency solver can see the description
-      of the head noun.
-    """
+def solve(tree) -> ExecNode:
     ontology = get_ontology()
+    seeds = _seed_concepts(tree)
 
-    def has_content_need(concept: Concept) -> bool:
-        rels = concept.relations or {}
-        for item in rels.get("hasParameter", []):
-            if isinstance(item, dict) and item.get("name") == "content":
-                return True
+    scopes = _scope_roots(seeds)
+    if scopes:
+        scope = scopes[0]
+        for s in seeds:
+            if s in scopes:
+                scope = s
+                break
+        seeds = [c for c in seeds if _under_scope(c, scope)]
+        if scope not in seeds:
+            seeds = [scope] + seeds
+        logger.info("solve: scoped to %s", scope.id)
+
+    logger.info("solve: seeds=%s", [c.id for c in seeds])
+    seed_ids = {c.id for c in seeds}
+    by_id: Dict[str, Concept] = {c.id: c for c in seeds}
+
+    changed = True
+    while changed:
+        changed = False
+        for concept in list(by_id.values()):
+            for prod in _relation_entries(concept, "produces"):
+                tgt = _target_concept(prod)
+                if tgt is not None and tgt.id not in by_id:
+                    by_id[tgt.id] = tgt
+                    changed = True
+            for hp in _relation_entries(concept, "hasParent", "has_parent"):
+                tgt = _target_concept(hp)
+                if (
+                    tgt is not None
+                    and tgt.id not in by_id
+                    and (tgt.emitters or _needs_of(tgt))
+                ):
+                    by_id[tgt.id] = tgt
+                    changed = True
+
+    expresses = _verb_expresses_map()
+    for concept in list(by_id.values()):
+        if getattr(concept, "kind", "") != "FACT":
+            continue
+        for rel_key, rel_val in (concept.relations or {}).items():
+            verb = expresses.get(rel_key)
+            if verb is None:
+                continue
+            if verb.id not in by_id:
+                by_id[verb.id] = verb
+            for entry in _as_list(rel_val):
+                tgt = _target_concept(entry)
+                if tgt is not None and tgt.id not in by_id:
+                    by_id[tgt.id] = tgt
+
+    pool = list(by_id.values())
+    kind_like = frozenset({
+        "fact", "verb", "class", "answer_type", "interrogative",
+        "english_construct", "interface", "recipe",
+    })
+    nodes: Dict[str, ExecNode] = {c.id: ExecNode(concept=c) for c in pool}
+
+    for concept in pool:
+        node = nodes[concept.id]
+        used_ids: set = set()
+        for need in _needs_of(concept):
+            name = need["name"]
+            if name in node.bindings:
+                continue
+            ntype = need["type"]
+            nleaf = _type_leaf(ntype)
+            filler: Optional[Concept] = None
+            for cand in pool:
+                if cand.id == concept.id or cand.id in used_ids:
+                    continue
+                if _concept_matches_need_type(cand, ntype):
+                    filler = cand
+                    break
+            if filler is None and nleaf not in kind_like and _type_key(ntype) not in ("", "any"):
+                for cand in ontology.find_producers_of_type(ntype):
+                    if cand.id in used_ids:
+                        continue
+                    if cand.id not in by_id:
+                        by_id[cand.id] = cand
+                        nodes[cand.id] = ExecNode(concept=cand)
+                        pool.append(cand)
+                        filler = cand
+                        break
+                    filler = by_id[cand.id]
+                    break
+            if filler is not None:
+                node.bindings[name] = _display_name(filler)
+                used_ids.add(filler.id)
+                if name == "subject" and getattr(filler, "kind", "") == "FACT":
+                    _bind_from_fact_edge(node, filler, pool, expresses)
+
+        if concept.emitters and _needs_of(concept) and not node.bindings.get("subject"):
+            need_names = {n["name"] for n in _needs_of(concept)}
+            if need_names & {"subject", "verb", "object"}:
+                _bind_answer_roles(node, pool, expresses)
+
+    produced_ids = set()
+    for s in seeds:
+        for prod in _relation_entries(s, "produces"):
+            tgt = _target_concept(prod)
+            if tgt is not None:
+                produced_ids.add(tgt.id)
+
+    def _is_emit_target(c: Concept) -> bool:
+        if not c.emitters:
+            return False
+        if c.id in seed_ids:
+            return True
+        if c.id in produced_ids:
+            return True
+        if _needs_of(c) and c.emitters:
+            return c.id in by_id and any(
+                n["name"] in ("subject", "verb", "object") for n in _needs_of(c)
+            )
         return False
 
-    def process(node, parent=None, siblings=None):
-        if isinstance(node, dict):
-            # Leaf
-            word = node.get("word", "").lower()
-            pos = node.get("pos", "")
+    organizers = [
+        nodes[c.id] for c in pool if c.id in nodes and _is_emit_target(c)
+    ]
+    seed_index = {c.id: i for i, c in enumerate(seeds)}
 
-            # Handle relative "that" / "which"
-            if pos in ("WDT", "WP") and word in ("that", "which"):
-                # Find nearest preceding NP (the head) among siblings
-                if siblings:
-                    for i, sib in enumerate(siblings):
-                        if sib is node:
-                            # Look backwards for an NP
-                            for j in range(i - 1, -1, -1):
-                                prev = siblings[j]
-                                if isinstance(prev, dict) and prev.get("pos", "").startswith("NN"):
-                                    # Attach following material (if any) as description of this NP
-                                    following = siblings[i+1:] if i+1 < len(siblings) else []
-                                    if following:
-                                        prev.setdefault("relative_clause", []).extend(following)
-                                    break
-                            break
+    def sort_key(n: ExecNode):
+        return (
+            _emit_order(n.concept),
+            seed_index.get(n.concept.id, 10_000),
+            n.concept.id,
+        )
+
+    organizers = sorted(organizers, key=sort_key)
+    root = ExecNode(
+        concept=Concept(id="ExecutionList", kind="EXEC", name="Execution List"),
+        deps=list(organizers),
+    )
+    seen_ids = {d.concept.id for d in root.deps}
+    for c in seeds:
+        if c.id in nodes and c.id not in seen_ids and not c.emitters:
+            root.deps.append(nodes[c.id])
+            seen_ids.add(c.id)
+
+    logger.info(
+        "solve: pool=%s emit_candidates=%s",
+        [c.id for c in pool],
+        [d.concept.id for d in root.deps if d.concept.emitters],
+    )
+    return root
+
+
+def _bind_from_fact_edge(node, fact, pool, expresses):
+    verb_ids = {c.id for c in pool if getattr(c, "kind", "") == "VERB"}
+    for rel_key, rel_val in (fact.relations or {}).items():
+        verb = expresses.get(rel_key)
+        if verb is None or verb.id not in verb_ids:
+            continue
+        node.bindings.setdefault("verb", _display_name(verb))
+        for entry in _as_list(rel_val):
+            obj = _target_concept(entry)
+            if obj is not None:
+                node.bindings.setdefault("object", _display_name(obj))
+                return
+            if isinstance(entry, str) and entry.strip() and "/" not in entry:
+                node.bindings.setdefault("object", entry.strip().lower())
                 return
 
-            # Verb argument binding (very early heuristic)
-            concepts = node.get("concepts", [])
-            for c in concepts:
-                if has_content_need(c):
-                    # Look for a following NP in the local siblings (inside VP)
-                    if siblings:
-                        idx = None
-                        for i, s in enumerate(siblings):
-                            if s is node:
-                                idx = i
-                                break
-                        if idx is not None:
-                            for j in range(idx + 1, len(siblings)):
-                                nxt = siblings[j]
-                                if isinstance(nxt, dict) and nxt.get("pos", "").startswith(("NN", "CD")):
-                                    node.setdefault("arguments", {})["content"] = nxt
-                                    break
-                                if isinstance(nxt, nltk.Tree) and nxt.label() == "NP":
-                                    node.setdefault("arguments", {})["content"] = nxt
-                                    break
-                            else:
-                                # Also try one level up if we are inside a preterminal (VB/VBZ etc)
-                                # e.g. ideal trees have (VP (VB (write-dict)) (NP ...))
-                                if parent is not None and hasattr(parent, "label"):
-                                    parent_label = parent.label()
-                                    if parent_label.startswith(("VB", "VBP", "VBZ")):
-                                        grand = getattr(parent, "_parent", None)  # not set, so walk via caller's parent? skip complex
-                                        pass
-            return
 
-        if isinstance(node, nltk.Tree):
-            label = node.label() if hasattr(node, "label") else ""
-            children = list(node)
-
-            # Recurse on children, passing siblings for local context
-            for i, child in enumerate(children):
-                process(child, parent=node, siblings=children)
-
-            # Special case: if this is a VP or COORD containing a verb + following material,
-            # we already handled most binding inside the leaf recursion above.
-            return
-
-        if isinstance(node, (list, tuple)):
-            for item in node:
-                process(item)
-
-    process(tree)
-    logger.debug("bind_tree_arguments completed structural attachment")
-
-
-def _collect_concepts_from_tree(tree) -> list[Concept]:
-    """Collect ontology Concepts that were previously attached to the tree
-    by add_concepts (looks for the 'concepts' key on leaves).
-
-    Returns concepts in the order they first appear, with duplicates removed.
-    """
-    seen = set()
-    collected: list[Concept] = []
-
-    for leaf in _walk_leaves(tree):
-        for c in leaf.get('concepts', []):
-            if isinstance(c, Concept) and c.id not in seen:
-                seen.add(c.id)
-                collected.append(c)
-
-    return collected
-
-
-def format_tree(tree, prefix: str = "", is_last: bool = True, show_concepts: bool = True, max_concepts: int = 3) -> str:
-    """
-    Return a pretty string representation of the (possibly annotated) tree.
-
-    Shows the NLTK syntactic structure + any ontology concepts that were
-    attached by add_concepts (under the 'concepts' key on leaves).
-    """
-    lines = []
-
-    def _concept_str(c: Concept) -> str:
-        return c.id
-
-    def _format_leaf(leaf: dict) -> str:
-        word = leaf.get('word', '?')
-        pos = leaf.get('pos', '')
-        ref = leaf.get('reference')
-        parts = [f'"{word}"']
-        if pos:
-            parts.append(f"({pos})")
-        if ref:
-            parts.append(f"→ {ref}")
-
-        text = " ".join(parts)
-
-        if show_concepts:
-            concepts = leaf.get('concepts', []) or []
-            if concepts:
-                names = [_concept_str(c) for c in concepts[:max_concepts]]
-                extra = f" +{len(concepts) - max_concepts}" if len(concepts) > max_concepts else ""
-                text += f"  [concepts: {', '.join(names)}{extra}]"
-
-            # Show structural bindings when present
-            args = leaf.get('arguments')
-            if args:
-                text += f"  [args: {list(args.keys())}]"
-
-            rel = leaf.get('relative_clause')
-            if rel:
-                text += "  [rel_clause]"
-        return text
-
-    def _recurse(node: Any, prefix: str, is_last: bool, is_root: bool = False):
-        if is_root:
-            connector = ""
-        else:
-            connector = "└── " if is_last else "├── "
-
-        if isinstance(node, dict):
-            # Leaf (after our normalization)
-            line = prefix + connector + _format_leaf(node)
-            lines.append(line)
-            return
-
-        if isinstance(node, nltk.Tree):
-            # Internal node
-            label = node.label() if hasattr(node, 'label') else str(node)
-            line = prefix + connector + f"[{label}]"
-            lines.append(line)
-
-            children = list(node)
-            new_prefix = prefix + ("    " if (is_last or is_root) else "│   ")
-            for i, child in enumerate(children):
-                _recurse(child, new_prefix, i == len(children) - 1)
-            return
-
-        # Fallback for raw tuples or other forms
-        if isinstance(node, (list, tuple)) and len(node) >= 2 and not isinstance(node[0], (dict, nltk.Tree)):
-            word, pos = str(node[0]), str(node[1])
-            fake_leaf = {'word': word, 'pos': pos}
-            line = prefix + connector + _format_leaf(fake_leaf)
-            lines.append(line)
-            return
-
-        # Unknown node type
-        line = prefix + connector + f"<{type(node).__name__}: {str(node)[:60]}>"
-        lines.append(line)
-
-    _recurse(tree, prefix, is_last, is_root=True)
-    return "\n".join(lines)
-
-
-def pretty_print_tree(tree, **kwargs):
-    """Convenience wrapper around format_tree that prints to stdout."""
-    print(format_tree(tree, prefix="", is_last=True, **kwargs))
-
-
-def _resolve_dependencies(starting_concepts: list[Concept], max_depth: int = 4) -> list[Concept]:
-    """
-    Proper dependency satisfaction (the requested piece #2).
-
-    Given starting concepts, recursively resolves what they need by walking
-    relations and looking for producers of required types.
-    """
-    ontology = get_ontology()
-    resolved: list[Concept] = []
-    seen = set()
-
-    logger.info("Starting dependency resolution for %d concepts", len(starting_concepts))
-
-    def can_produce(concept: Concept, required_type: str) -> bool:
-        """Quick check if this concept can satisfy a type requirement."""
-        rels = concept.relations or {}
-        for prod in rels.get("produces", []):
-            if isinstance(prod, dict):
-                t = prod.get("type")
-                ptype = (t.id if isinstance(t, Concept) else (t or "")).lower()
-                ptype_leaf = ptype.rsplit("/", 1)[-1] if "/" in ptype else ptype
-                rt = (required_type.id if isinstance(required_type, Concept) else required_type or "").lower()
-                rt_leaf = rt.rsplit("/", 1)[-1] if "/" in rt else rt
-                if ptype in (rt, "any") or ptype_leaf in (rt, rt_leaf, "any") or ptype_leaf == "any":
-                    logger.debug("      %s can produce type '%s'", concept.id, required_type)
-                    return True
-            elif isinstance(prod, str) and prod.lower() == (required_type.id if isinstance(required_type, Concept) else required_type or "").lower():
-                logger.debug("      %s can produce type '%s'", concept.id, required_type)
-                return True
-        return False
-
-    def collect_needs(concept: Concept) -> list[dict]:
-        """Extract typed needs/parameters from a concept's relations."""
-        needs = []
-        rels = concept.relations or {}
-
-        for rel_name in ["needs", "hasParameter"]:
-            items = rels.get(rel_name, [])
-            if isinstance(items, dict):
-                items = [items]
-            for item in items:
-                if isinstance(item, dict):
-                    needs.append({
-                        "name": item.get("name", "arg"),
-                        "type": item.get("type", "any")
-                    })
-
-        if needs:
-            logger.debug("    %s has %d needs: %s", concept.id, len(needs), needs)
-        return needs
-
-    def recurse(concept: Concept, depth: int, context: list[Concept]):
-        if depth > max_depth or concept.id in seen:
-            return
-        seen.add(concept.id)
-        resolved.append(concept)
-
-        logger.debug("  [%d] Resolving concept: %s", depth, concept.id)
-
-        needs = collect_needs(concept)
-
-        for need in needs:
-            req_type = need["type"]
-            req_type_str = req_type.id if isinstance(req_type, Concept) else str(req_type or "")
-            req_type_leaf = req_type_str.rsplit("/", 1)[-1] if "/" in req_type_str else req_type_str
-
-            satisfied = False
-            for prev in context + resolved:
-                if can_produce(prev, req_type):
-                    satisfied = True
-                    break
-
-            if not satisfied:
-                candidates = ontology.find_producers_of_type(req_type)
-
-                # Be much stricter with 'any' — only use it as a last resort
-                if req_type_str == "any" or req_type_leaf == "any":
-                    # Only consider very specific producers for 'any' (e.g. actual function calls or declarations)
-                    candidates = [c for c in candidates if c.kind in ("BUILTIN", "SYNTACTIC_CONSTRUCT") and "Declaration" in c.id or "Call" in c.id]
-
-                if candidates:
-                    logger.debug("    Need '%s' (%s) → found %d candidate producers",
-                                 need['name'], req_type_str, len(candidates))
-                    for cand in candidates:
-                        if cand.id not in seen:
-                            recurse(cand, depth + 1, context + [concept])
-
-        # Follow produces targets when they reference concepts (e.g. interrogative
-        # "what" produces linguistics/answer/definition). Type-only produces
-        # entries ({"type": "void"}) are ignored here — they are for can_produce.
-        for prod in (concept.relations or {}).get("produces", []) or []:
-            target = None
-            if isinstance(prod, Concept):
-                target = prod
-            elif isinstance(prod, dict):
-                t = prod.get("target") or prod.get("id")
-                if isinstance(t, Concept):
-                    target = t
-                elif isinstance(t, str):
-                    target = ontology.get(t)
-            elif isinstance(prod, str):
-                target = ontology.get(prod)
-            if target is not None and getattr(target, "id", None) not in seen:
-                logger.info(
-                    "  [%d] %s produces → following %s",
-                    depth, concept.id, target.id,
-                )
-                recurse(target, depth + 1, context + [concept])
-
-        # Follow structural + implementation relations
-        related = ontology.find_related_concepts(
-            concept,
-            relation_names=["importsPackage", "implementedBy", "specializes"]
-        )
-        for rel in related:
-            recurse(rel, depth + 1, context + [concept])
-
-        # Explicitly look for concrete implementations of this concept
-        implementations = ontology.find_implementations_of(concept.id)
-        for impl in implementations:
-            if impl.id not in seen:
-                recurse(impl, depth + 1, context + [concept])
-
-    for c in starting_concepts:
-        recurse(c, 0, [])
-
-    # Remove duplicates while preserving order
-    seen = set()
-    unique_resolved = []
-    for c in resolved:
-        if c.id not in seen:
-            seen.add(c.id)
-            unique_resolved.append(c)
-
-    # Prefer concrete implementations over abstract ones when both exist
-    final = []
-    for c in unique_resolved:
-        impls = ontology.find_implementations_of(c.id)
-        if impls:
-            final.extend(impls)
-        else:
-            final.append(c)
-
-    # Dedup again after preferring implementations
-    seen = set()
-    deduped = []
-    for c in final:
-        if c.id not in seen:
-            seen.add(c.id)
-            deduped.append(c)
-
-    logger.info("Dependency resolution complete. Resolved %d concepts total", len(deduped))
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Resolved concepts: %s", [c.id for c in deduped])
-
-    return deduped
-
-
-def _features_to_plan(tree) -> dict:
-    """
-    New ontology-driven planning.
-
-    Takes a parsed tree directly. It first mutates the tree via add_concepts
-    (attaching ontology nodes under 'concepts' on the leaves), then collects
-    those attached concepts to drive the rest of planning + dependency resolution.
-    """
-    get_ontology()
-
-    add_concepts(tree)                                   # mutates tree in place
-    bind_tree_arguments(tree)                            # structural argument binding
-    initial_concepts = _collect_concepts_from_tree(tree)
-
-    # Log matched concepts at INFO so users see what the ontology bound.
-    if initial_concepts:
-        logger.info("Matched concepts from sentence: %s", [c.id for c in initial_concepts])
-    else:
-        logger.info("Matched concepts from sentence: []")
-
-    resolved_concepts = _resolve_dependencies(initial_concepts)
-
-    # New post-augmentation phase: interface satisfaction / compliance checking.
-    # The call now returns any nodes that satisfied an interface declaring
-    # executable instructions (e.g. a Recipe whose hasIngredients requirements
-    # were met by available concepts in the tree, including class matches like
-    # salt/pepper satisfying "spices").
-    satisfied_executables = apply_interface_satisfaction(tree) or []
-
-    # Resolve the executable instructions (now node ids in hasInstructions etc.)
-    # using the generic recursive resolver driven by requires/needs + instruction lists.
-    # The order of the final list comes from the order in the ontology lists
-    # (requirement satisfaction provides the sequence).
-    executable_steps: list[Concept] = []
-    for ex in satisfied_executables:
-        executable_steps.extend(resolve_dependencies(ex, ontology=get_ontology()))
-
-    # If interface satisfaction didn't produce executable steps, check if any
-    # resolved concept directly declares instruction-list relations (as defined
-    # by the interfaces they claim). This handles the case where a user says
-    # "make pancakes" — the recipe is matched by keywords but the pool may not
-    # have explicit ingredient mentions. The interface definition (not hardcoded
-    # names) tells us which relations carry executable content.
-    if not executable_steps:
-        ontology = get_ontology()
-        for concept in resolved_concepts:
-            if not isinstance(concept, Concept):
-                continue
-            claimed = _get_claimed_interface_ids(concept)
-            for iface_id in claimed:
-                iface = ontology.get(iface_id)
-                if not iface:
+def _bind_answer_roles(node, pool, expresses):
+    facts = [
+        c for c in pool
+        if getattr(c, "kind", "") == "FACT"
+        and not (c.id or "").startswith("linguistics/")
+    ]
+    verbs = [c for c in pool if getattr(c, "kind", "") == "VERB"]
+    verb_to_keys: Dict[str, List[str]] = {}
+    for rel_key, verb in expresses.items():
+        verb_to_keys.setdefault(verb.id, []).append(rel_key)
+    for verb in verbs:
+        for fact in facts:
+            for key in verb_to_keys.get(verb.id, []):
+                if key not in (fact.relations or {}):
                     continue
-                for decl in (iface.relations or {}).get("requires", []):
-                    if isinstance(decl, dict):
-                        rname = decl.get("relation") or decl.get("name")
-                        if rname:
-                            items = (concept.relations or {}).get(rname, [])
-                            if isinstance(items, (str, dict)):
-                                items = [items]
-                            # Check if any of the items point to concepts with emitters
-                            for item in items:
-                                target = None
-                                if isinstance(item, Concept):
-                                    target = item
-                                elif isinstance(item, str):
-                                    target = ontology.get(item)
-                                elif isinstance(item, dict):
-                                    t = item.get("target") or item.get("id")
-                                    if isinstance(t, Concept):
-                                        target = t
-                                    elif isinstance(t, str):
-                                        target = ontology.get(t)
-                                if target and getattr(target, "emitters", None):
-                                    # This concept has executable instruction content
-                                    executable_steps.extend(
-                                        resolve_dependencies(concept, ontology=ontology)
-                                    )
-                                    break
-                            if executable_steps:
-                                break
-                    if executable_steps:
-                        break
-                if executable_steps:
-                    break
-
-    # If we resolved any executable steps (the general "follow instructions
-    # once requirements satisfied" path), prefer them for emission.
-    # Otherwise fall back to the classic construct dependency resolution
-    # (keeps codegen working unchanged).
-    if executable_steps:
-        final_concepts = executable_steps
-    else:
-        final_concepts = resolved_concepts
-
-    logger.info(
-        "Plan built with %d starting concepts and %d resolved dependencies",
-        len(initial_concepts), len(resolved_concepts)
-    )
-    logger.info(
-        "Plan graph: starting=%s resolved=%s final_for_emit=%s",
-        [c.id for c in initial_concepts],
-        [c.id for c in resolved_concepts],
-        [c.id for c in final_concepts],
-    )
-    # Surface definition-seeking intent when interrogative produced an answer type
-    if any(getattr(c, "kind", "") == "INTERROGATIVE" for c in initial_concepts):
-        answer_ids = [
-            c.id for c in resolved_concepts
-            if getattr(c, "kind", "") == "ANSWER_TYPE"
-        ]
-        fact_ids = [
-            c.id for c in resolved_concepts
-            if getattr(c, "kind", "") == "FACT"
-        ]
-        logger.info(
-            "Interrogative plan seeks answers=%s for subjects/facts=%s",
-            answer_ids, fact_ids,
-        )
-    logger.debug("_features_to_plan completed")
-
-    return {
-        "type": "ontology_driven_plan",
-        "starting_concepts": [c.id for c in initial_concepts],
-        "resolved_dependencies": [c.id for c in resolved_concepts],
-        "all_concepts": final_concepts,
-    }
-
-
-def tree_to_solved_plan(parsed_tree, resolved_tree=None):
-    """Public entry point (new ontology-native path).
-
-    Ensures relative/possessive pronouns (PRP$, WDT, WP, etc.) are resolved
-    via resolve_pronouns() *before* any augmentation steps (_features_to_plan
-    calls add_concepts + bind_tree_arguments). This makes the function safe
-    to call directly with raw parser output.
-    """
-    logger.info("Starting tree-to-plan conversion")
-    get_ontology()
-    logger.debug("tree_to_solved_plan called")
-
-    if resolved_tree is None:
-        resolved_tree = resolve_pronouns(parsed_tree)
-    tree = resolved_tree
-
-    plan = _features_to_plan(tree)
-    solved = solve_plan(plan)
-    logger.info("tree_to_solved_plan completed")
-    return solved
-
-
-# ------------------------------------------------------------------
-# Interface satisfaction / compliance checking (new ontology feature)
-# ------------------------------------------------------------------
-
-def _normalize_requirement(req: Any) -> dict:
-    """
-    Turn a requirement entry (string or dict from relations) into a uniform spec:
-    {"target": str, "is_class": bool, "name": optional}
-    """
-    if isinstance(req, str):
-        return {"target": req, "is_class": False}
-    if isinstance(req, dict):
-        t = req.get("target") or req.get("id") or req.get("name")
-        target = t.id if isinstance(t, Concept) else t
-        is_class = bool(
-            req.get("isClass") or req.get("is_class") or
-            req.get("kind") == "CLASS" or "class" in str(req.get("type", "")).lower()
-        )
-        return {"target": target, "is_class": is_class, "raw": req}
-    return {"target": str(req), "is_class": False}
-
-
-def _get_claimed_interface_ids(candidate: Union[Concept, dict]) -> list[str]:
-    """
-    Extract which interfaces / classes this candidate claims to implement or be an instance of.
-    Works for both Concept objects and plain dict runtime nodes.
-    Looks in: parents, isA / isa, implements, and common relation forms.
-    """
-    ids: list[str] = []
-
-    def _add(val):
-        if isinstance(val, str):
-            ids.append(val)
-        elif isinstance(val, Concept):
-            ids.append(val.id)
-        elif isinstance(val, (list, tuple)):
-            for v in val:
-                _add(v)
-        elif isinstance(val, dict):
-            for k in ("target", "id", "name"):
-                if k in val and isinstance(val[k], str):
-                    ids.append(val[k])
-                elif k in val and isinstance(val[k], Concept):
-                    ids.append(val[k].id)
-
-    if isinstance(candidate, Concept):
-        _add(candidate.parents)
-        raw = candidate.raw or {}
-        for key in ("isA", "isa", "implements", "interface"):
-            _add(raw.get(key))
-        rels = candidate.relations or {}
-        for key in ("implements", "isImplementationOf", "satisfies", "conformsTo"):
-            _add(rels.get(key))
-    else:
-        # dict node (runtime / test data)
-        _add(candidate.get("parents"))
-        for key in ("isA", "isa", "implements", "interface"):
-            _add(candidate.get(key))
-        rels = candidate.get("relations", {}) or candidate.get("requires", {}) or {}
-        for key in ("implements", "isImplementationOf", "satisfies", "conformsTo"):
-            _add(rels.get(key))
-
-    # Dedup while preserving order
-    seen = set()
-    unique = []
-    for i in ids:
-        if i and i not in seen:
-            seen.add(i)
-            unique.append(i)
-    return unique
-
-
-def _get_required_relation_names_from_interface(iface: Concept) -> list[str]:
-    """
-    Given an interface Concept, extract the names of the relations it requires
-    instances to provide (e.g. hasIngredients, hasInstructions).
-    Looks for common declaration patterns in the interface's relations.
-    """
-    if not iface:
-        return []
-
-    rels = iface.relations or {}
-    names: list[str] = []
-
-    # Preferred form (as shown in recipe.json example):
-    # "requires": [ {"relation": "hasIngredients", ...}, {"relation": "hasInstructions"} ]
-    for item in rels.get("requires", []):
-        if isinstance(item, dict):
-            r = item.get("relation") or item.get("name") or item.get("slot")
-            if isinstance(r, str):
-                names.append(r)
-        elif isinstance(item, str):
-            names.append(item)
-
-    # Alternative explicit lists on the interface
-    for key in ("requiredRelations", "required_relations", "requiresRelations", "requiredSlots", "slots"):
-        val = rels.get(key)
-        if isinstance(val, str):
-            names.append(val)
-        elif isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, str):
-                    names.append(v)
-                elif isinstance(v, dict):
-                    r = v.get("relation") or v.get("name")
-                    if isinstance(r, str):
-                        names.append(r)
-
-    # As a last resort, if the interface itself has relations whose values look like
-    # requirement declarations, we could infer, but we keep it explicit for now.
-
-    # Dedup preserving order
-    seen = set()
-    out = []
-    for n in names:
-        if n and n not in seen:
-            seen.add(n)
-            out.append(n)
-    return out
-
-
-def _collect_relation_values(candidate: Union[Concept, dict], relation_names: list[str]) -> dict:
-    """
-    Given a list of relation names, pull the corresponding values from the candidate
-    (whether Concept or dict) and normalize them into the internal requirement format.
-    """
-    rels: dict = {}
-    if isinstance(candidate, Concept):
-        rels = candidate.relations or {}
-    elif isinstance(candidate, dict):
-        rels = candidate.get("relations", {}) or candidate.get("requires", {}) or {}
-
-    out = {}
-    for rname in relation_names:
-        items = rels.get(rname)
-        if items is None:
-            continue
-        if isinstance(items, (str, dict)):
-            items = [items]
-        if items:
-            out[rname] = [_normalize_requirement(it) for it in items]
-    return out
-
-
-def _get_requirements_for_interface(
-    candidate: Union[Concept, dict],
-    ontology: Optional[Ontology] = None,
-    relation_names: list[str] = None
-) -> dict:
-    """
-    Extract the requirements the candidate must satisfy.
-
-    If explicit `relation_names` are provided, use them directly (override).
-
-    Otherwise, discover the interfaces the candidate claims (via parents/isA/etc.),
-    read the required relation names **from those interface definitions** in the ontology,
-    then collect the actual values from the candidate using those names.
-
-    This is the key non-hardcoded path: relation names come from the interface class.
-    """
-    if ontology is None:
-        ontology = get_ontology()
-
-    # Explicit override takes precedence (advanced use / tests that don't want discovery)
-    if relation_names:
-        return _collect_relation_values(candidate, relation_names)
-
-    # Discovery path: find interfaces from the candidate, then read required names from them.
-    claimed_ids = _get_claimed_interface_ids(candidate)
-    discovered_names: list[str] = []
-
-    for iid in claimed_ids:
-        iface = ontology.get(iid)
-        if iface:
-            discovered_names.extend(_get_required_relation_names_from_interface(iface))
-
-    # Dedup
-    seen = set()
-    unique_names = []
-    for n in discovered_names:
-        if n not in seen:
-            seen.add(n)
-            unique_names.append(n)
-
-    if unique_names:
-        return _collect_relation_values(candidate, unique_names)
-
-    # No interfaces discovered and no explicit names given → nothing to check.
-    return {}
-
-
-def _item_matches_requirement(
-    item: Union[Concept, dict],
-    req: dict,
-    ontology: Ontology
-) -> bool:
-    """
-    Does 'item' satisfy one required slot 'req'?
-    Supports:
-      - exact id match
-      - is_a / subclass match when req['is_class'] is True
-      - also checks item.get('isA') / parents on dict nodes
-    """
-    target = req.get("target")
-    if not target:
-        return False
-    t = target.id if isinstance(target, Concept) else target
-
-    # Extract id from item (works for Concept or dict)
-    if isinstance(item, Concept):
-        item_id = item.id
-        item_parents = item.parents or []
-        item_raw = item.raw or {}
-    else:
-        item_id = item.get("id") or item.get("word") or item.get("name")
-        item_parents = item.get("parents", []) or []
-        item_raw = item
-
-    if item_id == t:
-        return True
-
-    # Direct isA on the item itself (runtime annotation or raw data)
-    item_isa = None
-    if isinstance(item_raw, dict):
-        item_isa = item_raw.get("isA") or item_raw.get("isa")
-    if item_isa == t:
-        return True
-
-    # Transitive parent / isA check via ontology
-    if ontology:
-        try:
-            if ontology.is_a(item_id, t):
-                return True
-        except Exception:
-            pass
-
-        # Also try treating the item as a Concept if possible
-        if isinstance(item, Concept):
-            if ontology.is_a(item, t):
-                return True
-
-    # Fallback: check parents list on dict items even without ontology hit
-    if t in item_parents:
-        return True
-
-    return False
-
-
-def check_interface_satisfaction(
-    candidate: Union[Concept, dict],
-    available: list[Union[Concept, dict]],
-    ontology: Optional[Ontology] = None,
-    required_relations: list[str] = None,
-) -> dict:
-    """
-    Core new function: check whether the 'available' items satisfy the
-    interface requirements declared by 'candidate'.
-
-    Relation names are **not hardcoded**. By default they are discovered from
-    the interface class(es) the candidate claims (via parents / isA / implements
-    on the candidate → lookup in ontology → read the interface's "requires" etc.).
-
-    You can still pass `required_relations` explicitly to override discovery.
-
-    If successful, the function annotates the candidate (when mutable dict) with:
-        - "isA": <primary interface id, lowercased for convenience on Recipe>
-        - "satisfied_interfaces": [interface ids...]
-
-    Returns:
-        {
-          "satisfied": bool,
-          "matched": { relation_name: [matched_items...], ... },
-          "missing": [ {"relation": , "requirement": } ... ],
-          "interfaces_checked": [interface ids...]
-        }
-    """
-    if ontology is None:
-        ontology = get_ontology()
-
-    # This now does discovery from the interface class unless required_relations is given
-    requirements = _get_requirements_for_interface(
-        candidate, ontology=ontology, relation_names=required_relations
-    )
-
-    claimed_interfaces = _get_claimed_interface_ids(candidate)
-
-    if not requirements:
-        return {
-            "satisfied": False,
-            "matched": {},
-            "missing": [],
-            "interfaces_checked": claimed_interfaces,
-            "reason": "no requirements declared on discovered interfaces"
-        }
-
-    matched: dict = {}
-    missing = []
-
-    def _requires_external_match(rel_name: str, reqs: list[dict]) -> bool:
-        """
-        Decide whether the values for this relation (as declared on the concrete
-        candidate) must be satisfied by searching the 'available' pool.
-
-        Decision order (all driven by data in the ontology / candidate, no
-        hardcoded relation names in source code):
-        1. Look up the relation declaration in the claimed interface(s) "requires"
-           list. If it carries matchFromAvailable (or declarative), use that.
-        2. If any concrete requirement entry carries an explicit flag, respect it.
-        3. Otherwise fall back to a content heuristic on the target values.
-        """
-        if not reqs:
-            return False
-
-        # 1. Primary: the interface definition for this relation (e.g. hasInstructions
-        #    declared with matchFromAvailable: false means "provided by the recipe itself").
-        for iface_id in claimed_interfaces:
-            iface = ontology.get(iface_id)
-            if not iface:
-                continue
-            for decl in (iface.relations or {}).get("requires", []):
-                if isinstance(decl, dict):
-                    if decl.get("relation") == rel_name or decl.get("name") == rel_name:
-                        if "matchFromAvailable" in decl:
-                            return bool(decl.get("matchFromAvailable"))
-                        if "match_from_available" in decl:
-                            return bool(decl.get("match_from_available"))
-                        if decl.get("declarative") is True:
-                            return False
-                        if decl.get("declarative") is False:
-                            return True
-
-        # 2. Explicit per-requirement flags from the concrete data
-        for r in reqs:
-            raw = r.get("raw") or r
-            if isinstance(raw, dict):
-                explicit = raw.get("matchFromAvailable")
-                if explicit is None:
-                    explicit = raw.get("match_from_available")
-                if explicit is not None:
-                    return bool(explicit)
-
-                if raw.get("declarative") is True:
-                    return False
-                if raw.get("declarative") is False:
-                    return True
-
-        # 3. Content heuristic (no name hardcoding)
-        for r in reqs:
-            raw_t = r.get("target")
-            tgt = (raw_t.id if isinstance(raw_t, Concept) else raw_t) or ""
-            tgt = str(tgt).strip()
-            if not tgt:
-                continue
-            if " " in tgt or any(p in tgt for p in ".!?") or len(tgt) > 35:
-                return False
-            if tgt.replace("-", "").replace("_", "").replace(".", "").isalnum():
-                return True
-
-        return True  # conservative default
-
-    for rel_name, reqs in requirements.items():
-        matched[rel_name] = []
-
-        if not _requires_external_match(rel_name, reqs):
-            # Declarative part of the interface (e.g. hasInstructions) — satisfied by definition
-            matched[rel_name] = [(r.get("target").id if isinstance(r.get("target"), Concept) else r.get("target")) for r in reqs]
-            continue
-
-        for req in reqs:
-            found = None
-            for item in available:
-                if _item_matches_requirement(item, req, ontology):
-                    found = item
-                    break
-            if found is not None:
-                matched[rel_name].append(found)
-            else:
-                missing.append({"relation": rel_name, "requirement": req})
-
-    satisfied = len(missing) == 0
-
-    result = {
-        "satisfied": satisfied,
-        "matched": matched,
-        "missing": missing,
-        "interfaces_checked": claimed_interfaces,
-    }
-
-    if satisfied and isinstance(candidate, dict):
-        # Dynamic annotation based on the actual interfaces we are satisfying
-        for iface_id in claimed_interfaces:
-            candidate.setdefault("satisfied_interfaces", []).append(iface_id)
-            # Convenience for the common Recipe case (and similar)
-            if iface_id.lower() in ("recipe", "recipes"):
-                candidate["isA"] = "recipe"
-
-        # If nothing was claimed but we still satisfied something (explicit relations mode),
-        # fall back to a generic marker so callers/tests have something.
-        if not claimed_interfaces:
-            candidate.setdefault("satisfied_interfaces", []).append("satisfied")
-            # Only set the old "recipe" convenience if the keys look recipe-like
-            if any(k in requirements for k in ("hasIngredients", "hasInstructions")):
-                candidate["isA"] = "recipe"
-
-    return result
-
-
-def apply_interface_satisfaction(
-    tree,
-    extra_available: Optional[list] = None,
-    ontology: Optional[Ontology] = None,
-):
-    """
-    Post-augmentation hook.
-
-    After add_concepts + dependency resolution, this walks the concepts
-    attached to the tree (plus any caller-supplied extra_available nodes)
-    and runs interface satisfaction checks.
-
-    Interface discovery and required relation names come from the ontology
-    classes the candidates claim (parents / isA / implements), not from
-    hardcoded lists in this module.
-
-    Returns the list of nodes (Concept or dict) that successfully satisfied
-    an interface which declares executable content (e.g. hasInstructions).
-    The caller can then pass these to resolve_dependencies to obtain the
-    ordered list of instruction nodes to emit.
-    """
-    if ontology is None:
-        ontology = get_ontology()
-
-    pool: list = list(extra_available) if extra_available else []
-
-    # Collect everything already attached to the tree
-    for leaf in _walk_leaves(tree):
-        for c in leaf.get("concepts", []):
-            if isinstance(c, Concept):
-                pool.append(c)
-        # Also include the leaf itself as a potential runtime node
-        pool.append(leaf)
-
-    # Now look for candidates that declare interface-style requirements
-    # We scan both attached concepts and any rich dict nodes
-    seen_candidates = set()
-    satisfied_executables: list = []
-
-    def check_one(obj):
-        key = id(obj)
-        if key in seen_candidates:
-            return
-        seen_candidates.add(key)
-
-        # Discovery is driven by the interfaces the obj claims (parents/isA/etc.)
-        # No hardcoded relation names here.
-        reqs = _get_requirements_for_interface(obj, ontology=ontology)
-        if not reqs:
-            return
-
-        result = check_interface_satisfaction(obj, pool, ontology=ontology)
-        if result.get("satisfied"):
-            # Does this satisfied node declare executable instructions/steps?
-            # Check all relations that the claimed interfaces declare in "requires"
-            # (KB-driven, not hardcoded to "hasInstructions").
-            has_exec_list = False
-            claimed = _get_claimed_interface_ids(obj)
-            obj_rels = {}
-            if isinstance(obj, Concept):
-                obj_rels = obj.relations or {}
-            elif isinstance(obj, dict):
-                obj_rels = obj.get("relations", {}) or obj.get("requires", {}) or {}
-
-            for iface_id in claimed:
-                iface = ontology.get(iface_id)
-                if not iface:
-                    continue
-                for decl in (iface.relations or {}).get("requires", []):
-                    if isinstance(decl, dict):
-                        rname = decl.get("relation") or decl.get("name")
-                        if rname and obj_rels.get(rname):
-                            has_exec_list = True
-                            break
-                if has_exec_list:
-                    break
-
-            if has_exec_list:
-                satisfied_executables.append(obj)
-
-    # Check attached concepts
-    for leaf in _walk_leaves(tree):
-        for c in leaf.get("concepts", []):
-            if isinstance(c, Concept):
-                check_one(c)
-
-        # Also check the leaf dict itself (it may carry runtime relations)
-        if isinstance(leaf, dict) and _get_requirements_for_interface(leaf, ontology=ontology):
-            check_one(leaf)
-
-    # Also give extra_available items a chance (they may be the ones declaring the contract)
-    for item in (extra_available or []):
-        check_one(item)
-
-    logger.debug("apply_interface_satisfaction completed")
-    return satisfied_executables
-
-
-def resolve_dependencies(
-    node: Union[Concept, dict, str, list],
-    ontology: Optional[Ontology] = None,
-    visited: Optional[set] = None,
-) -> list[Concept]:
-    """
-    Generic recursive resolver for executable content unlocked by requirement satisfaction.
-
-    It reads a node's requires/needs fields (and executable instruction lists such as
-    hasInstructions) and calls itself recursively. The order of the returned list
-    follows the order of the lists in the ontology (the "requirement satisfaction" order).
-
-    - If a node id appears in hasInstructions (or steps/procedure), those nodes are
-      resolved in that sequence.
-    - Standard needs/requires are also followed (so an action could declare further
-      sub-requirements that get resolved before it).
-    - A node is appended to the result only if it has emitters (i.e. it is directly
-      renderable via the existing emitter). This keeps the mechanism shallow and
-      lets the current render/emit do the actual output work.
-
-    This is deliberately generic: Recipe + hasInstructions is only the motivating
-    example. Any interface can declare relations whose values are node ids that
-    become executable once the interface requirements are satisfied.
-    """
-    if ontology is None:
-        ontology = get_ontology()
-
+                node.bindings["subject"] = _display_name(fact)
+                node.bindings["verb"] = _display_name(verb)
+                for entry in _as_list(fact.relations.get(key)):
+                    obj = _target_concept(entry)
+                    if obj is not None:
+                        node.bindings["object"] = _display_name(obj)
+                        return
+                    if isinstance(entry, str) and entry.strip() and "/" not in entry:
+                        node.bindings["object"] = entry.strip().lower()
+                        return
+                return
+    if facts:
+        node.bindings.setdefault("subject", _display_name(facts[0]))
+    if verbs:
+        node.bindings.setdefault("verb", _display_name(verbs[0]))
+    if len(facts) > 1:
+        node.bindings.setdefault("object", _display_name(facts[1]))
+
+
+def emit(graph, visited=None, out=None):
     if visited is None:
-        visited = set()
-
-    # Handle list of starting points (order preserved)
-    if isinstance(node, list):
-        results: list[Concept] = []
-        for n in node:
-            results.extend(resolve_dependencies(n, ontology, visited))
-        return results
-
-    # Resolve string id to Concept
-    if isinstance(node, str):
-        c = ontology.get(node)
-        if not c:
-            return []
-        node = c
-
-    # Support lightweight dict nodes that carry an id (runtime leaves etc.)
-    if isinstance(node, dict):
-        nid = node.get("id")
-        if nid:
-            c = ontology.get(nid)
-            if c:
-                node = c
-            else:
-                # Shallow: if the dict itself carries an emitter we could synthesize,
-                # but for now we expect real registered Concepts for actions.
-                return []
-        else:
-            return []
-
-    if not isinstance(node, Concept):
-        return []
-
-    if node.id in visited:
-        return []
-    visited.add(node.id)
-
-    results: list[Concept] = []
-    rels = node.relations or {}
-
-    # Follow standard requires / needs first (dependencies before the step)
-    for field in ("needs", "requires", "hasParameter"):
-        items = rels.get(field, [])
-        if isinstance(items, (str, dict)):
-            items = [items]
-        for item in items:
-            target = None
-            if isinstance(item, Concept):
-                target = item
-            elif isinstance(item, str):
-                target = item
-            elif isinstance(item, dict):
-                t = item.get("target") or item.get("id")
-                target = t if isinstance(t, (str, Concept)) else None
-            if target:
-                results.extend(resolve_dependencies(target, ontology, visited))
-
-    # Follow *whatever relations the claimed interfaces declare in their "requires"*
-    # (generic, driven by the interface class definition, not hardcoded field names here).
-    # This discovers hasInstructions (the executable steps) etc. from the interface
-    # (e.g. Recipe). The values (node ids) get resolved recursively in list order.
-    claimed = _get_claimed_interface_ids(node)
-    for iface_id in claimed:
-        iface = ontology.get(iface_id)
-        if not iface:
-            continue
-        for decl in (iface.relations or {}).get("requires", []):
-            if isinstance(decl, dict):
-                rname = decl.get("relation") or decl.get("name")
-                if rname:
-                    items = rels.get(rname, [])
-                    if isinstance(items, (str, dict)):
-                        items = [items]
-                    for item in items:
-                        target = None
-                        if isinstance(item, Concept):
-                            target = item
-                        elif isinstance(item, str):
-                            target = item
-                        elif isinstance(item, dict):
-                            t = item.get("target") or item.get("id") or item.get("action")
-                            target = t if isinstance(t, (str, Concept)) else None
-                        if target:
-                            results.extend(resolve_dependencies(target, ontology, visited))
-
-    # If this node itself is directly executable (carries emitters), include it
-    # so the normal render/emit will produce its output line.
-    # Action nodes (the leaves in the instruction lists) will be included here.
-    # High-level nodes like "fried_egg" usually won't have emitters, so they
-    # contribute only their expanded instruction steps.
-    if getattr(node, "emitters", None):
-        results.append(node)
-
-    return results
+        visited = {}
+        logger.info(
+            "emit from root=%s deps=%s",
+            getattr(graph.concept, "id", "?"),
+            [getattr(d.concept, "id", "?") for d in (graph.deps or [])],
+        )
+    if out is None:
+        out = []
+    key = (getattr(graph.concept, "id", "?") or "?") + str(id(graph))
+    if visited.get(key):
+        return out
+    visited[key] = True
+    for d in graph.deps or []:
+        emit(d, visited, out)
+    line = _render(graph.concept, graph.bindings)
+    if line and "{{" not in line:
+        logger.info("emit line from %s: %s", graph.concept.id, line)
+        out.append(line)
+    return out

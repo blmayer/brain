@@ -1,0 +1,56 @@
+{
+  "id": "programming_languages/basic/constructs/print_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "PRINT Statement",
+  "description": "Output values to the console. PRINT A, B$ or PRINT \"hello\".",
+  "keywords": [
+    "print",
+    "prints",
+    "output",
+    "outputs",
+    "display",
+    "show",
+    "write"
+  ],
+  "relations": {
+    "hasParameter": [
+      {
+        "name": "value",
+        "type": "programming_languages/basic/constructs/any_type",
+        "variadic": true
+      }
+    ],
+    "needs": [
+      {
+        "name": "value",
+        "type": "programming_languages/basic/constructs/any_type"
+      }
+    ],
+    "produces": [
+      {
+        "type": "void"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "specializes": [
+      "PrintOperation"
+    ],
+    "hasParent": [
+      {
+        "target": "Statement"
+      }
+    ],
+    "emitOrder": 30
+  },
+  "emitters": [
+    {
+      "id": "basic-print",
+      "target": "basic",
+      "template": "PRINT S"
+    }
+  ]
+}

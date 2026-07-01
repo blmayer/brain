@@ -31,6 +31,38 @@
       {
         "target": "recipes/recipe"
       }
+    ],
+    "produces": [
+      {
+        "target": "recipes/heat_pan"
+      },
+      {
+        "target": "recipes/warm_up"
+      },
+      {
+        "target": "recipes/add_butter"
+      },
+      {
+        "target": "recipes/spread_butter"
+      },
+      {
+        "target": "recipes/add_egg"
+      },
+      {
+        "target": "recipes/add_salt"
+      },
+      {
+        "target": "recipes/add_pepper"
+      },
+      {
+        "target": "recipes/wait"
+      },
+      {
+        "target": "recipes/flip_egg"
+      },
+      {
+        "target": "recipes/turn_off_stove"
+      }
     ]
   },
   "keywords": [

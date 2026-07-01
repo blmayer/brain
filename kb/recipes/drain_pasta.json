@@ -8,8 +8,16 @@
       "template": "drain pasta in a colander"
     }
   ],
-  "keywords": ["drain_pasta", "drain"],
+  "keywords": [
+    "drain_pasta",
+    "drain"
+  ],
   "relations": {
-    "partOf": [{"target": "recipes/recipe"}]
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 90
   }
 }

@@ -8,9 +8,21 @@
       "template": "add pasta to the boiling water"
     }
   ],
-  "keywords": ["add_pasta"],
+  "keywords": [
+    "add_pasta"
+  ],
   "relations": {
-    "needs": [{"name": "pasta", "type": "recipes/pasta"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "pasta",
+        "type": "recipes/pasta"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 20
   }
 }

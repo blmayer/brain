@@ -3,10 +3,27 @@
   "kind": "ACTION",
   "name": "Tie Knot",
   "description": "Tie a secure knot with string or rope.",
-  "emitters": [{"template": "tie a secure knot"}],
-  "keywords": ["tie_knot", "tie"],
+  "emitters": [
+    {
+      "template": "tie a secure knot"
+    }
+  ],
+  "keywords": [
+    "tie_knot",
+    "tie"
+  ],
   "relations": {
-    "needs": [{"name": "string", "type": "crafts/string"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "string",
+        "type": "crafts/string"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 30
   }
 }

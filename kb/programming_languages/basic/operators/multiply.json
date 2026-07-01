@@ -1,0 +1,43 @@
+{
+  "id": "programming_languages/basic/operators/multiply",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Multiply two numbers (BASIC)",
+  "keywords": [
+    "multiply",
+    "times",
+    "*",
+    "multiplication",
+    "product"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "a",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "b",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "produces": [
+      {
+        "name": "result",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "emitOrder": 20
+  },
+  "emitters": [
+    {
+      "id": "basic-mul",
+      "target": "basic",
+      "template": "LET S = A * B"
+    }
+  ]
+}

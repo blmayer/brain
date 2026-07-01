@@ -3,9 +3,21 @@
   "kind": "ACTION",
   "name": "Drill Holes",
   "description": "Drill pilot holes for screws or dowels.",
-  "emitters": [{"template": "drill pilot holes at marked positions"}],
-  "keywords": ["drill_holes", "drill"],
+  "emitters": [
+    {
+      "template": "drill pilot holes at marked positions"
+    }
+  ],
+  "keywords": [
+    "drill_holes",
+    "drill"
+  ],
   "relations": {
-    "partOf": [{"target": "crafts/project"}]
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 40
   }
 }

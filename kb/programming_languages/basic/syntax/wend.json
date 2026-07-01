@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/wend",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "WEND",
+  "description": "WEND loop terminator",
+  "keywords": ["wend", "WEND"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

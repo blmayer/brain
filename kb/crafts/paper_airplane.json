@@ -5,7 +5,10 @@
   "description": "A simple paper airplane folded from a single sheet of paper.",
   "relations": {
     "hasMaterials": [
-      {"target": "crafts/paper", "type": "Material"}
+      {
+        "target": "crafts/paper",
+        "type": "Material"
+      }
     ],
     "hasSteps": [
       "crafts/fold_paper",
@@ -14,9 +17,25 @@
       "crafts/fold_paper"
     ],
     "hasParent": [
-      {"target": "crafts/project"}
+      {
+        "target": "crafts/project"
+      }
     ],
-    "isA": "paper craft"
+    "isA": "paper craft",
+    "produces": [
+      {
+        "target": "crafts/fold_paper"
+      },
+      {
+        "target": "crafts/fold_paper"
+      },
+      {
+        "target": "crafts/fold_paper"
+      },
+      {
+        "target": "crafts/fold_paper"
+      }
+    ]
   },
   "keywords": [
     "paper airplane",

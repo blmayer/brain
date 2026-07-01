@@ -1,0 +1,17 @@
+{
+  "id": "programming_languages/basic/constructs/rem_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "REM Statement",
+  "description": "Comment / remark line ignored at runtime.",
+  "keywords": ["rem", "remark", "comment"],
+  "relations": {
+    "hasParameter": [
+      {"name": "text", "type": "programming_languages/basic/constructs/string_type"}
+    ],
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}]
+  },
+  "emitters": [
+    {"id": "basic-rem", "target": "basic", "template": "REM {{text}}"}
+  ]
+}

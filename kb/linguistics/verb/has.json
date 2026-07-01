@@ -1,0 +1,18 @@
+{
+  "id": "linguistics/verb/has",
+  "kind": "VERB",
+  "name": "has",
+  "description": "Connector verb realizing possession / has edges in the KB graph.",
+  "relations": {
+    "expresses": [
+      "has",
+      "hasParts",
+      "has_parts"
+    ]
+  },
+  "keywords": [
+    "has",
+    "have",
+    "having"
+  ]
+}

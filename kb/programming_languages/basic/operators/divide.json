@@ -1,0 +1,42 @@
+{
+  "id": "programming_languages/basic/operators/divide",
+  "kind": "PLAN_TEMPLATE",
+  "name": "Divide two numbers (BASIC)",
+  "keywords": [
+    "divide",
+    "division",
+    "/",
+    "quotient"
+  ],
+  "relations": {
+    "needs": [
+      {
+        "name": "a",
+        "type": "programming_languages/basic/constructs/number_type"
+      },
+      {
+        "name": "b",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "produces": [
+      {
+        "name": "result",
+        "type": "programming_languages/basic/constructs/number_type"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "emitOrder": 20
+  },
+  "emitters": [
+    {
+      "id": "basic-div",
+      "target": "basic",
+      "template": "LET S = A / B"
+    }
+  ]
+}

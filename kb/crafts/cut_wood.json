@@ -3,10 +3,27 @@
   "kind": "ACTION",
   "name": "Cut Wood",
   "description": "Cut the wood to the required dimensions.",
-  "emitters": [{"template": "cut wood to the required dimensions"}],
-  "keywords": ["cut_wood", "saw"],
+  "emitters": [
+    {
+      "template": "cut wood to the required dimensions"
+    }
+  ],
+  "keywords": [
+    "cut_wood",
+    "saw"
+  ],
   "relations": {
-    "needs": [{"name": "wood", "type": "crafts/wood"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "wood",
+        "type": "crafts/wood"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 20
   }
 }

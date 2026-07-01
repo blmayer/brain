@@ -1,0 +1,20 @@
+{
+  "id": "programming_languages/basic/constructs/goto_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "GOTO Statement",
+  "description": "Unconditional jump to a line number: GOTO 100.",
+  "keywords": ["goto", "jump", "branch"],
+  "relations": {
+    "hasParameter": [
+      {"name": "line", "type": "programming_languages/basic/constructs/line_number"}
+    ],
+    "needs": [
+      {"name": "line", "type": "programming_languages/basic/constructs/line_number"}
+    ],
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {"id": "basic-goto", "target": "basic", "template": "GOTO {{line}}"}
+  ]
+}

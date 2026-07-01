@@ -8,9 +8,22 @@
       "template": "bring water to a boil in a pot"
     }
   ],
-  "keywords": ["boil_water", "boil"],
+  "keywords": [
+    "boil_water",
+    "boil"
+  ],
   "relations": {
-    "needs": [{"name": "water", "type": "recipes/water"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "water",
+        "type": "recipes/water"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 10
   }
 }

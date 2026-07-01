@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/let",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "LET",
+  "description": "LET keyword / optional assignment introducer",
+  "keywords": ["let", "LET"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}

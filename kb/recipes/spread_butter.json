@@ -11,5 +11,7 @@
   "keywords": [
     "spread_butter"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 40
+  }
 }

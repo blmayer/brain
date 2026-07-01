@@ -10,11 +10,6 @@
     "specializes": [
       "recipes/recipe"
     ],
-    "hasParent": [
-      {
-        "target": "linguistics/answer"
-      }
-    ],
     "isA": [
       "established way of doing something, a series of actions"
     ]

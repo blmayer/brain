@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/constructs/any_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Any",
+  "description": "Any BASIC value (number or string).",
+  "keywords": ["any"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "programming_languages/basic/constructs/type"}]
+  }
+}

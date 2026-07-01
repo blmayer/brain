@@ -1,0 +1,28 @@
+{
+  "id": "programming_languages/basic",
+  "kind": "FACT",
+  "name": "BASIC",
+  "description": "Minimal Beginner's All-purpose Symbolic Instruction Code: line-oriented statements, LET, PRINT, INPUT, control flow.",
+  "keywords": ["basic", "BASIC"],
+  "relations": {
+    "hasParent": [{"target": "programming"}],
+    "isA": ["programming language", "interpreted language", "line-oriented language"],
+    "has": ["line numbers", "dynamic typing", "interactive interpreter"],
+    "hasParts": [
+      "programming_languages/basic/constructs/let_statement",
+      "programming_languages/basic/constructs/print_statement",
+      "programming_languages/basic/constructs/input_statement",
+      "programming_languages/basic/constructs/if_then_statement",
+      "programming_languages/basic/constructs/for_next_statement",
+      "programming_languages/basic/constructs/while_wend_statement",
+      "programming_languages/basic/constructs/goto_statement",
+      "programming_languages/basic/constructs/gosub_statement",
+      "programming_languages/basic/constructs/return_statement",
+      "programming_languages/basic/constructs/rem_statement",
+      "programming_languages/basic/constructs/end_statement",
+      "programming_languages/basic/constructs/dim_statement",
+      "programming_languages/basic/constructs/read_statement",
+      "programming_languages/basic/constructs/data_statement"
+    ]
+  }
+}

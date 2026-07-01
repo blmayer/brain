@@ -1,0 +1,14 @@
+{
+  "id": "programming_languages/basic/constructs/return_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "RETURN Statement",
+  "description": "Return from a GOSUB subroutine to the statement after the call.",
+  "keywords": ["return"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}, {"target": "ControlFlowStatement"}]
+  },
+  "emitters": [
+    {"id": "basic-return", "target": "basic", "template": "RETURN"}
+  ]
+}

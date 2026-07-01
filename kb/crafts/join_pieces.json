@@ -3,10 +3,29 @@
   "kind": "ACTION",
   "name": "Join Pieces",
   "description": "Join the pieces together using fasteners or glue.",
-  "emitters": [{"template": "join pieces together securely"}],
-  "keywords": ["join_pieces", "join", "attach", "assemble"],
+  "emitters": [
+    {
+      "template": "join pieces together securely"
+    }
+  ],
+  "keywords": [
+    "join_pieces",
+    "join",
+    "attach",
+    "assemble"
+  ],
   "relations": {
-    "needs": [{"name": "fastener", "type": "crafts/fastener"}],
-    "partOf": [{"target": "crafts/project"}]
+    "needs": [
+      {
+        "name": "fastener",
+        "type": "crafts/fastener"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "crafts/project"
+      }
+    ],
+    "emitOrder": 50
   }
 }

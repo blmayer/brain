@@ -8,9 +8,22 @@
       "template": "toast the bread slices"
     }
   ],
-  "keywords": ["toast_bread", "toast"],
+  "keywords": [
+    "toast_bread",
+    "toast"
+  ],
   "relations": {
-    "needs": [{"name": "bread", "type": "recipes/bread"}],
-    "partOf": [{"target": "recipes/recipe"}]
+    "needs": [
+      {
+        "name": "bread",
+        "type": "recipes/bread"
+      }
+    ],
+    "partOf": [
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "emitOrder": 40
   }
 }

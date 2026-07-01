@@ -5,11 +5,27 @@
   "description": "A basic garden salad with lettuce, tomato, and onion.",
   "relations": {
     "hasIngredients": [
-      {"target": "recipes/lettuce", "type": "Ingredient"},
-      {"target": "recipes/tomato", "type": "Ingredient"},
-      {"target": "recipes/onion", "type": "Ingredient"},
-      {"target": "recipes/oil", "type": "Ingredient"},
-      {"target": "recipes/spice", "type": "Spice", "isClass": true}
+      {
+        "target": "recipes/lettuce",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/tomato",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/onion",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/oil",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/spice",
+        "type": "Spice",
+        "isClass": true
+      }
     ],
     "hasInstructions": [
       "recipes/chop_vegetables",
@@ -19,7 +35,26 @@
       "recipes/serve"
     ],
     "hasParent": [
-      {"target": "recipes/recipe"}
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "produces": [
+      {
+        "target": "recipes/chop_vegetables"
+      },
+      {
+        "target": "recipes/toss_salad"
+      },
+      {
+        "target": "recipes/add_salt"
+      },
+      {
+        "target": "recipes/add_pepper"
+      },
+      {
+        "target": "recipes/serve"
+      }
     ]
   },
   "keywords": [

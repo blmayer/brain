@@ -1,0 +1,27 @@
+{
+  "id": "programming_languages/basic/constructs/number_type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Number",
+  "description": "BASIC numeric value (integer or floating point, depending on dialect).",
+  "keywords": [
+    "number",
+    "numbers",
+    "numeric",
+    "integer",
+    "integers",
+    "float"
+  ],
+  "relations": {
+    "partOf": [
+      {
+        "target": "programming_languages/basic"
+      }
+    ],
+    "isA": "numeric type",
+    "hasParent": [
+      {
+        "target": "programming_languages/basic/constructs/type"
+      }
+    ]
+  }
+}

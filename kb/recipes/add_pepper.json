@@ -11,5 +11,7 @@
   "keywords": [
     "add_pepper"
   ],
-  "relations": {}
+  "relations": {
+    "emitOrder": 40
+  }
 }

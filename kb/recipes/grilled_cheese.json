@@ -5,9 +5,18 @@
   "description": "A classic grilled cheese sandwich with bread, cheese, and butter.",
   "relations": {
     "hasIngredients": [
-      {"target": "recipes/bread", "type": "Ingredient"},
-      {"target": "recipes/cheese", "type": "Ingredient"},
-      {"target": "recipes/butter", "type": "Ingredient"}
+      {
+        "target": "recipes/bread",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/cheese",
+        "type": "Ingredient"
+      },
+      {
+        "target": "recipes/butter",
+        "type": "Ingredient"
+      }
     ],
     "hasInstructions": [
       "recipes/heat_pan",
@@ -21,7 +30,38 @@
       "recipes/serve"
     ],
     "hasParent": [
-      {"target": "recipes/recipe"}
+      {
+        "target": "recipes/recipe"
+      }
+    ],
+    "produces": [
+      {
+        "target": "recipes/heat_pan"
+      },
+      {
+        "target": "recipes/add_butter"
+      },
+      {
+        "target": "recipes/spread_butter"
+      },
+      {
+        "target": "recipes/toast_bread"
+      },
+      {
+        "target": "recipes/add_cheese"
+      },
+      {
+        "target": "recipes/toast_bread"
+      },
+      {
+        "target": "recipes/flip_egg"
+      },
+      {
+        "target": "recipes/wait"
+      },
+      {
+        "target": "recipes/serve"
+      }
     ]
   },
   "keywords": [

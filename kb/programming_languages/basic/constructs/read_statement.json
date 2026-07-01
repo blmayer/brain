@@ -1,0 +1,23 @@
+{
+  "id": "programming_languages/basic/constructs/read_statement",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "READ Statement",
+  "description": "Read the next value(s) from DATA into variables.",
+  "keywords": ["read", "reads"],
+  "relations": {
+    "hasParameter": [
+      {"name": "name", "type": "programming_languages/basic/constructs/identifier"}
+    ],
+    "needs": [
+      {"name": "name", "type": "programming_languages/basic/constructs/identifier"}
+    ],
+    "produces": [
+      {"name": "result", "type": "programming_languages/basic/constructs/any_type"}
+    ],
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Statement"}]
+  },
+  "emitters": [
+    {"id": "basic-read", "target": "basic", "template": "READ {{name}}"}
+  ]
+}

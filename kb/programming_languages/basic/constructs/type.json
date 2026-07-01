@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/constructs/type",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "Type",
+  "description": "Abstract BASIC value type (numbers and strings dominate classic BASIC).",
+  "keywords": ["type"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Type"}]
+  }
+}

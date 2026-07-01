@@ -1,0 +1,11 @@
+{
+  "id": "programming_languages/basic/syntax/else",
+  "kind": "SYNTACTIC_CONSTRUCT",
+  "name": "ELSE",
+  "description": "ELSE keyword",
+  "keywords": ["else", "ELSE"],
+  "relations": {
+    "partOf": [{"target": "programming_languages/basic"}],
+    "hasParent": [{"target": "Keyword"}]
+  }
+}
